@@ -65,7 +65,10 @@
             </div>
           </div>
       
-          <button id="processBtn" class="btn-primary">开始处理</button>
+          <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
+            <button id="processBtn" class="btn-primary">开始处理</button> <!-- Removed flex-grow: 1 -->
+            <button id="clearPdfResizeFormBtn" class="btn-secondary" style="margin-left: 10px;">清空</button>
+          </div>
           <div id="result"></div>
 <div id="pdfResizePostProcessActions" style="margin-top: 10px; display: none;">
             <button id="pdfResizeOpenGeneratedFileBtn" class="action-button">打开文件</button>
@@ -126,7 +129,10 @@
             </div>
           </div>
 
-          <button id="generateSheinLabelBtn" class="btn-primary">生成 Shein Label</button>
+          <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
+            <button id="generateSheinLabelBtn" class="btn-primary">生成 Shein Label</button> <!-- Removed flex-grow: 1 -->
+            <button id="clearSheinLabelFormBtn" class="btn-secondary" style="margin-left: 10px;">清空</button>
+          </div>
           <div id="sheinResult"></div>
           <div id="sheinPostProcessActions" style="margin-top: 10px; display: none;">
             <button id="openGeneratedFileBtn" class="action-button">打开文件</button>
@@ -655,8 +661,78 @@
       }
       // If resultDiv was used for a "processing..." message and not overwritten by success/failure,
       // it might need clearing here. However, current logic for success/failure does update resultDiv or hides it.
-}
+    }
     })
+
+    // PDF Resize View - Clear Form Button
+    const clearPdfResizeFormBtn = document.getElementById('clearPdfResizeFormBtn');
+    if (clearPdfResizeFormBtn) {
+      clearPdfResizeFormBtn.addEventListener('click', async () => {
+        // Clear file selection
+        selectedFilePath = '';
+        updateFileSelectionUI(selectedFilePath, 'selectedFile');
+        appSettings.pdfResizeSelectedPath = '';
+        const openFileButton = document.getElementById('openFile');
+        const selectedFileErrorEl = document.getElementById('selectedFileError');
+        if (openFileButton) openFileButton.classList.remove('input-error');
+        if (selectedFileErrorEl) {
+          selectedFileErrorEl.textContent = '';
+          selectedFileErrorEl.style.display = 'none';
+        }
+
+        // Clear output name
+        const pdfResizeOutputNameInput = document.getElementById('pdfResizeOutputName');
+        if (pdfResizeOutputNameInput) pdfResizeOutputNameInput.value = '';
+        appSettings.pdfResizeOutputName = '';
+
+        // Reset page size
+        const pageSizeSelect = document.getElementById('pageSize');
+        if (pageSizeSelect) pageSizeSelect.value = 'Shein'; // Default to Shein
+        appSettings.pageSize = 'Shein';
+        const customSizeEl = document.getElementById('customSize');
+        if (customSizeEl) customSizeEl.style.display = 'none';
+        
+        // Clear custom dimensions and their errors
+        const customWidthInput = document.getElementById('customWidth');
+        const customHeightInput = document.getElementById('customHeight');
+        const customWidthErrorEl = document.getElementById('customWidthError');
+        const customHeightErrorEl = document.getElementById('customHeightError');
+        if (customWidthInput) {
+          customWidthInput.value = '';
+          customWidthInput.classList.remove('input-error');
+        }
+        if (customWidthErrorEl) {
+          customWidthErrorEl.textContent = '';
+          customWidthErrorEl.style.display = 'none';
+        }
+        appSettings.customWidth = '';
+
+        if (customHeightInput) {
+          customHeightInput.value = '';
+          customHeightInput.classList.remove('input-error');
+        }
+        if (customHeightErrorEl) {
+          customHeightErrorEl.textContent = '';
+          customHeightErrorEl.style.display = 'none';
+        }
+        appSettings.customHeight = '';
+
+        // Clear result and post-process actions
+        const resultDiv = document.getElementById('result');
+        if (resultDiv) {
+          resultDiv.innerHTML = '';
+          resultDiv.className = '';
+          resultDiv.style.display = 'none';
+        }
+        if (pdfResizePostProcessActionsDiv) {
+          pdfResizePostProcessActionsDiv.style.display = 'none';
+        }
+        currentGeneratedPdfResizePath = '';
+
+        await window.electronAPI.saveSettings(appSettings);
+        showToast('PDF 尺寸调整表单已清空', 'info');
+      });
+    }
 
     // Event listeners for PDF Resize Post-Process Actions
     if (pdfResizeOpenGeneratedFileBtn) {
@@ -1106,6 +1182,87 @@
           generateSheinLabelBtn.classList.remove('processing'); // Remove processing class
         }
       });
+
+    // Shein Label View - Clear Form Button
+    const clearSheinLabelFormBtn = document.getElementById('clearSheinLabelFormBtn');
+    if (clearSheinLabelFormBtn) {
+      clearSheinLabelFormBtn.addEventListener('click', async () => {
+        // Clear file selections
+        selectedSheinPdf1Path = '';
+        updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
+        appSettings.sheinEcRepPdfPath = '';
+        const sheinOpenFile1Button = document.getElementById('sheinOpenFile1Btn');
+        const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
+        if (sheinOpenFile1Button) sheinOpenFile1Button.classList.remove('input-error');
+        if (sheinSelectedFile1ErrorEl) {
+          sheinSelectedFile1ErrorEl.textContent = '';
+          sheinSelectedFile1ErrorEl.style.display = 'none';
+        }
+
+        selectedSheinPdf2Path = '';
+        updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
+        appSettings.sheinBarcodePdfPath = '';
+        const sheinOpenFile2Button = document.getElementById('sheinOpenFile2Btn');
+        const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
+        if (sheinOpenFile2Button) sheinOpenFile2Button.classList.remove('input-error');
+        if (sheinSelectedFile2ErrorEl) {
+          sheinSelectedFile2ErrorEl.textContent = '';
+          sheinSelectedFile2ErrorEl.style.display = 'none';
+        }
+
+        // Clear output name
+        if (sheinOutputNameInput) sheinOutputNameInput.value = '';
+        appSettings.sheinOutputName = '';
+
+        // Reset output page size and custom dimensions
+        if (sheinOutputPageSizeSelect) sheinOutputPageSizeSelect.value = 'Shein'; // Default to Shein
+        appSettings.sheinOutputPageSize = 'Shein';
+        if (sheinOutputCustomDimensionsDiv) sheinOutputCustomDimensionsDiv.style.display = 'none';
+        
+        if (sheinOutputWidthInput) {
+          sheinOutputWidthInput.value = '70'; // Default Shein width
+          sheinOutputWidthInput.classList.remove('input-error');
+        }
+        appSettings.sheinOutputWidth = '70';
+        const sheinOutputWidthErrorEl = document.getElementById('sheinOutputWidthError');
+        if (sheinOutputWidthErrorEl) {
+          sheinOutputWidthErrorEl.textContent = '';
+          sheinOutputWidthErrorEl.style.display = 'none';
+        }
+
+        if (sheinOutputHeightInput) {
+          sheinOutputHeightInput.value = '60'; // Default Shein height
+          sheinOutputHeightInput.classList.remove('input-error');
+        }
+        appSettings.sheinOutputHeight = '60';
+        const sheinOutputHeightErrorEl = document.getElementById('sheinOutputHeightError');
+        if (sheinOutputHeightErrorEl) {
+          sheinOutputHeightErrorEl.textContent = '';
+          sheinOutputHeightErrorEl.style.display = 'none';
+        }
+        
+        // Trigger change on select to update UI correctly (e.g., hide custom dimensions)
+        if (sheinOutputPageSizeSelect) {
+            const event = new Event('change', { bubbles: true });
+            sheinOutputPageSizeSelect.dispatchEvent(event);
+        }
+
+
+        // Clear result and post-process actions
+        if (sheinResultDiv) {
+          sheinResultDiv.innerHTML = '';
+          sheinResultDiv.className = '';
+          sheinResultDiv.style.display = 'none';
+        }
+        if (sheinPostProcessActionsDiv) {
+          sheinPostProcessActionsDiv.style.display = 'none';
+        }
+        currentGeneratedSheinLabelPath = '';
+
+        await window.electronAPI.saveSettings(appSettings);
+        showToast('Shein Label 生成表单已清空', 'info');
+      });
+    }
     }
     // --- End Shein Label Feature ---
 

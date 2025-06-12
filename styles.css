@@ -289,6 +289,7 @@ button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled sepa
   background-color: var(--primary-color);
   color: var(--text-on-primary-color);
   border-color: var(--primary-color);
+  min-width: 160px;
   font-weight: 600;
 }
 .btn-primary:hover {
@@ -458,8 +459,6 @@ body.dark-mode .file-select-status-span.file-selected-badge {
 #processBtn,
 #generateSheinLabelBtn {
   display: block;
-  width: 100%;
-  margin-top: 20px; /* Reduced margin for main action buttons */
   padding: 12px 22px; /* Slightly reduced padding */
   font-size: 1em;
   font-weight: 600; /* Less heavy */
@@ -707,8 +706,6 @@ body.dark-mode .dimension-inputs-container .input-group .unit { /* Replaced #cus
 /* Process Button */
 #processBtn {
   display: block;
-  width: 100%;
-  margin-top: 25px; /* More space above process button */
   /* background-color, color, font-weight, text-transform, letter-spacing are now handled by .btn-primary or general button style */
   /* Retain specific font-weight or text-transform if desired, or let .btn-primary define it */
   font-weight: 700; /* Keep if specifically bolder than other .btn-primary */
@@ -721,8 +718,6 @@ body.dark-mode .dimension-inputs-container .input-group .unit { /* Replaced #cus
 
 #generateSheinLabelBtn {
   display: block;
-  width: 100%;
-  margin-top: 20px; /* Consistent with #processBtn and general rule */
   /* Inherits .btn-primary styles for color, padding, etc. */
   font-weight: 700; /* Match #processBtn */
   text-transform: uppercase; /* Match #processBtn */
