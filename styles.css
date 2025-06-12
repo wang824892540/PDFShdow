@@ -239,8 +239,8 @@ body.dark-mode {
 
 /* Sections within views */
 .section {
-  margin-bottom: 24px; /* Reduced margin */
-  padding: 20px; /* Reduced padding */
+  margin-bottom: 18px; /* Further reduced margin for compactness */
+  padding: 18px;       /* Further reduced padding for compactness */
   background-color: var(--container-bg-color-original);
   border: 1px solid var(--border-color-soft); /* Softer border */
   border-radius: var(--border-radius-lg); /* Kept large radius for cards */
@@ -254,7 +254,7 @@ body.dark-mode {
 /* Labels */
 label {
   display: block;
-  margin-bottom: 8px; /* Reduced margin */
+  margin-bottom: 6px; /* Further reduced margin */
   font-weight: 500;
   color: var(--text-color-muted); /* Muted color for labels */
   font-size: 0.9em; /* Slightly smaller */
@@ -342,7 +342,7 @@ input[type="text"],
 input[type="number"],
 select {
 padding: 10px 14px; /* Consistent padding */
-margin-bottom: 12px; /* Consistent margin */
+margin-bottom: 10px; /* Reduced margin */
 border: 1px solid var(--border-color-strong);
 border-radius: var(--border-radius-md);
 box-sizing: border-box;
@@ -413,7 +413,7 @@ select:focus {
 .section > .field-wrapper:has(button.btn-primary + .file-select-status-span) {
   display: flex;
   align-items: center;
-  gap: 12px; /* Gap between button and status span */
+  gap: 10px; /* Slightly reduced gap */
 }
 
 .file-select-status-span {
@@ -459,7 +459,7 @@ body.dark-mode .file-select-status-span.file-selected-badge {
 #generateSheinLabelBtn {
   display: block;
   width: 100%;
-  margin-top: 24px; /* Reduced margin */
+  margin-top: 20px; /* Reduced margin for main action buttons */
   padding: 12px 22px; /* Slightly reduced padding */
   font-size: 1em;
   font-weight: 600; /* Less heavy */
@@ -722,7 +722,7 @@ body.dark-mode .dimension-inputs-container .input-group .unit { /* Replaced #cus
 #generateSheinLabelBtn {
   display: block;
   width: 100%;
-  margin-top: 25px; /* Consistent with #processBtn */
+  margin-top: 20px; /* Consistent with #processBtn and general rule */
   /* Inherits .btn-primary styles for color, padding, etc. */
   font-weight: 700; /* Match #processBtn */
   text-transform: uppercase; /* Match #processBtn */
