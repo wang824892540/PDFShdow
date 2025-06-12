@@ -16,10 +16,10 @@ html {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  line-height: 1.65;
+  line-height: 1.7; /* Increased for better readability */
   background-color: var(--page-bg);
   color: var(--text-color);
-  padding: 20px; /* Creates space around the .app-layout */
+  padding: 24px; /* Slightly increased padding around the app */
   transition: background-color 0.3s ease, color 0.3s ease;
   min-height: 100vh;
   overflow-x: hidden; /* Prevent horizontal scroll on body */
@@ -28,111 +28,111 @@ body {
 /* CSS Variables - New Theme */
 :root {
   /* Original color variables from before "flashy" theme */
-  --app-bg: #f0f2f5; /* This was the overall app background */
+  --app-bg: #f4f6f8; /* Slightly softer app background */
   --sidebar-bg-color: #ffffff;
-  --main-content-bg-color: #f0f2f5;
+  --main-content-bg-color: #f4f6f8;
   --container-bg-color-original: #ffffff; /* For inner content boxes, like sections */
   
-  --primary-color: #007bff; /* Original Blue */
-  --primary-color-hover: #0069d9; /* Darker blue for hover */
-  --primary-color-active: #0056b3; /* Even darker for active */
+  --primary-color: #0077cc; /* Slightly adjusted primary blue */
+  --primary-color-hover: #0066bb;
+  --primary-color-active: #0055aa;
 
-  --text-color: #212529; /* Original text color */
-  --text-color-muted: #6c757d; /* Original muted text color */
-  --text-on-primary-color: #ffffff; /* Text on primary buttons */
+  --text-color: #333333; /* Darker, more modern text */
+  --text-color-muted: #767676; /* Softer muted text */
+  --text-on-primary-color: #ffffff;
 
-  --border-color-soft: #dee2e6; /* Original soft border */
-  --border-color-strong: #ced4da; /* Original stronger border (e.g., for inputs) */
+  --border-color-soft: #e0e0e0; /* Softer border */
+  --border-color-strong: #cccccc; /* Softer strong border */
   
   --input-bg: #ffffff;
-  --input-focus-ring: rgba(0, 123, 255, 0.25); /* Blue focus ring */
+  --input-focus-ring: rgba(0, 119, 204, 0.2); /* Adjusted focus ring */
 
-  /* Variables for nav links from original theme */
-  --nav-link-color: #495057;
-  --nav-link-hover-bg: #e9ecef;
-  --nav-link-hover-color: #0056b3;
-  --nav-link-active-text: #ffffff; /* Kept from flashy, same as original */
+  /* Variables for nav links */
+  --nav-link-color: #555555;
+  --nav-link-hover-bg: #f0f0f0;
+  --nav-link-hover-color: var(--primary-color-hover);
+  --nav-link-active-text: #ffffff;
 
-  /* Secondary button colors (derived from original theme's look for .action-button) */
-  --button-secondary-bg: #f8f9fa; /* Light gray, similar to original body */
-  --button-secondary-text: #212529; /* Dark text */
-  --button-secondary-hover-bg: #e2e6ea; /* Slightly darker gray */
-  --button-secondary-border: #ced4da; /* Standard border */
+  /* Secondary button colors */
+  --button-secondary-bg: #e9ecef;
+  --button-secondary-text: #333333;
+  --button-secondary-hover-bg: #dce0e3;
+  --button-secondary-border: #ced4da;
   
-  /* Shadow and border-radius variables from "flashy" theme can be kept as they are structural */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* Shadow and border-radius variables */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05); /* Softer shadows */
+  --shadow-md: 0 3px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 16px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 
-  --border-radius-sm: 6px;
-  --border-radius-md: 8px;
-  --border-radius-lg: 12px;
-  --border-radius-xl: 16px; /* For app layout */
+  --border-radius-sm: 4px;  /* Slightly smaller for a sharper look */
+  --border-radius-md: 6px;
+  --border-radius-lg: 10px;
+  --border-radius-xl: 12px;
 
-  /* Page background variable (new concept, but map to original body bg) */
-  --page-bg: #f8f9fa;
+  /* Page background variable */
+  --page-bg: #f8f9fa; /* Kept light for overall page */
 
   /* Error Colors */
-  --error-text-color: #721c24; /* Dark red for text on light backgrounds */
-  --error-border-color: #dc3545; /* Standard danger red for borders */
-  --error-focus-ring: rgba(220, 53, 69, 0.25); /* Red focus ring */
+  --error-text-color: #c0392b; /* More modern red */
+  --error-border-color: #e74c3c;
+  --error-focus-ring: rgba(231, 76, 60, 0.25);
 }
 
 body.dark-mode {
   /* Original dark mode color variables */
-  --app-bg: #0d1117; /* This was the overall app background */
-  --sidebar-bg-color: #161b22; /* Mapped to --sidebar-bg */
-  --main-content-bg-color: #0d1117;
-  --container-bg-color-original: #161b22; /* Mapped to --section-bg */
+  --app-bg: #1a1a1a; /* Darker app background */
+  --sidebar-bg-color: #232323;
+  --main-content-bg-color: #1a1a1a;
+  --container-bg-color-original: #232323;
 
-  --primary-color: #1f6feb; /* Original Dark Blue */
-  --primary-color-hover: #1c64d6; /* Darker blue for hover */
-  --primary-color-active: #1a5abf; /* Even darker for active */
+  --primary-color: #0088dd; /* Brighter blue for dark mode */
+  --primary-color-hover: #0077cc;
+  --primary-color-active: #0066bb;
   
-  --text-color: #e0e0e0; /* Original dark mode text */
-  --text-color-muted: #adb5bd; /* Original dark mode muted text */
+  --text-color: #e6e6e6; /* Lighter text */
+  --text-color-muted: #999999;
   /* --text-on-primary-color: #ffffff; remains same */
 
-  --border-color-soft: #30363d; /* Mapped to --border-color */
-  --border-color-strong: #495057; /* Mapped to --border-color-strong */
+  --border-color-soft: #3a3a3a;
+  --border-color-strong: #555555;
 
-  --input-bg: #2b2b2b; /* Original dark input bg */
-  --input-focus-ring: rgba(31, 111, 235, 0.35); /* Blue focus ring for dark */
+  --input-bg: #2c2c2c;
+  --input-focus-ring: rgba(0, 136, 221, 0.3);
 
-  /* Variables for nav links from original theme */
-  --nav-link-color: #c9d1d9;
-  --nav-link-hover-bg: #21262d;
-  --nav-link-hover-color: #58a6ff;
+  /* Variables for nav links */
+  --nav-link-color: #bbbbbb;
+  --nav-link-hover-bg: #333333;
+  --nav-link-hover-color: var(--primary-color-hover);
   /* --nav-link-active-text: #ffffff; remains same */
 
   /* Secondary button colors for dark mode */
-  --button-secondary-bg: #212529; /* Dark gray */
-  --button-secondary-text: #e0e0e0; /* Light text */
-  --button-secondary-hover-bg: #343a40; /* Slightly lighter dark gray */
-  --button-secondary-border: #495057; /* Dark border */
+  --button-secondary-bg: #333333;
+  --button-secondary-text: #e6e6e6;
+  --button-secondary-hover-bg: #404040;
+  --button-secondary-border: #555555;
 
-  /* Shadow and border-radius variables from "flashy" theme can be kept */
-  /* --shadow-sm, --shadow-md, --shadow-lg are defined in :root and then overridden here if needed */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+  /* Shadow and border-radius variables */
+  /* Using the same softer shadows, but they will appear different on dark bg */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.15); /* Slightly more pronounced for dark */
+  --shadow-md: 0 3px 6px -1px rgba(0, 0, 0, 0.18), 0 2px 4px -1px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 16px -3px rgba(0, 0, 0, 0.20), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
   
-  /* Page background variable (new concept, but map to original body bg) */
-  --page-bg: #121212;
+  /* Page background variable */
+  --page-bg: #121212; /* Kept very dark for overall page */
 
   /* Error Colors for Dark Mode */
-  --error-text-color: #f8d7da; /* Light pink/red for text on dark backgrounds */
-  --error-border-color: #e57373; /* Brighter red for borders in dark mode */
-  --error-focus-ring: rgba(229, 115, 115, 0.35); /* Red focus ring for dark mode */
+  --error-text-color: #ff7675; /* Brighter, more accessible red text */
+  --error-border-color: #d63031;
+  --error-focus-ring: rgba(214, 48, 49, 0.35);
 }
 
 /* App Layout */
 .app-layout {
   display: flex;
-  height: calc(100vh - 40px); /* Fix height to viewport minus body's vertical padding */
+  height: calc(100vh - 48px); /* Adjusted for new body padding */
   background-color: var(--app-bg);
   border-radius: var(--border-radius-xl);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color-soft); /* Softer border for app layout */
   box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
@@ -140,9 +140,9 @@ body.dark-mode {
 .sidebar {
   width: 240px;
   flex-shrink: 0;
-  background-color: var(--sidebar-bg-color); /* Use original variable */
-  padding: 25px;
-  border-right: 1px solid var(--border-color);
+  background-color: var(--sidebar-bg-color);
+  padding: 24px 20px; /* Slightly more vertical padding for sidebar content */
+  border-right: 1px solid var(--border-color-soft);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -151,16 +151,19 @@ body.dark-mode {
 
 .sidebar-header {
   margin-bottom: 25px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px; /* Reduced padding */
+  border-bottom: 1px solid var(--border-color-soft); /* Softer border */
 }
 
 .sidebar-header h2 {
   margin: 0;
-  font-size: 1.4em;
+  font-size: 1.3em;
   font-weight: 600;
   color: var(--text-color);
+  /* display: flex; and align-items: center; no longer needed for emoji */
 }
+
+/* Removed .sidebar-header h2 svg.heroicon styles */
 
 .sidebar nav ul {
   list-style: none;
@@ -170,24 +173,24 @@ body.dark-mode {
   display: block;
   padding: 10px 15px;
   text-decoration: none;
-  color: var(--nav-link-color); /* Use original variable */
+  color: var(--nav-link-color);
   border-radius: var(--border-radius-md);
-  margin-bottom: 8px;
+  margin-bottom: 6px; /* Slightly reduced margin */
   font-weight: 500;
   transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
 }
 
 .sidebar nav li a.nav-link:hover {
-  background-color: var(--nav-link-hover-bg); /* Use original variable */
-  color: var(--nav-link-hover-color);       /* Use original variable */
-  transform: translateX(3px); /* Keep transform if desired */
+  background-color: var(--nav-link-hover-bg);
+  color: var(--nav-link-hover-color);
+  transform: translateX(2px); /* Slightly less transform */
 }
 
 .sidebar nav li a.nav-link.active {
   background-color: var(--primary-color);
-  color: var(--nav-link-active-text); /* Use original variable */
+  color: var(--nav-link-active-text);
   font-weight: 600;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none; /* Removed shadow for a flatter active state */
 }
 .sidebar nav li a.nav-link.active:hover {
   background-color: var(--primary-color-hover);
@@ -197,9 +200,9 @@ body.dark-mode {
 
 .main-content {
   flex-grow: 1;
-  padding: 30px; /* Increased padding */
-  overflow-y: auto; /* Main content area scrolls */
-  background-color: var(--main-content-bg-color); /* Use original variable */
+  padding: 24px; /* Consistent padding */
+  overflow-y: auto;
+  background-color: var(--main-content-bg-color);
   display: flex;
   flex-direction: column;
 }
@@ -222,23 +225,26 @@ body.dark-mode {
 }
 
 .container > h2 { /* View Titles */
-  font-size: 1.8em;
-  font-weight: 700;
+  font-size: 1.7em;
+  font-weight: 600;
   color: var(--text-color);
-  margin-bottom: 30px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color-soft);
   line-height: 1.3;
+  /* display: flex; and align-items: center; no longer needed for emoji */
 }
+
+/* Removed .container > h2 svg.heroicon styles */
 
 /* Sections within views */
 .section {
-  margin-bottom: 30px;
-  padding: 25px;
-  background-color: var(--container-bg-color-original); /* Use original variable for section cards */
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
+  margin-bottom: 24px; /* Reduced margin */
+  padding: 20px; /* Reduced padding */
+  background-color: var(--container-bg-color-original);
+  border: 1px solid var(--border-color-soft); /* Softer border */
+  border-radius: var(--border-radius-lg); /* Kept large radius for cards */
+  box-shadow: var(--shadow-sm); /* Softer shadow for sections */
   transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .section:last-child {
@@ -248,40 +254,42 @@ body.dark-mode {
 /* Labels */
 label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px; /* Reduced margin */
   font-weight: 500;
-  color: var(--text-color); /* Labels are important, use main text color */
-  font-size: 0.95em;
+  color: var(--text-color-muted); /* Muted color for labels */
+  font-size: 0.9em; /* Slightly smaller */
 }
 
 /* Buttons */
 button, #themeToggleBtn { /* General button reset and base style */
-  padding: 12px 22px;
+  padding: 10px 20px; /* Slightly smaller padding */
   border: 1px solid transparent;
   border-radius: var(--border-radius-md);
   cursor: pointer;
   font-size: 0.95em;
-  font-weight: 600;
+  font-weight: 500; /* Less bold for general buttons */
   transition: all 0.2s ease-out;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px; /* Less spacing */
   text-align: center;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none; /* Removed default shadow, add on hover */
 }
 
-button:hover, #themeToggleBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+button:hover, #themeToggleBtn:hover { /* themeToggleBtn hover is handled separately later */
+  transform: translateY(-1px); /* Less movement */
+  box-shadow: var(--shadow-sm); /* Add shadow on hover */
 }
 
-button:active, #themeToggleBtn:active {
+button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled separately later */
   transform: translateY(0px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: none; /* Remove shadow on active */
 }
 
 .btn-primary {
+  /* Icon suggestion: Consider icons for common actions like "Select File", "Process" e.g. <svg>...</svg> Open File */
   background-color: var(--primary-color);
-  color: var(--nav-link-active-text); /* Original variable for text on primary buttons */
+  color: var(--text-on-primary-color);
   border-color: var(--primary-color);
+  font-weight: 600;
 }
 .btn-primary:hover {
   background-color: var(--primary-color-hover);
@@ -320,7 +328,7 @@ button:active, #themeToggleBtn:active {
 .action-button {
   background-color: var(--button-secondary-bg);
   color: var(--button-secondary-text);
-  border-color: var(--button-secondary-border);
+  border: 1px solid var(--button-secondary-border); /* Ensure border is explicitly set */
   font-weight: 500;
 }
 .action-button:hover {
@@ -333,23 +341,23 @@ button:active, #themeToggleBtn:active {
 input[type="text"],
 input[type="number"],
 select {
-  padding: 8px 12px; /* Reduced padding */
-  margin-bottom: 15px; /* Reduced margin */
-  border: 1px solid var(--border-color-strong);
-  border-radius: var(--border-radius-md);
-  box-sizing: border-box;
-  font-size: 0.9em; /* Reduced font size */
-  background-color: var(--input-bg);
-  color: var(--text-color);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  width: 100%;
+padding: 10px 14px; /* Consistent padding */
+margin-bottom: 12px; /* Consistent margin */
+border: 1px solid var(--border-color-strong);
+border-radius: var(--border-radius-md);
+box-sizing: border-box;
+font-size: 0.95em; /* Consistent font size */
+background-color: var(--input-bg);
+color: var(--text-color);
+transition: border-color 0.2s ease, box-shadow 0.2s ease;
+width: 100%;
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus,
 select:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px var(--input-focus-ring);
+  box-shadow: 0 0 0 2px var(--input-focus-ring); /* Softer focus ring */
   outline: none;
 }
 
@@ -360,14 +368,14 @@ select:focus {
 
 .input-error:focus {
   border-color: var(--error-border-color) !important; /* Keep border red on focus */
-  box-shadow: 0 0 0 3px var(--error-focus-ring) !important; /* Red focus ring */
+  box-shadow: 0 0 0 2px var(--error-focus-ring) !important; /* Softer red focus ring */
 }
 
 .error-message {
   display: none; /* Hidden by default, JS will override with display: block */
   width: 100%;
   margin-top: 5px; /* Space from the input above */
-  font-size: 0.8em; /* Smaller font */
+  font-size: 0.85em; /* Slightly larger error message */
   color: var(--error-text-color) !important;
 }
 
@@ -401,12 +409,24 @@ select:focus {
 }
 
 /* File Selection Status */
+/* Styling for the wrapper of file input button and status text */
+.section > .field-wrapper:has(button.btn-primary + .file-select-status-span) {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Gap between button and status span */
+}
+
 .file-select-status-span {
   font-style: normal;
   color: var(--text-color-muted);
   font-size: 0.9em;
-  margin-left: 15px;
+  /* margin-left is now handled by gap in the parent .field-wrapper */
   transition: color 0.3s ease;
+  line-height: 1.2; /* Adjust line-height for better vertical alignment with button */
+  flex-shrink: 1; /* Allow span to shrink if needed */
+  overflow: hidden; /* Prevent long text from breaking layout before ellipsis */
+  white-space: nowrap; /* Keep text on one line for ellipsis */
+  text-overflow: ellipsis; /* Show ellipsis for overflow */
 }
 
 .file-select-status-span.file-selected-badge {
@@ -419,10 +439,12 @@ select:focus {
   font-weight: normal; /* Original font-weight */
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 250px; /* Original max-width */
+  text-overflow: ellipsis; /* This is now on the base .file-select-status-span */
+  max-width: 280px;
   vertical-align: middle;
   display: inline-block;
+  padding: 6px 10px; /* Adjusted padding for badge */
+  /* white-space and overflow are now on the base class */
 }
 
 body.dark-mode .file-select-status-span.file-selected-badge {
@@ -437,18 +459,18 @@ body.dark-mode .file-select-status-span.file-selected-badge {
 #generateSheinLabelBtn {
   display: block;
   width: 100%;
-  margin-top: 30px;
-  padding: 14px 24px; /* Larger padding for main action */
+  margin-top: 24px; /* Reduced margin */
+  padding: 12px 22px; /* Slightly reduced padding */
   font-size: 1em;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
+  font-weight: 600; /* Less heavy */
+  text-transform: none; /* No uppercase for modern简约 */
+  letter-spacing: 0.3px; /* Less spacing */
 }
 
 /* Result Area */
 #result, #sheinResult {
-  margin-top: 30px;
-  padding: 18px 22px;
+  margin-top: 24px; /* Reduced margin */
+  padding: 16px 20px; /* Slightly reduced padding */
   border-radius: var(--border-radius-md);
   font-size: 0.95em;
   line-height: 1.7;
@@ -494,47 +516,83 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
   gap: 10px; /* Spacing between buttons */
   flex-wrap: wrap; /* Allow buttons to wrap on smaller screens if needed */
 }
-/* Ensure buttons inside these containers are displayed correctly if they become flex containers */
+/* Ensure buttons inside these containers are displayed correctly */
 #pdfResizePostProcessActions button,
 #sheinPostProcessActions button {
-  flex-grow: 1; /* Allow buttons to share space if desired, or set fixed widths */
+  flex-grow: 1;
+  min-width: 120px; /* Ensure buttons don't get too squished when wrapping */
 }
 
 
 /* Theme Toggle Button */
 #themeToggleBtn {
   background-color: transparent;
-  color: var(--text-color-muted);
-  border: none; /* No border for icon button */
+  color: var(--text-color-muted); /* Icon color will inherit this */
+  border: 1px solid transparent;
   padding: 0;
   border-radius: 50%;
-  font-size: 1.5em; /* Icon size */
+  /* font-size is not needed as SVG has its own size */
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: none; /* No shadow for icon button */
+  box-shadow: none;
 
-  margin-top: auto; /* Push to bottom of sidebar */
+  margin-top: auto;
   align-self: center;
-  margin-bottom: 5px; /* Closer to bottom */
+  margin-bottom: 10px;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
+/* Removed #themeToggleBtn svg.heroicon styles */
+
 #themeToggleBtn:hover {
-  /* Original hover for theme toggle */
   background-color: var(--nav-link-hover-bg);
-  color: var(--nav-link-hover-color); /* Or var(--primary-color) if that was the original intent */
-  border-color: var(--border-color-soft); /* Added for consistency if it had a border on hover */
+  border-color: var(--border-color-soft);
   transform: translateY(0);
   box-shadow: none;
 }
 
-body.dark-mode #themeToggleBtn:hover {
-    background-color: var(--nav-link-hover-bg); /* Uses dark mode var now */
-    color: var(--nav-link-hover-color); /* Uses dark mode var now */
-    border-color: var(--border-color-soft); /* Uses dark mode var now */
+/* Removed #themeToggleBtn:hover svg.heroicon styles */
+
+/* Ensure the general #themeToggleBtn:hover styles are appropriate for text/emoji content */
+/* The existing #themeToggleBtn:hover rule should be fine:
+#themeToggleBtn:hover {
+  background-color: var(--nav-link-hover-bg);
+  border-color: var(--border-color-soft);
+  transform: translateY(0);
+  box-shadow: none;
 }
+*/
+/* Also ensure #themeToggleBtn itself has appropriate font-size if it was removed previously */
+/* Re-checking #themeToggleBtn base styles from earlier state:
+#themeToggleBtn {
+  background-color: transparent;
+  color: var(--text-color-muted);
+  border: 1px solid transparent;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.6em; // This was for icon, might need adjustment for emoji if too big
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  margin-top: auto;
+  align-self: center;
+  margin-bottom: 10px;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+The font-size: 1.6em on #themeToggleBtn might make emojis large.
+Let's ensure it's reasonable or revert to a previous state if necessary.
+The original #themeToggleBtn (before any icon library) had:
+  font-size: 1.5em;
+  width: 40px;
+  height: 40px;
+This should be fine for emojis.
+*/
 
 /* Custom Scrollbar Styles */
 .sidebar::-webkit-scrollbar,
@@ -592,11 +650,11 @@ body.dark-mode select:focus {
 }
 
 .dimension-inputs-container { /* Replaced #customSize with a class */
-  margin-top: 12px;
+  margin-top: 10px; /* Further reduced margin */
   display: flex;
-  gap: 10px; /* Reduced gap */
-  align-items: center; /* Ensure vertical alignment of input groups */
-  flex-wrap: nowrap; /* Force input groups to stay on one line */
+  gap: 12px; /* Slightly increased gap for clarity between width/height blocks */
+  align-items: flex-start; /* Align items to the start for better error message placement below inputs */
+  flex-wrap: nowrap;
 }
 
 /* This rule might be too broad or conflict if inputs are direct children, review if needed */
@@ -616,21 +674,19 @@ body.dark-mode select:focus {
 
 .dimension-inputs-container .input-group input[type="number"] { /* Replaced #customSize with a class */
   flex-grow: 1;
-  padding-right: 35px; /* Add padding to make space for the unit inside the input */
-  /* margin-right: 0; */ /* Unit is now inside */
-  margin-bottom: 0; /* Override generic input margin-bottom */
-  /* width: 100%; */ /* Let flex-grow handle the width within .input-group */
-  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  padding-right: 38px; /* Slightly more space for unit */
+  margin-bottom: 0;
+  box-sizing: border-box;
 }
 
 .dimension-inputs-container .input-group .unit { /* Replaced #customSize with a class */
   position: absolute;
-  right: 10px; /* Position unit 10px from the right edge of .input-group */
+  right: 12px; /* Adjusted position */
   top: 50%;
-  transform: translateY(-50%); /* Vertically center the unit */
-  font-size: 0.9em;
-  color: var(--text-color-muted, #888); /* Use a variable for muted text */
-  pointer-events: none; /* Make unit non-interactive so clicks go to the input */
+  transform: translateY(-50%);
+  font-size: 0.85em; /* Slightly smaller unit text */
+  color: var(--text-color-muted);
+  pointer-events: none;
 }
 
 body.dark-mode .dimension-inputs-container .input-group .unit { /* Replaced #customSize with a class */
@@ -821,10 +877,10 @@ body.dark-mode .view-container {
   border-radius: var(--border-radius-medium, 6px);
   color: var(--text-color-light, #fff); /* Default to light text, adjust per type */
   font-size: 0.9em;
-  box-shadow: var(--shadow-medium, 0 4px 12px rgba(0,0,0,0.15));
-  opacity: 1; /* DEBUG: Force visible */
-  /* transform: translateY(20px); */ /* DEBUG: Comment out */
-  /* animation: toast-slide-in 0.3s ease-out forwards; */ /* DEBUG: Comment out */
+  box-shadow: var(--shadow-md); /* Use consistent shadow from theme */
+  opacity: 0; /* Start hidden, animation will make it visible */
+  transform: translateY(15px); /* Start slightly lower for slide-in effect */
+  animation: toast-slide-in 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; /* Smoother easing */
   min-width: 250px;
   max-width: 350px;
   word-wrap: break-word;
@@ -835,6 +891,14 @@ body.dark-mode .view-container {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Add a class for fade-out, to be triggered by JS before removal */
+.toast.fade-out {
+  animation: toast-fade-out 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  /* Ensure it stays faded out if JS removal is delayed */
+  opacity: 0;
+  transform: translateY(15px); /* Match final state of fade-out animation */
 }
 
 @keyframes toast-fade-out {

@@ -189,11 +189,11 @@
     function setTheme(theme) {
       if (theme === 'dark') {
         document.body.classList.add('dark-mode');
-        themeToggleBtn.textContent = sunIcon; // Show sun icon in dark mode (to switch to light)
+        themeToggleBtn.textContent = sunIcon; // Show sun icon in dark mode
         localStorage.setItem('theme', 'dark');
       } else {
         document.body.classList.remove('dark-mode');
-        themeToggleBtn.textContent = moonIcon; // Show moon icon in light mode (to switch to dark)
+        themeToggleBtn.textContent = moonIcon; // Show moon icon in light mode
         localStorage.setItem('theme', 'light');
       }
     }
@@ -205,7 +205,8 @@
       const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
       setTheme(newTheme);
     });
-// Function to show toast notifications
+
+    // Function to show toast notifications
     function showToast(message, type = 'info', duration = 3500) {
       const container = document.getElementById('toastContainer');
       if (!container) {
@@ -225,17 +226,20 @@
       container.appendChild(toast);
 
       // Remove the toast after its animation finishes
-      // The CSS animation is toast-slide-in 0.3s, then visible, then toast-fade-out 0.5s with a 2.7s delay.
-      // Total animation duration is 0.3s (in) + 2.7s (delay for fade) + 0.5s (out) = 3.5s.
-      // So, the JS duration parameter should align with this or be slightly longer.
+      // The 'duration' parameter (default 3500ms) is how long the toast stays fully visible
+      // before starting to fade out.
+      const fadeOutAnimationDuration = 400; // Must match the CSS animation duration for .fade-out (0.4s)
+
       setTimeout(() => {
-        // Optional: Add a class to trigger fade-out if not purely CSS driven for removal
-        // For now, CSS handles the fade-out animation based on its own timing.
-        // We just need to remove it from DOM after it's invisible.
-        if (toast.parentNode === container) {
-           container.removeChild(toast);
-        }
-      }, duration); // Use the duration parameter, which defaults to 3500ms
+        toast.classList.add('fade-out'); // Add class to trigger CSS fade-out animation
+
+        // Remove the toast from DOM after the fade-out animation completes
+        setTimeout(() => {
+          if (toast.parentNode === container) {
+            container.removeChild(toast);
+          }
+        }, fadeOutAnimationDuration);
+      }, duration); // 'duration' is when the fade-out should start
     }
 
     // --- Standardized Error Handling for Toasts ---
