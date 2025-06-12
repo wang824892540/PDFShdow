@@ -141,31 +141,51 @@
   <!-- <script src="renderer.js"></script> -->
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // Sidebar navigation logic
+    // --- Settings Persistence using Electron IPC ---
+    // Note: saveToLocalStorage and loadFromLocalStorage are removed.
+    // We will use window.electronAPI.getSettings() and window.electronAPI.saveSettings()
+
+    let appSettings = {}; // Holds all application settings
+
+    // --- Sidebar navigation and View Persistence ---
     const navLinks = document.querySelectorAll('.sidebar .nav-link');
     const views = document.querySelectorAll('.main-content .view-container');
+    const defaultViewId = 'sheinLabelView';
 
+    // Function to activate a view and save it
+    const activateView = async (viewId) => {
+      let viewActivated = false;
+      views.forEach(view => {
+        if (view.id === viewId) {
+          view.style.display = 'block';
+          viewActivated = true;
+        } else {
+          view.style.display = 'none';
+        }
+      });
+
+      navLinks.forEach(l => {
+        if (l.getAttribute('data-view') === viewId) {
+          l.classList.add('active');
+        } else {
+          l.classList.remove('active');
+        }
+      });
+
+      if (viewActivated) {
+        appSettings.activeView = viewId;
+        await window.electronAPI.saveSettings(appSettings);
+      }
+      return viewActivated;
+    };
+    
     navLinks.forEach(link => {
-      link.addEventListener('click', function(event) {
+      link.addEventListener('click', async function(event) { // Made async
         event.preventDefault();
         const viewId = this.getAttribute('data-view');
-
-        views.forEach(view => {
-          view.style.display = view.id === viewId ? 'block' : 'none';
-        });
-
-        navLinks.forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
+        await activateView(viewId); // Made await
       });
     });
-
-    // Ensure the default view (pdfResizeView) and its link are active on load
-    // document.getElementById('pdfResizeView').style.display = 'block'; // Already set inline
-    // const initialActiveLink = document.querySelector('.sidebar .nav-link[data-view="pdfResizeView"]');
-    // if (initialActiveLink) {
-    //   initialActiveLink.classList.add('active'); // Already set in HTML
-    // }
-
 
     // Helper function to get basename using pure JavaScript (as a fallback)
     function getBasenameFrontend(filePath) {
@@ -181,29 +201,41 @@
       return normalizedPath.substring(lastSlashIndex + 1);
     }
 
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const currentTheme = localStorage.getItem('theme');
-    const sunIcon = '☀️'; // Unicode: U+2600
-    const moonIcon = '🌙'; // Unicode: U+1F319
+    function updateFileSelectionUI(filePath, spanElementId) {
+      const spanElement = document.getElementById(spanElementId);
+      if (!spanElement) return;
 
-    function setTheme(theme) {
-      if (theme === 'dark') {
-        document.body.classList.add('dark-mode');
-        themeToggleBtn.textContent = sunIcon; // Show sun icon in dark mode
-        localStorage.setItem('theme', 'dark');
+      if (filePath && typeof filePath === 'string' && filePath.trim() !== '') {
+        spanElement.textContent = getBasenameFrontend(filePath);
+        spanElement.classList.add('file-selected-badge');
       } else {
-        document.body.classList.remove('dark-mode');
-        themeToggleBtn.textContent = moonIcon; // Show moon icon in light mode
-        localStorage.setItem('theme', 'light');
+        spanElement.textContent = '未选择文件';
+        spanElement.classList.remove('file-selected-badge');
       }
     }
 
-    // Initialize theme and icon based on localStorage or default to light
-    setTheme(currentTheme === 'dark' ? 'dark' : 'light');
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    // Theme persistence will also use appSettings
+    const sunIcon = '☀️';
+    const moonIcon = '🌙';
 
-    themeToggleBtn.addEventListener('click', () => {
+    async function setTheme(theme, save = true) { // Added save parameter
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggleBtn.textContent = sunIcon;
+      } else { // Default to light
+        document.body.classList.remove('dark-mode');
+        themeToggleBtn.textContent = moonIcon;
+      }
+      if (save) {
+        appSettings.theme = theme;
+        await window.electronAPI.saveSettings(appSettings);
+      }
+    }
+
+    themeToggleBtn.addEventListener('click', async () => {
       const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
-      setTheme(newTheme);
+      await setTheme(newTheme);
     });
 
     // Function to show toast notifications
@@ -309,15 +341,20 @@
     let selectedFilePath = ''
 
     document.getElementById('openFile').addEventListener('click', async () => {
-      selectedFilePath = await window.electronAPI.openFile();
-      const selectedFileElement = document.getElementById('selectedFile');
-      if (selectedFilePath) {
-        // Using frontend basename extraction as a temporary solution
-        selectedFileElement.textContent = getBasenameFrontend(selectedFilePath);
-        // selectedFileElement.textContent = await window.electronAPI.getPathBasename(selectedFilePath); // Preferred way, if preload is set up
-        selectedFileElement.classList.add('file-selected-badge');
+      const newPath = await window.electronAPI.openFile();
+      selectedFilePath = newPath || ''; // Update global var, ensure string
+      
+      appSettings.pdfResizeSelectedPath = selectedFilePath; // Update settings object
+      const saveResult = await window.electronAPI.saveSettings(appSettings);
+      if (!saveResult || !saveResult.success) {
+        console.error('Failed to save settings after PDF Resize file selection:', saveResult ? saveResult.error : 'Unknown error');
+        showToast('警告：无法保存文件选择设置。', 'warning');
+      }
 
-        // Clear error state for file selection immediately after a file is chosen
+      updateFileSelectionUI(selectedFilePath, 'selectedFile');
+
+      // Clear error state for file selection if a file was actually chosen
+      if (selectedFilePath) {
         const openFileButton = document.getElementById('openFile');
         const selectedFileErrorEl = document.getElementById('selectedFileError');
         if (openFileButton) {
@@ -327,10 +364,6 @@
             selectedFileErrorEl.textContent = '';
             selectedFileErrorEl.style.display = 'none';
         }
-
-      } else {
-        selectedFileElement.textContent = '未选择文件';
-        selectedFileElement.classList.remove('file-selected-badge');
       }
     })
 
@@ -342,13 +375,15 @@
     }
 
 
-    document.getElementById('pageSize').addEventListener('change', function() {
+    document.getElementById('pageSize').addEventListener('change', async function() { // Added async
       const customSizeEl = document.getElementById('customSize');
       if (this.value === 'custom') {
         customSizeEl.style.display = 'flex'; // Ensure it's flex for layout
       } else {
         customSizeEl.style.display = 'none';
       }
+      appSettings.pageSize = this.value;
+      await window.electronAPI.saveSettings(appSettings);
     })
     // Ensure sheinOutputCustomSize is flex by default if it's always visible
     // Or add a similar JS logic if it needs to be toggled. For now, CSS will handle it.
@@ -705,7 +740,7 @@
 
     // Logic for Shein output page size selection
     if (sheinOutputPageSizeSelect) {
-      sheinOutputPageSizeSelect.addEventListener('change', function() {
+      sheinOutputPageSizeSelect.addEventListener('change', async function() { // Added async
         if (this.value === 'custom') {
           sheinOutputCustomDimensionsDiv.style.display = 'flex';
         } else {
@@ -716,20 +751,13 @@
             sheinOutputHeightInput.value = selectedSizeMM.height;
           }
         }
+        appSettings.sheinOutputPageSize = this.value;
+        await window.electronAPI.saveSettings(appSettings);
       });
       // Trigger change on load to set initial state based on default "Shein" selection
       // This will hide custom inputs and ensure width/height inputs are 70/60
       // (though HTML value attributes already set them, this ensures consistency if default changes)
-      if (sheinOutputPageSizeSelect.value !== 'custom') {
-         const initialSelectedSizeMM = pageSizeMapMM[sheinOutputPageSizeSelect.value];
-         if (initialSelectedSizeMM) {
-            sheinOutputWidthInput.value = initialSelectedSizeMM.width;
-            sheinOutputHeightInput.value = initialSelectedSizeMM.height;
-         }
-         sheinOutputCustomDimensionsDiv.style.display = 'none';
-      } else {
-         sheinOutputCustomDimensionsDiv.style.display = 'flex';
-      }
+      // This logic will be handled by the general form loading logic later
     }
 
     // Old default dimension setting for Shein Label (lines 443-448) is now removed
@@ -769,13 +797,20 @@
 
     if (sheinOpenFile1Btn) {
       sheinOpenFile1Btn.addEventListener('click', async () => {
-        const filePath = await window.electronAPI.openFile();
-        if (filePath) {
-          selectedSheinPdf1Path = filePath;
-          sheinSelectedFile1Element.textContent = getBasenameFrontend(filePath);
-          sheinSelectedFile1Element.classList.add('file-selected-badge');
+        const newPath = await window.electronAPI.openFile();
+        selectedSheinPdf1Path = newPath || ''; // Update global var
 
-          // Clear error state for Shein file 1 selection immediately
+        appSettings.sheinEcRepPdfPath = selectedSheinPdf1Path; // Update settings object
+        const saveResult = await window.electronAPI.saveSettings(appSettings);
+        if (!saveResult || !saveResult.success) {
+          console.error('Failed to save settings after Shein File 1 selection:', saveResult ? saveResult.error : 'Unknown error');
+          showToast('警告：无法保存文件选择设置。', 'warning');
+        }
+
+        updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
+
+        // Clear error state for Shein file 1 selection if a file was actually chosen
+        if (selectedSheinPdf1Path) {
           const sheinOpenFile1Button = document.getElementById('sheinOpenFile1Btn');
           const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
           if (sheinOpenFile1Button) {
@@ -785,23 +820,26 @@
               sheinSelectedFile1ErrorEl.textContent = '';
               sheinSelectedFile1ErrorEl.style.display = 'none';
           }
-        } else {
-          // selectedSheinPdf1Path = ''; // Keep previous if user cancels
-          // sheinSelectedFile1Element.textContent = '未选择文件';
-          // sheinSelectedFile1Element.classList.remove('file-selected-badge');
         }
       });
     }
 
     if (sheinOpenFile2Btn) {
       sheinOpenFile2Btn.addEventListener('click', async () => {
-        const filePath = await window.electronAPI.openFile();
-        if (filePath) {
-          selectedSheinPdf2Path = filePath;
-          sheinSelectedFile2Element.textContent = getBasenameFrontend(filePath);
-          sheinSelectedFile2Element.classList.add('file-selected-badge');
+        const newPath = await window.electronAPI.openFile();
+        selectedSheinPdf2Path = newPath || ''; // Update global var
 
-          // Clear error state for Shein file 2 selection immediately
+        appSettings.sheinBarcodePdfPath = selectedSheinPdf2Path; // Update settings object
+        const saveResult = await window.electronAPI.saveSettings(appSettings);
+        if (!saveResult || !saveResult.success) {
+          console.error('Failed to save settings after Shein File 2 selection:', saveResult ? saveResult.error : 'Unknown error');
+          showToast('警告：无法保存文件选择设置。', 'warning');
+        }
+
+        updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
+
+        // Clear error state for Shein file 2 selection if a file was actually chosen
+        if (selectedSheinPdf2Path) {
           const sheinOpenFile2Button = document.getElementById('sheinOpenFile2Btn');
           const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
           if (sheinOpenFile2Button) {
@@ -811,10 +849,6 @@
               sheinSelectedFile2ErrorEl.textContent = '';
               sheinSelectedFile2ErrorEl.style.display = 'none';
           }
-        } else {
-          // selectedSheinPdf2Path = '';
-          // sheinSelectedFile2Element.textContent = '未选择文件';
-          // sheinSelectedFile2Element.classList.remove('file-selected-badge');
         }
       });
     }
@@ -1074,6 +1108,85 @@
       });
     }
     // --- End Shein Label Feature ---
+
+    // --- Load All Settings and Initialize UI ---
+    async function loadAndApplySettings() {
+      appSettings = await window.electronAPI.getSettings();
+      if (!appSettings || Object.keys(appSettings).length === 0) {
+        appSettings = { // Default structure if no settings file or empty
+          activeView: defaultViewId,
+          theme: 'light',
+          pdfResizeSelectedPath: '',
+          sheinEcRepPdfPath: '',
+          sheinBarcodePdfPath: '',
+          pdfResizeOutputName: '',
+          pageSize: 'Shein',
+          customWidth: '',
+          customHeight: '',
+          sheinOutputName: '',
+          sheinOutputPageSize: 'Shein',
+          sheinOutputWidth: '70',
+          sheinOutputHeight: '60'
+        };
+      }
+
+      // Activate saved view or default
+      if (!activateView(appSettings.activeView || defaultViewId)) {
+         activateView(defaultViewId); // Fallback if saved view is invalid
+      }
+      
+      // Set theme (without re-saving immediately)
+      await setTheme(appSettings.theme || 'light', false);
+
+      // Load selected file paths
+      selectedFilePath = appSettings.pdfResizeSelectedPath || '';
+      selectedSheinPdf1Path = appSettings.sheinEcRepPdfPath || '';
+      selectedSheinPdf2Path = appSettings.sheinBarcodePdfPath || '';
+
+      updateFileSelectionUI(selectedFilePath, 'selectedFile');
+      updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
+      updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
+
+      // Load form elements
+      const formElementsToPersist = [
+        { id: 'pdfResizeOutputName', type: 'text' },
+        { id: 'pageSize', type: 'select' },
+        { id: 'customWidth', type: 'number' },
+        { id: 'customHeight', type: 'number' },
+        { id: 'sheinOutputName', type: 'text' },
+        { id: 'sheinOutputPageSize', type: 'select' },
+        { id: 'sheinOutputWidth', type: 'number' },
+        { id: 'sheinOutputHeight', type: 'number' }
+      ];
+
+      formElementsToPersist.forEach(elementConfig => {
+        const el = document.getElementById(elementConfig.id);
+        if (el) {
+          // Load saved value from appSettings
+          const savedValue = appSettings[elementConfig.id];
+          if (savedValue !== undefined && savedValue !== null && savedValue !== '') {
+            el.value = savedValue;
+          }
+
+          // Special handling for select elements to trigger dependent UI updates
+          if (elementConfig.type === 'select') {
+            setTimeout(() => {
+              const event = new Event('change', { bubbles: true });
+              el.dispatchEvent(event);
+            }, 0);
+          }
+          
+          // Attach saver
+          const eventType = (el.tagName === 'SELECT' || elementConfig.type === 'select') ? 'change' : 'input';
+          el.addEventListener(eventType, async () => { // Already async, ensure it's correct
+            appSettings[el.id] = el.value;
+            await window.electronAPI.saveSettings(appSettings);
+          });
+        }
+      });
+    }
+
+    loadAndApplySettings(); // Call the main function to load settings
 
   })
 </script>

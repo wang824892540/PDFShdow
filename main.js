@@ -1,9 +1,20 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron') // Added shell and clipboard
 const path = require('path')
+const fs = require('fs').promises; // For asynchronous file operations
 const { PDFDocument } = require('pdf-lib') // PDFDocument will be used by worker, but main might not need it directly for this handler anymore. Keep for now.
 const { Worker } = require('worker_threads') // Added Worker
 
 let mainWindow
+const SETTINGS_FILE_NAME = 'user-settings.json';
+let settingsFilePath = ''; // Will be initialized in app.whenReady
+
+// Helper function to ensure settings path is initialized
+function getSettingsFilePath() {
+  if (!settingsFilePath) {
+    settingsFilePath = path.join(app.getPath('userData'), SETTINGS_FILE_NAME);
+  }
+  return settingsFilePath;
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -182,7 +193,39 @@ ipcMain.handle('copy-file-to-clipboard', async (event, filePath) => {
   }
 });
 
-app.whenReady().then(createWindow)
+// IPC handler for getting settings
+ipcMain.handle('get-settings', async () => {
+  const filePath = getSettingsFilePath();
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      // File doesn't exist, return default settings (empty object)
+      return {};
+    }
+    // Other error (e.g., corrupted JSON, permissions)
+    console.error(`Error reading settings file ${filePath}:`, error);
+    return {}; // Return default on other errors as well to prevent app crash
+  }
+});
+
+// IPC handler for saving settings
+ipcMain.handle('save-settings', async (event, settings) => {
+  const filePath = getSettingsFilePath();
+  try {
+    await fs.writeFile(filePath, JSON.stringify(settings, null, 2), 'utf8');
+    return { success: true };
+  } catch (error) {
+    console.error(`Error writing settings file ${filePath}:`, error);
+    return { success: false, error: error.message || 'Failed to save settings.' };
+  }
+});
+
+app.whenReady().then(() => {
+  getSettingsFilePath(); // Initialize settings path
+  createWindow();
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
