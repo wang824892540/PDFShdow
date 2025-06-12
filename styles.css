@@ -341,10 +341,10 @@ button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled sepa
 input[type="text"],
 input[type="number"],
 select {
-padding: 10px 14px; /* Consistent padding */
+padding: 8px 12px; /* Slightly reduced padding for compactness */
 margin-bottom: 10px; /* Reduced margin */
-border: 1px solid var(--border-color-strong);
-border-radius: var(--border-radius-md);
+border: 1px solid var(--border-color-soft); /* Softer border for light mode */
+border-radius: var(--border-radius-sm); /* Sharper corners */
 box-sizing: border-box;
 font-size: 0.95em; /* Consistent font size */
 background-color: var(--input-bg);
@@ -422,7 +422,7 @@ select:focus {
   font-size: 0.9em;
   /* margin-left is now handled by gap in the parent .field-wrapper */
   transition: color 0.3s ease;
-  line-height: 1.2; /* Adjust line-height for better vertical alignment with button */
+  line-height: normal; /* Use normal line-height for better default vertical alignment with button in flex container */
   flex-shrink: 1; /* Allow span to shrink if needed */
   overflow: hidden; /* Prevent long text from breaking layout before ellipsis */
   white-space: nowrap; /* Keep text on one line for ellipsis */
@@ -627,7 +627,7 @@ body.dark-mode input[type="text"],
 body.dark-mode input[type="number"],
 body.dark-mode input[type="color"],
 body.dark-mode select {
-  background-color: #2b2b2b; /* Dark input background */
+  background-color: #252525; /* Slightly darker input background for dark mode */
   color: #e0e0e0;
   border-color: #555; /* Darker border */
 }
