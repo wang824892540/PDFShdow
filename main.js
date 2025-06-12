@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron') // Added shell and clipboard
 const path = require('path')
-const { PDFDocument } = require('pdf-lib')
+const { PDFDocument } = require('pdf-lib') // PDFDocument will be used by worker, but main might not need it directly for this handler anymore. Keep for now.
+const { Worker } = require('worker_threads') // Added Worker
 
 let mainWindow
 
@@ -24,186 +25,109 @@ function createWindow() {
 }
 
 ipcMain.handle('open-file', async () => {
-  const { filePaths } = await dialog.showOpenDialog({
+  const { canceled, filePaths } = await dialog.showOpenDialog({
     properties: ['openFile'],
     filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
-  })
-  return filePaths[0]
+  });
+  if (canceled || !filePaths || filePaths.length === 0) {
+    return null; // Return null if dialog was canceled or no file was selected
+  }
+  return filePaths[0];
 })
 
 ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName }) => {
-  try {
-    const fs = require('fs')
-    const pdfBytes = fs.readFileSync(filePath);
-    const pdfDoc = await PDFDocument.load(pdfBytes);
-    const newPdfDoc = await PDFDocument.create(); // Create a new document for the output
+  return new Promise((resolve, reject) => {
+    // Basic validation in main thread before starting worker
+    if (!filePath || !operations || !outputName) {
+      console.error('[Main Process - process-pdf] Missing required parameters.');
+      resolve({ success: false, error: '主进程错误：缺少必要的参数 (文件路径、操作或输出名)。' });
+      return;
+    }
+    if (operations.resize && (
+        typeof operations.resize.width !== 'number' ||
+        typeof operations.resize.height !== 'number' ||
+        operations.resize.width <= 0 ||
+        operations.resize.height <= 0
+    )) {
+        console.error('[Main Process - process-pdf] Invalid resize dimensions.');
+        resolve({ success: false, error: '主进程错误：无效的自定义尺寸参数。' });
+        return;
+    }
 
-    // 处理页面尺寸调整
-    if (operations.resize) {
-      const { width: newPageWidth, height: newPageHeight } = operations.resize;
-      const originalPages = pdfDoc.getPages();
+    const worker = new Worker(path.join(__dirname, 'process-pdf-worker.js'), {
+      workerData: { filePath, operations, outputName }
+    });
 
-      for (let i = 0; i < originalPages.length; i++) {
-        const originalPage = originalPages[i];
-        const { width: oldWidth, height: oldHeight } = originalPage.getSize();
+    let resolved = false; // Flag to prevent multiple resolves
 
-        // 计算等比例缩放因子
-        const scaleX = newPageWidth / oldWidth;
-        const scaleY = newPageHeight / oldHeight;
-        const scale = Math.min(scaleX, scaleY);
+    worker.on('message', (result) => {
+      if (resolved) return;
+      resolved = true;
+      console.log('[Main Process - process-pdf] Worker finished with result:', result);
+      resolve(result);
+    });
 
-        const scaledWidth = oldWidth * scale;
-        const scaledHeight = oldHeight * scale;
+    worker.on('error', (error) => {
+      if (resolved) return;
+      resolved = true;
+      console.error('[Main Process - process-pdf] Worker encountered an error:', error);
+      resolve({ success: false, error: error.message || 'PDF处理工作线程发生错误。' });
+    });
 
-        // 计算居中位置的偏移量
-        const offsetX = (newPageWidth - scaledWidth) / 2;
-        const offsetY = (newPageHeight - scaledHeight) / 2;
-
-        // 将原始页面嵌入到新文档中
-        // Note: embedPage is typically used to embed pages from one document into another.
-        // Here, originalPage is from pdfDoc, and we are embedding into newPdfDoc.
-        // const [embeddedPage] = await newPdfDoc.embedPdf([originalPage]); // Incorrect: embedPdf expects PDFDocument, bytes, or path.
-        const embeddedPage = await newPdfDoc.embedPage(originalPage); // Correct: embedPage takes a PDFPage object.
-
-        // 在新文档中添加一个新页面
-        const newPage = newPdfDoc.addPage([newPageWidth, newPageHeight]);
-
-        // 在新页面的计算位置绘制嵌入的页面
-        newPage.drawPage(embeddedPage, {
-          x: offsetX,
-          y: offsetY,
-          width: scaledWidth,
-          height: scaledHeight,
-        });
+    worker.on('exit', (code) => {
+      if (resolved) return;
+      // No need to set resolved = true here, as this is a final state if no message/error was received.
+      if (code !== 0) {
+        console.error(`[Main Process - process-pdf] Worker stopped with exit code ${code} without sending a result.`);
+        resolve({ success: false, error: `PDF处理工作线程意外终止，退出码: ${code}。` });
+      } else if (!resolved) { // Exited cleanly but no message (should not happen if worker always posts message)
+        console.warn('[Main Process - process-pdf] Worker exited cleanly (code 0) but did not send a result. This might indicate an issue in the worker logic.');
+        resolve({ success: false, error: 'PDF处理工作线程已退出但未返回结果。' });
       }
-    } else {
-      // 如果没有resize操作，直接复制所有页面到新文档 (或者根据需要决定是否需要这一步)
-      // For simplicity, if no resize, we'll just save the original doc for now,
-      // or this part can be enhanced to copy pages to newPdfDoc if other ops exist.
-      // However, the main goal here is to fix the resize operation.
-      // If other operations (like label) are present, they should operate on newPdfDoc.
-      // This example focuses on fixing resize. If only resize is the goal, this else is fine.
-      // If other ops need to be combined, they should be adapted to newPdfDoc.
-      const pageIndices = pdfDoc.getPageIndices();
-      const copiedPages = await newPdfDoc.copyPages(pdfDoc, pageIndices);
-      copiedPages.forEach(page => newPdfDoc.addPage(page));
-    }
-
-    // 处理标签（添加文本标签） - 这部分需要调整到在 newPdfDoc 上操作
-    // For now, this part is commented out to focus on fixing the resize blank page issue.
-    // If labels are needed, this logic must be adapted to work with newPdfDoc's pages.
-    /*
-    if (operations.label) {
-      const pages = newPdfDoc.getPages(); // Operate on newPdfDoc
-      pages.forEach((page, index) => {
-        page.drawText(`${operations.label.text} - Page ${index + 1}`, {
-          x: 50,
-          y: page.getHeight() - 50,
-          size: 12,
-          color: PDFDocument.HexColor.parse(operations.label.color || '#000000')
-        });
-      });
-    }
-    */
-
-    const processedPdf = await newPdfDoc.save(); // Save the new document
-    // outputName is now guaranteed by the frontend to be a valid filename string ending with .pdf
-    const savePath = path.join(path.dirname(filePath), outputName)
-    fs.writeFileSync(savePath, processedPdf)
-    return { success: true, path: savePath }
-  } catch (err) {
-    return { success: false, error: err.message }
-  }
+    });
+  });
 })
 
 ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM }) => {
-  try {
-    const fs = require('fs');
-    const MM_TO_PT = 2.83465; // 1 mm = 2.834645669291339 points
-
-    const outputWidthPt = outputWidthMM * MM_TO_PT;
-    const outputHeightPt = outputHeightMM * MM_TO_PT;
-
-    const pdf1Bytes = fs.readFileSync(pdf1Path);
-    const pdf2Bytes = fs.readFileSync(pdf2Path);
-
-    const pdf1Doc = await PDFDocument.load(pdf1Bytes);
-    const pdf2Doc = await PDFDocument.load(pdf2Bytes);
-
-    if (pdf1Doc.getPageCount() === 0) {
-      return { success: false, error: 'PDF 文件 1 不能为空.' };
-    }
-    const P1_1_original = pdf1Doc.getPages()[0]; // Get the first page of PDF1
-
-    const P2_pages_original = pdf2Doc.getPages();
-    if (P2_pages_original.length === 0) {
-      return { success: false, error: 'PDF 文件 2 不能为空.' };
+  return new Promise((resolve, reject) => {
+    // Basic validation in main thread before starting worker
+    if (!pdf1Path || !pdf2Path || !outputName || typeof outputWidthMM !== 'number' || typeof outputHeightMM !== 'number' || outputWidthMM <= 0 || outputHeightMM <= 0) {
+      console.error('[Main Process - generate-shein-label] Missing or invalid required parameters.');
+      resolve({ success: false, error: '主进程错误：缺少必要的参数或参数无效 (PDF路径、输出名或尺寸)。' });
+      return;
     }
 
-    const finalPdfDoc = await PDFDocument.create();
+    const worker = new Worker(path.join(__dirname, 'shein-label-worker.js'), {
+      workerData: { pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM }
+    });
 
-    for (const P2_x_original of P2_pages_original) {
-      const newPage = finalPdfDoc.addPage([outputWidthPt, outputHeightPt]);
+    let resolved = false; // Flag to prevent multiple resolves
 
-      // --- Embed P2_x (current page from PDF2 - 条码文件) into the top half ---
-      const p2_origSize = P2_x_original.getSize();
-      const topHalfRect = { width: outputWidthPt, height: outputHeightPt / 2 };
-      
-      // Calculate scale to fit P2_x into topHalfRect while maintaining aspect ratio
-      let scaleP2 = Math.min(topHalfRect.width / p2_origSize.width, topHalfRect.height / p2_origSize.height);
-      let scaledWidthP2 = p2_origSize.width * scaleP2;
-      let scaledHeightP2 = p2_origSize.height * scaleP2;
-      
-      // Calculate offsets to center P2_x within the top half
-      let offsetX_P2 = (topHalfRect.width - scaledWidthP2) / 2;
-      // Y is calculated from the bottom of the newPage, so top half starts at outputHeightPt / 2
-      let offsetY_P2 = (topHalfRect.height - scaledHeightP2) / 2 + (outputHeightPt / 2);
+    worker.on('message', (result) => {
+      if (resolved) return;
+      resolved = true;
+      console.log('[Main Process - generate-shein-label] Worker finished with result:', result);
+      resolve(result);
+    });
 
-      const embeddedP2_final = await finalPdfDoc.embedPage(P2_x_original);
-      newPage.drawPage(embeddedP2_final, {
-        x: offsetX_P2,
-        y: offsetY_P2,
-        width: scaledWidthP2,
-        height: scaledHeightP2,
-      });
+    worker.on('error', (error) => {
+      if (resolved) return;
+      resolved = true;
+      console.error('[Main Process - generate-shein-label] Worker encountered an error:', error);
+      resolve({ success: false, error: error.message || 'Shein Label处理工作线程发生错误。' });
+    });
 
-      // --- Embed P1_1 (first page of PDF1 - 欧代文件) into the bottom half ---
-      const p1_origSize = P1_1_original.getSize();
-      const bottomHalfRect = { width: outputWidthPt, height: outputHeightPt / 2 };
-
-      // Calculate scale to fit P1_1 into bottomHalfRect while maintaining aspect ratio
-      let scaleP1 = Math.min(bottomHalfRect.width / p1_origSize.width, bottomHalfRect.height / p1_origSize.height);
-      let scaledWidthP1 = p1_origSize.width * scaleP1;
-      let scaledHeightP1 = p1_origSize.height * scaleP1;
-
-      // Calculate offsets to center P1_1 within the bottom half
-      let offsetX_P1 = (bottomHalfRect.width - scaledWidthP1) / 2;
-      // Y is calculated from the bottom of the newPage, so bottom half starts at 0
-      let offsetY_P1 = (bottomHalfRect.height - scaledHeightP1) / 2;
-
-      const embeddedP1_final = await finalPdfDoc.embedPage(P1_1_original);
-      newPage.drawPage(embeddedP1_final, {
-        x: offsetX_P1,
-        y: offsetY_P1,
-        width: scaledWidthP1,
-        height: scaledHeightP1,
-      });
-    }
-
-    const finalPdfBytes = await finalPdfDoc.save();
-    
-    // Ensure outputName has .pdf extension
-    const outputFilename = outputName.endsWith('.pdf') ? outputName : `${outputName}.pdf`;
-    // Save in the same directory as PDF1 by default
-    const savePath = path.join(path.dirname(pdf1Path), outputFilename);
-    
-    fs.writeFileSync(savePath, finalPdfBytes);
-
-    return { success: true, path: savePath };
-  } catch (err) {
-    console.error('Error in generate-shein-label:', err); // Log the full error for debugging
-    return { success: false, error: err.message };
-  }
+    worker.on('exit', (code) => {
+      if (resolved) return;
+      if (code !== 0) {
+        console.error(`[Main Process - generate-shein-label] Worker stopped with exit code ${code} without sending a result.`);
+        resolve({ success: false, error: `Shein Label处理工作线程意外终止，退出码: ${code}。` });
+      } else if (!resolved) { // Exited cleanly but no message
+        console.warn('[Main Process - generate-shein-label] Worker exited cleanly (code 0) but did not send a result.');
+        resolve({ success: false, error: 'Shein Label处理工作线程已退出但未返回结果。' });
+      }
+    });
+  });
 });
 
 // IPC handler to open a given path (file or directory)
