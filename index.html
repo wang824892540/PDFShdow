@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>PDF Processor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>⚙️ 功能导航</h2>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="#" class="nav-link active" data-view="sheinLabelView">Shein Label 生成</a></li>
+          <li><a href="#" class="nav-link" data-view="pdfResizeView">PDF 尺寸调整</a></li>
+        </ul>
+      </nav>
+      <button id="themeToggleBtn" title="切换主题"></button>
+    </aside>
+
+    <main class="main-content">
+      <div class="view-container" id="pdfResizeView" style="display: none;">
+        <!-- Existing content will be wrapped by its own .container if needed, or styled directly -->
+        <div class="container"> <!-- This is the original .container -->
+          <h2>📐 PDF 尺寸调整</h2>
+          
+          <div class="section">
+            <div class="field-wrapper"> <!-- Added wrapper for layout with error message -->
+              <button id="openFile" class="btn-primary">选择 PDF 文件</button>
+              <span id="selectedFile" class="file-select-status-span"></span>
+              <small class="error-message" id="selectedFileError"></small> <!-- New error message placeholder -->
+            </div>
+          </div>
+      
+          <div class="section">
+            <label for="pdfResizeOutputName">输出文件名称:</label>
+            <input type="text" id="pdfResizeOutputName" placeholder="例如: resized_document">
+          </div>
+      
+          <div class="section">
+            <label for="pageSize">页面尺寸调整</label>
+            <select id="pageSize">
+              <option value="A4">A4 (210x297mm)</option>
+              <option value="Letter">Letter (215.9x279.4mm)</option>
+              <option value="Shein" selected>Shein (70x60mm)</option>
+              <option value="custom">自定义</option>
+            </select>
+            <div id="customSize" class="dimension-inputs-container" style="display: none;">
+              <div class="field-wrapper">
+                <div class="input-group">
+                  <input type="number" id="customWidth" placeholder="宽度">
+                  <span class="unit">mm</span>
+                </div>
+                <small class="error-message" id="customWidthError"></small>
+              </div>
+              <div class="field-wrapper">
+                <div class="input-group">
+                  <input type="number" id="customHeight" placeholder="高度">
+                  <span class="unit">mm</span>
+                </div>
+                <small class="error-message" id="customHeightError"></small>
+              </div>
+            </div>
+          </div>
+      
+          <button id="processBtn" class="btn-primary">开始处理</button>
+          <div id="result"></div>
+<div id="pdfResizePostProcessActions" style="margin-top: 10px; display: none;">
+            <button id="pdfResizeOpenGeneratedFileBtn" class="action-button">打开文件</button>
+            <button id="pdfResizeShowGeneratedFileInFolderBtn" class="action-button">打开文件夹</button>
+            <button id="pdfResizeCopyFileBtn" class="action-button">复制文件</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="view-container" id="sheinLabelView" style="display: block;">
+        <div class="container"> <!-- Each view can have its own container for consistency -->
+          <h2>🏷️ Shein Label 生成</h2>
+          
+          <div class="section">
+            <div class="field-wrapper"> <!-- Added wrapper -->
+              <button id="sheinOpenFile1Btn" class="btn-primary">选择欧代文件</button>
+              <span id="sheinSelectedFile1" class="file-select-status-span">未选择文件</span>
+              <small class="error-message" id="sheinSelectedFile1Error"></small> <!-- New error message placeholder -->
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="field-wrapper"> <!-- Added wrapper -->
+              <button id="sheinOpenFile2Btn" class="btn-primary">选择条码文件</button>
+              <span id="sheinSelectedFile2" class="file-select-status-span">未选择文件</span>
+              <small class="error-message" id="sheinSelectedFile2Error"></small> <!-- New error message placeholder -->
+            </div>
+          </div>
+
+          <div class="section">
+            <label for="sheinOutputName">输出文件名称:</label>
+            <input type="text" id="sheinOutputName" placeholder="例如: shein_label_output">
+          </div>
+
+          <div class="section">
+            <label for="sheinOutputPageSize">输出页面尺寸 (mm):</label>
+            <select id="sheinOutputPageSize">
+              <option value="A4">A4 (210x297mm)</option>
+              <option value="Letter">Letter (215.9x279.4mm)</option>
+              <option value="Shein" selected>Shein (70x60mm)</option>
+              <option value="custom">自定义</option>
+            </select>
+            <div id="sheinOutputCustomDimensions" class="dimension-inputs-container" style="display: none;">
+              <div class="input-group">
+                <input type="number" id="sheinOutputWidth" placeholder="宽度" value="70">
+                <span class="unit">mm</span>
+              </div>
+              <div class="input-group">
+                <input type="number" id="sheinOutputHeight" placeholder="高度" value="60">
+                <span class="unit">mm</span>
+              </div>
+            </div>
+          </div>
+
+          <button id="generateSheinLabelBtn" class="btn-primary">生成 Shein Label</button>
+          <div id="sheinResult"></div>
+          <div id="sheinPostProcessActions" style="margin-top: 10px; display: none;">
+            <button id="openGeneratedFileBtn" class="action-button">打开文件</button>
+            <button id="showGeneratedFileInFolderBtn" class="action-button">打开文件夹</button>
+            <button id="sheinCopyFileBtn" class="action-button">复制文件</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- <script src="renderer.js"></script> -->
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Sidebar navigation logic
+    const navLinks = document.querySelectorAll('.sidebar .nav-link');
+    const views = document.querySelectorAll('.main-content .view-container');
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', function(event) {
+        event.preventDefault();
+        const viewId = this.getAttribute('data-view');
+
+        views.forEach(view => {
+          view.style.display = view.id === viewId ? 'block' : 'none';
+        });
+
+        navLinks.forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Ensure the default view (pdfResizeView) and its link are active on load
+    // document.getElementById('pdfResizeView').style.display = 'block'; // Already set inline
+    // const initialActiveLink = document.querySelector('.sidebar .nav-link[data-view="pdfResizeView"]');
+    // if (initialActiveLink) {
+    //   initialActiveLink.classList.add('active'); // Already set in HTML
+    // }
+
+
+    // Helper function to get basename using pure JavaScript (as a fallback)
+    function getBasenameFrontend(filePath) {
+      if (!filePath || typeof filePath !== 'string') {
+        return '';
+      }
+      // Replace all backslashes with forward slashes for consistent parsing
+      const normalizedPath = filePath.replace(/\\/g, '/');
+      const lastSlashIndex = normalizedPath.lastIndexOf('/');
+      if (lastSlashIndex === -1) {
+        return normalizedPath; // No slashes, the whole path is the filename
+      }
+      return normalizedPath.substring(lastSlashIndex + 1);
+    }
+
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const currentTheme = localStorage.getItem('theme');
+    const sunIcon = '☀️'; // Unicode: U+2600
+    const moonIcon = '🌙'; // Unicode: U+1F319
+
+    function setTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggleBtn.textContent = sunIcon; // Show sun icon in dark mode (to switch to light)
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        themeToggleBtn.textContent = moonIcon; // Show moon icon in light mode (to switch to dark)
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    // Initialize theme and icon based on localStorage or default to light
+    setTheme(currentTheme === 'dark' ? 'dark' : 'light');
+
+    themeToggleBtn.addEventListener('click', () => {
+      const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+      setTheme(newTheme);
+    });
+// Function to show toast notifications
+    function showToast(message, type = 'info', duration = 3500) {
+      const container = document.getElementById('toastContainer');
+      if (!container) {
+        console.error('Toast container not found!');
+        return;
+      }
+
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`; // e.g., "toast toast-success"
+    
+      // --- Add logging and default message for debugging ---
+      console.log(`showToast called with message: "${message}", type: "${type}"`);
+      const displayMessage = (message && typeof message === 'string' && message.trim() !== '') ? message : "[默认测试提示]";
+      toast.textContent = displayMessage;
+      // --- End of debugging addition ---
+    
+      container.appendChild(toast);
+
+      // Remove the toast after its animation finishes
+      // The CSS animation is toast-slide-in 0.3s, then visible, then toast-fade-out 0.5s with a 2.7s delay.
+      // Total animation duration is 0.3s (in) + 2.7s (delay for fade) + 0.5s (out) = 3.5s.
+      // So, the JS duration parameter should align with this or be slightly longer.
+      setTimeout(() => {
+        // Optional: Add a class to trigger fade-out if not purely CSS driven for removal
+        // For now, CSS handles the fade-out animation based on its own timing.
+        // We just need to remove it from DOM after it's invisible.
+        if (toast.parentNode === container) {
+           container.removeChild(toast);
+        }
+      }, duration); // Use the duration parameter, which defaults to 3500ms
+    }
+
+    // For PDF Resize View Post-Process Actions
+    const pdfResizePostProcessActionsDiv = document.getElementById('pdfResizePostProcessActions');
+    const pdfResizeOpenGeneratedFileBtn = document.getElementById('pdfResizeOpenGeneratedFileBtn');
+    const pdfResizeShowGeneratedFileInFolderBtn = document.getElementById('pdfResizeShowGeneratedFileInFolderBtn');
+    const pdfResizeCopyFileBtn = document.getElementById('pdfResizeCopyFileBtn');
+    let currentGeneratedPdfResizePath = ''; // To store the path for these buttons
+
+    const pageSizeMap = {
+      'A4': { width: 210 * 2.835, height: 297 * 2.835 }, // mm转pt
+      'Letter': { width: 215.9 * 2.835, height: 279.4 * 2.835 },
+      'Shein': { width: 70 * 2.835, height: 60 * 2.835 }, // mm转pt
+      'custom': null
+    }
+
+    const pageSizeMapMM = { // For populating MM inputs
+      'A4': { width: 210, height: 297 },
+      'Letter': { width: 215.9, height: 279.4 },
+      'Shein': { width: 70, height: 60 }
+    };
+
+    let selectedFilePath = ''
+
+    document.getElementById('openFile').addEventListener('click', async () => {
+      selectedFilePath = await window.electronAPI.openFile();
+      const selectedFileElement = document.getElementById('selectedFile');
+      if (selectedFilePath) {
+        // Using frontend basename extraction as a temporary solution
+        selectedFileElement.textContent = getBasenameFrontend(selectedFilePath);
+        // selectedFileElement.textContent = await window.electronAPI.getPathBasename(selectedFilePath); // Preferred way, if preload is set up
+        selectedFileElement.classList.add('file-selected-badge');
+      } else {
+        selectedFileElement.textContent = '未选择文件';
+        selectedFileElement.classList.remove('file-selected-badge');
+      }
+    })
+
+    // Initialize the badge state on load, in case of refresh or pre-filled (though not applicable here)
+    const initialSelectedFileElement = document.getElementById('selectedFile');
+    if (!selectedFilePath) { // Assuming selectedFilePath is empty on initial load
+        initialSelectedFileElement.textContent = '未选择文件'; // Ensure placeholder is set
+        initialSelectedFileElement.classList.remove('file-selected-badge');
+    }
+
+
+    document.getElementById('pageSize').addEventListener('change', function() {
+      const customSizeEl = document.getElementById('customSize');
+      if (this.value === 'custom') {
+        customSizeEl.style.display = 'flex'; // Ensure it's flex for layout
+      } else {
+        customSizeEl.style.display = 'none';
+      }
+    })
+    // Ensure sheinOutputCustomSize is flex by default if it's always visible
+    // Or add a similar JS logic if it needs to be toggled. For now, CSS will handle it.
+
+    document.getElementById('processBtn').addEventListener('click', async () => {
+      // Resetting file selection error state (done after global resultDiv reset and before other specific resets)
+      // This will be handled by the more general reset block below.
+
+      if (!selectedFilePath) {
+        const openFileButton = document.getElementById('openFile');
+        const selectedFileErrorEl = document.getElementById('selectedFileError');
+
+        if (openFileButton) {
+            openFileButton.classList.add('input-error');
+            // Optionally focus the button, though it might be disruptive
+            // openFileButton.focus();
+        }
+        if (selectedFileErrorEl) {
+            selectedFileErrorEl.textContent = '请先选择一个 PDF 文件。';
+            selectedFileErrorEl.style.display = 'block';
+        } else {
+            // Fallback if the error element itself is somehow missing
+            console.error("PDF Resize Error: selectedFileError element not found in DOM!");
+            const resultDiv = document.getElementById('result'); // Fallback to global error
+            if (resultDiv) {
+                resultDiv.innerHTML = `<p>请先选择PDF文件 (UI Error: msg element missing)</p>`;
+                resultDiv.className = 'error';
+                resultDiv.style.display = 'block';
+            }
+        }
+        return;
+      }
+
+      const operations = {}
+      const pdfResizeOutputNameInput = document.getElementById('pdfResizeOutputName');
+
+      // Reset/hide post-process actions for pdfResizeView at the start of processing
+      if (pdfResizePostProcessActionsDiv) {
+          pdfResizePostProcessActionsDiv.style.display = 'none';
+      }
+      currentGeneratedPdfResizePath = '';
+      const resultDivForReset = document.getElementById('result'); // Global result div
+      if (resultDivForReset) {
+          resultDivForReset.innerHTML = '';
+          resultDivForReset.className = '';
+          resultDivForReset.style.display = 'none'; // Hide global result div when resetting
+      }
+      // Also reset custom dimension inline errors here if they were shown from a previous attempt
+      const widthInputForReset = document.getElementById('customWidth');
+      const heightInputForReset = document.getElementById('customHeight');
+      const customWidthErrorElForReset = document.getElementById('customWidthError');
+      const customHeightErrorElForReset = document.getElementById('customHeightError');
+
+      if (widthInputForReset && customWidthErrorElForReset) {
+          widthInputForReset.classList.remove('input-error');
+          customWidthErrorElForReset.textContent = '';
+          customWidthErrorElForReset.style.display = 'none';
+      }
+      if (heightInputForReset && customHeightErrorElForReset) {
+          heightInputForReset.classList.remove('input-error');
+          customHeightErrorElForReset.textContent = '';
+          customHeightErrorElForReset.style.display = 'none';
+      }
+      // Also reset file selection error state here
+      const openFileButtonForReset = document.getElementById('openFile');
+      const selectedFileErrorForReset = document.getElementById('selectedFileError');
+      if (openFileButtonForReset && selectedFileErrorForReset) {
+          openFileButtonForReset.classList.remove('input-error');
+          selectedFileErrorForReset.textContent = '';
+          selectedFileErrorForReset.style.display = 'none';
+      }
+
+      function getCurrentHHMMSS() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        return `${hours}${minutes}${seconds}`;
+      }
+
+      let outputName = pdfResizeOutputNameInput.value.trim();
+      if (!outputName) {
+        outputName = `resized_${getCurrentHHMMSS()}.pdf`;
+      } else if (!outputName.toLowerCase().endsWith('.pdf')) {
+        outputName += '.pdf';
+      }
+      
+      // 获取尺寸参数
+      const sizeType = document.getElementById('pageSize').value
+      if (sizeType !== 'custom') {
+        operations.resize = pageSizeMap[sizeType]
+      } else {
+        const widthInput = document.getElementById('customWidth');
+        const heightInput = document.getElementById('customHeight');
+        const customWidthErrorEl = document.getElementById('customWidthError');
+        const customHeightErrorEl = document.getElementById('customHeightError');
+
+        let validationPassed = true;
+        let width = NaN;
+        let height = NaN;
+
+        if (widthInput) {
+            width = parseFloat(widthInput.value);
+        } else {
+            console.error("PDF Resize Error: customWidth input element not found in DOM.");
+            validationPassed = false; // Critical element missing
+        }
+
+        if (heightInput) {
+            height = parseFloat(heightInput.value);
+        } else {
+            console.error("PDF Resize Error: customHeight input element not found in DOM.");
+            validationPassed = false; // Critical element missing
+        }
+        
+        // Proceed with validation only if critical elements were found for parsing
+        if (validationPassed) {
+            console.log(`Initial validation for width: ${width}, height: ${height}`);
+            if (isNaN(width) || width <= 0) {
+                console.log(`Width validation failed. Value: ${width}`);
+                if (widthInput) {
+                    console.log(`Attempting to style widthInput (ID: ${widthInput.id}). Current background: ${widthInput.style.backgroundColor}, Classes: ${widthInput.className}`);
+                    widthInput.style.backgroundColor = 'pink'; // Diagnostic style change
+                    widthInput.classList.add('input-error');
+                    console.log(`After styling widthInput. New background: ${widthInput.style.backgroundColor}, New classes: ${widthInput.className}`);
+                    widthInput.focus();
+                }
+                if (customWidthErrorEl) {
+                    console.log(`Attempting to show customWidthErrorEl (ID: ${customWidthErrorEl.id}). Current display: ${customWidthErrorEl.style.display}`);
+                    customWidthErrorEl.textContent = '宽度必须是有效的正数。';
+                    customWidthErrorEl.style.display = 'block';
+                    console.log(`After showing customWidthErrorEl. New display: ${customWidthErrorEl.style.display}, Text: ${customWidthErrorEl.textContent}`);
+                } else {
+                    console.error("PDF Resize Error: customWidthError element not found for displaying message.");
+                }
+                validationPassed = false;
+                console.log(`Set validationPassed to false due to invalid width.`);
+            }
+
+            if (isNaN(height) || height <= 0) {
+                console.log(`Height validation failed. Value: ${height}`);
+                if (heightInput) {
+                    console.log(`Attempting to style heightInput (ID: ${heightInput.id}). Current background: ${heightInput.style.backgroundColor}, Classes: ${heightInput.className}`);
+                    heightInput.style.backgroundColor = 'pink'; // Diagnostic style change
+                    heightInput.classList.add('input-error');
+                    console.log(`After styling heightInput. New background: ${heightInput.style.backgroundColor}, New classes: ${heightInput.className}`);
+                    if (validationPassed && widthInput) {
+                        heightInput.focus();
+                    } else if (!widthInput && heightInput) {
+                        heightInput.focus();
+                    } else if (heightInput && !widthInput) { // If width was invalid but widthInput itself was missing
+                        heightInput.focus();
+                    } else if (validationPassed && !widthInput) { // If width was considered valid (e.g. not NaN) but widthInput was missing
+                         heightInput.focus(); // Focus height if it's the first actual input field with an error
+                    } else if (!validationPassed && heightInput) { // If width validation failed, and now height is also failing
+                        // Let width keep focus if it was set, otherwise focus height if widthInput was missing
+                        if(document.activeElement !== widthInput) heightInput.focus();
+                    }
+
+
+                }
+                if (customHeightErrorEl) {
+                    console.log(`Attempting to show customHeightErrorEl (ID: ${customHeightErrorEl.id}). Current display: ${customHeightErrorEl.style.display}`);
+                    customHeightErrorEl.textContent = '高度必须是有效的正数。';
+                    customHeightErrorEl.style.display = 'block';
+                    console.log(`After showing customHeightErrorEl. New display: ${customHeightErrorEl.style.display}, Text: ${customHeightErrorEl.textContent}`);
+                } else {
+                    console.error("PDF Resize Error: customHeightError element not found for displaying message.");
+                }
+                validationPassed = false;
+                console.log(`Set validationPassed to false due to invalid height.`);
+            }
+        }
+
+        console.log(`Final validationPassed state before return check: ${validationPassed}`);
+        if (!validationPassed) {
+          console.log("Validation failed (or critical elements missing), returning early from processBtn.");
+          return; // Stop if elements are missing or validation fails
+        }
+        console.log("Validation passed, proceeding to operations.resize.");
+
+        // If we reach here, all elements were found and validation passed
+        operations.resize = {
+          width: width * 2.835, // width and height are guaranteed to be valid numbers here
+          height: height * 2.835
+        }
+      }
+      console.log('[PDF Resize] Before calling window.electronAPI.processPDF. Params:', { filePath: selectedFilePath, operations, outputName }); // DEBUG LOG
+      const result = await window.electronAPI.processPDF({
+        filePath: selectedFilePath,
+        operations,
+        outputName: outputName // Pass the determined output name
+      })
+      console.log('[PDF Resize] After calling window.electronAPI.processPDF. Result:', result); // DEBUG LOG
+
+      const resultDiv = document.getElementById('result');
+      if (result && result.success && result.path) { // Added check for result object itself
+        showToast('处理成功！', 'success');
+        resultDiv.style.display = 'block'; // Show for path message
+        resultDiv.innerHTML = `<p>保存路径：${result.path}</p>`; // Keep path info persistent
+        resultDiv.className = 'success'; // Keep styling for path info
+        currentGeneratedPdfResizePath = result.path; // Store the path
+        if (pdfResizePostProcessActionsDiv) {
+            pdfResizePostProcessActionsDiv.style.display = 'block'; // Show action buttons
+        }
+      } else {
+        showToast(`处理失败：${result.error || '未知错误'}`, 'error');
+        resultDiv.innerHTML = ''; // Clear the result div
+        resultDiv.style.display = 'none'; // Hide it
+        resultDiv.className = '';
+        if (pdfResizePostProcessActionsDiv) { // Ensure it's hidden on failure too
+            pdfResizePostProcessActionsDiv.style.display = 'none';
+        }
+      }
+    })
+
+    // Event listeners for PDF Resize Post-Process Actions
+    if (pdfResizeOpenGeneratedFileBtn) {
+        pdfResizeOpenGeneratedFileBtn.addEventListener('click', async () => {
+            if (currentGeneratedPdfResizePath) {
+                try {
+                    await window.electronAPI.openPath(currentGeneratedPdfResizePath);
+                } catch (err) {
+                    console.error("Error opening file (PDF Resize):", err);
+                    showToast(`无法打开文件: ${err.message}`, 'error');
+                }
+            }
+        });
+    }
+
+    if (pdfResizeShowGeneratedFileInFolderBtn) {
+        pdfResizeShowGeneratedFileInFolderBtn.addEventListener('click', async () => {
+            if (currentGeneratedPdfResizePath) {
+                try {
+                    await window.electronAPI.showItemInFolder(currentGeneratedPdfResizePath);
+                } catch (err) {
+                    console.error("Error showing item in folder (PDF Resize):", err);
+                    showToast(`无法打开文件夹: ${err.message}`, 'error');
+                }
+            }
+        });
+    }
+
+    if (pdfResizeCopyFileBtn) {
+        pdfResizeCopyFileBtn.addEventListener('click', async () => {
+            if (currentGeneratedPdfResizePath) {
+                try {
+                    // Assuming window.electronAPI.copyFileToClipboard will be implemented
+                    // and will return an object like { success: true } or { success: false, error: 'message' }
+                    const copyResult = await window.electronAPI.copyFileToClipboard(currentGeneratedPdfResizePath);
+                    
+                    if (copyResult && copyResult.success) {
+                        if (copyResult.action === 'path_copied_unexpected_fallback') {
+                            showToast(copyResult.message || '未能复制文件，已改为复制文件路径到剪贴板！', 'warning');
+                        } else {
+                            showToast('文件已复制到剪贴板！', 'success');
+                        }
+                        console.log('Copy action result (PDF Resize):', copyResult);
+                    } else {
+                        const errorMessage = `复制文件失败: ${copyResult && copyResult.error ? copyResult.error : '未知错误'}`;
+                        console.error("Failed to copy file to clipboard (PDF Resize):", errorMessage);
+                        showToast(errorMessage, 'error');
+                    }
+                } catch (err) {
+                    console.error("Error during copy file operation (PDF Resize):", err);
+                    showToast(`复制文件时出错: ${err.message}`, 'error');
+                }
+            }
+        });
+    }
+
+    // --- Shein Label Feature ---
+    let selectedSheinPdf1Path = '';
+    let selectedSheinPdf2Path = '';
+
+    const sheinOpenFile1Btn = document.getElementById('sheinOpenFile1Btn');
+    const sheinSelectedFile1Element = document.getElementById('sheinSelectedFile1');
+    const sheinOpenFile2Btn = document.getElementById('sheinOpenFile2Btn');
+    const sheinSelectedFile2Element = document.getElementById('sheinSelectedFile2');
+    const generateSheinLabelBtn = document.getElementById('generateSheinLabelBtn');
+    const sheinResultDiv = document.getElementById('sheinResult');
+    const sheinOutputNameInput = document.getElementById('sheinOutputName');
+    const sheinOutputPageSizeSelect = document.getElementById('sheinOutputPageSize'); // New select
+    const sheinOutputCustomDimensionsDiv = document.getElementById('sheinOutputCustomDimensions'); // New div for custom inputs
+    const sheinOutputWidthInput = document.getElementById('sheinOutputWidth'); // Existing input, now inside new div
+    const sheinOutputHeightInput = document.getElementById('sheinOutputHeight'); // Existing input, now inside new div
+    const sheinPostProcessActionsDiv = document.getElementById('sheinPostProcessActions');
+    const openGeneratedFileBtn = document.getElementById('openGeneratedFileBtn'); // Note: These are generic IDs, ensure they are scoped correctly or made specific
+    const showGeneratedFileInFolderBtn = document.getElementById('showGeneratedFileInFolderBtn'); // Same as above
+    const sheinCopyFileBtn = document.getElementById('sheinCopyFileBtn'); // New button for Shein copy
+    let currentGeneratedSheinLabelPath = ''; // To store the path for the buttons
+
+    // Logic for Shein output page size selection
+    if (sheinOutputPageSizeSelect) {
+      sheinOutputPageSizeSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+          sheinOutputCustomDimensionsDiv.style.display = 'flex';
+        } else {
+          sheinOutputCustomDimensionsDiv.style.display = 'none';
+          const selectedSizeMM = pageSizeMapMM[this.value];
+          if (selectedSizeMM) {
+            sheinOutputWidthInput.value = selectedSizeMM.width;
+            sheinOutputHeightInput.value = selectedSizeMM.height;
+          }
+        }
+      });
+      // Trigger change on load to set initial state based on default "Shein" selection
+      // This will hide custom inputs and ensure width/height inputs are 70/60
+      // (though HTML value attributes already set them, this ensures consistency if default changes)
+      if (sheinOutputPageSizeSelect.value !== 'custom') {
+         const initialSelectedSizeMM = pageSizeMapMM[sheinOutputPageSizeSelect.value];
+         if (initialSelectedSizeMM) {
+            sheinOutputWidthInput.value = initialSelectedSizeMM.width;
+            sheinOutputHeightInput.value = initialSelectedSizeMM.height;
+         }
+         sheinOutputCustomDimensionsDiv.style.display = 'none';
+      } else {
+         sheinOutputCustomDimensionsDiv.style.display = 'flex';
+      }
+    }
+
+    // Old default dimension setting for Shein Label (lines 443-448) is now removed
+    // as it's handled by the select logic and HTML value attributes.
+
+    // Apply file-selected-badge styling if needed (assuming styles.css has this class)
+    // Ensure initial placeholder text
+    if (sheinSelectedFile1Element) sheinSelectedFile1Element.textContent = '未选择文件';
+    if (sheinSelectedFile2Element) sheinSelectedFile2Element.textContent = '未选择文件';
+
+
+    if (sheinOpenFile1Btn) {
+      sheinOpenFile1Btn.addEventListener('click', async () => {
+        const filePath = await window.electronAPI.openFile();
+        if (filePath) {
+          selectedSheinPdf1Path = filePath;
+          sheinSelectedFile1Element.textContent = getBasenameFrontend(filePath);
+          sheinSelectedFile1Element.classList.add('file-selected-badge');
+        } else {
+          // selectedSheinPdf1Path = ''; // Keep previous if user cancels
+          // sheinSelectedFile1Element.textContent = '未选择文件';
+          // sheinSelectedFile1Element.classList.remove('file-selected-badge');
+        }
+      });
+    }
+
+    if (sheinOpenFile2Btn) {
+      sheinOpenFile2Btn.addEventListener('click', async () => {
+        const filePath = await window.electronAPI.openFile();
+        if (filePath) {
+          selectedSheinPdf2Path = filePath;
+          sheinSelectedFile2Element.textContent = getBasenameFrontend(filePath);
+          sheinSelectedFile2Element.classList.add('file-selected-badge');
+        } else {
+          // selectedSheinPdf2Path = '';
+          // sheinSelectedFile2Element.textContent = '未选择文件';
+          // sheinSelectedFile2Element.classList.remove('file-selected-badge');
+        }
+      });
+    }
+
+    if (generateSheinLabelBtn) {
+      // Event listeners for open/show buttons, defined once
+      openGeneratedFileBtn.addEventListener('click', async () => {
+        if (currentGeneratedSheinLabelPath) {
+          try {
+            await window.electronAPI.openPath(currentGeneratedSheinLabelPath);
+          } catch (err) {
+            console.error("Error opening file:", err);
+            showToast(`无法打开文件: ${err.message}`, 'error');
+          }
+        }
+      });
+
+      showGeneratedFileInFolderBtn.addEventListener('click', async () => {
+        if (currentGeneratedSheinLabelPath) {
+          try {
+            await window.electronAPI.showItemInFolder(currentGeneratedSheinLabelPath);
+          } catch (err) {
+            console.error("Error showing item in folder:", err);
+            showToast(`无法打开文件夹: ${err.message}`, 'error');
+          }
+        }
+      });
+
+      if (sheinCopyFileBtn) {
+        sheinCopyFileBtn.addEventListener('click', async () => {
+          if (currentGeneratedSheinLabelPath) {
+            try {
+              const copyResult = await window.electronAPI.copyFileToClipboard(currentGeneratedSheinLabelPath);
+
+              if (copyResult && copyResult.success) {
+                if (copyResult.action === 'path_copied_unexpected_fallback') {
+                  showToast(copyResult.message || '未能复制文件，已改为复制文件路径到剪贴板！', 'warning');
+                } else {
+                  showToast('文件已复制到剪贴板！', 'success');
+                }
+                console.log('Copy action result (Shein Label):', copyResult);
+              } else {
+                const errorMessage = `复制文件失败: ${copyResult && copyResult.error ? copyResult.error : '未知错误'}`;
+                console.error("Failed to copy file to clipboard (Shein Label):", errorMessage);
+                showToast(errorMessage, 'error');
+              }
+            } catch (err) {
+              console.error("Error during copy file operation (Shein Label):", err);
+              showToast(`复制文件时出错: ${err.message}`, 'error');
+            }
+          }
+        });
+      }
+
+      generateSheinLabelBtn.addEventListener('click', async () => {
+        sheinResultDiv.innerHTML = ''; // Clear previous results
+        sheinResultDiv.className = '';
+        sheinResultDiv.style.display = 'none'; // Hide when resetting
+        sheinPostProcessActionsDiv.style.display = 'none'; // Hide actions at the start
+        currentGeneratedSheinLabelPath = ''; // Reset path
+
+        // Reset inline error messages for Shein file inputs
+        const sheinOpenFile1ButtonForReset = document.getElementById('sheinOpenFile1Btn');
+        const sheinSelectedFile1ErrorForReset = document.getElementById('sheinSelectedFile1Error');
+        if (sheinOpenFile1ButtonForReset && sheinSelectedFile1ErrorForReset) {
+            sheinOpenFile1ButtonForReset.classList.remove('input-error');
+            sheinSelectedFile1ErrorForReset.textContent = '';
+            sheinSelectedFile1ErrorForReset.style.display = 'none';
+        }
+
+        const sheinOpenFile2ButtonForReset = document.getElementById('sheinOpenFile2Btn');
+        const sheinSelectedFile2ErrorForReset = document.getElementById('sheinSelectedFile2Error');
+        if (sheinOpenFile2ButtonForReset && sheinSelectedFile2ErrorForReset) {
+            sheinOpenFile2ButtonForReset.classList.remove('input-error');
+            sheinSelectedFile2ErrorForReset.textContent = '';
+            sheinSelectedFile2ErrorForReset.style.display = 'none';
+        }
+
+        let sheinValidationPassed = true;
+
+        if (!selectedSheinPdf1Path) {
+          const sheinOpenFile1Button = document.getElementById('sheinOpenFile1Btn');
+          const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
+          if (sheinOpenFile1Button) {
+              sheinOpenFile1Button.classList.add('input-error');
+          }
+          if (sheinSelectedFile1ErrorEl) {
+              sheinSelectedFile1ErrorEl.textContent = '请选择欧代文件。';
+              sheinSelectedFile1ErrorEl.style.display = 'block';
+          } else {
+              console.error("Shein Label Error: sheinSelectedFile1Error element not found in DOM!");
+              // Fallback to global error if inline element is missing
+              if (sheinResultDiv) {
+                  sheinResultDiv.innerHTML = '<p>请选择欧代文件 (UI Error: msg element missing)</p>';
+                  sheinResultDiv.className = 'error';
+                  sheinResultDiv.style.display = 'block';
+              }
+          }
+          sheinValidationPassed = false;
+        }
+
+        if (!selectedSheinPdf2Path) {
+          const sheinOpenFile2Button = document.getElementById('sheinOpenFile2Btn');
+          const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
+          if (sheinOpenFile2Button) {
+              sheinOpenFile2Button.classList.add('input-error');
+          }
+          if (sheinSelectedFile2ErrorEl) {
+              sheinSelectedFile2ErrorEl.textContent = '请选择条码文件。';
+              sheinSelectedFile2ErrorEl.style.display = 'block';
+          } else {
+              console.error("Shein Label Error: sheinSelectedFile2Error element not found in DOM!");
+              if (sheinResultDiv) { // Fallback
+                  sheinResultDiv.innerHTML = '<p>请选择条码文件 (UI Error: msg element missing)</p>';
+                  sheinResultDiv.className = 'error';
+                  sheinResultDiv.style.display = 'block';
+              }
+          }
+          sheinValidationPassed = false;
+        }
+
+        if (!sheinValidationPassed) {
+          return;
+        }
+
+        function getCurrentHHMMSS() {
+          const now = new Date();
+          const hours = String(now.getHours()).padStart(2, '0');
+          const minutes = String(now.getMinutes()).padStart(2, '0');
+          const seconds = String(now.getSeconds()).padStart(2, '0');
+          return `${hours}${minutes}${seconds}`;
+        }
+
+        let outputName = sheinOutputNameInput.value.trim();
+        if (!outputName) {
+          outputName = `SheinLabel_${getCurrentHHMMSS()}.pdf`;
+          // Optionally, update the input field to show the default name to the user
+          // sheinOutputNameInput.value = outputName;
+        } else if (!outputName.toLowerCase().endsWith('.pdf')) {
+          // Ensure .pdf extension if user provides a name without it
+          outputName += '.pdf';
+        }
+        
+        // The original check for empty outputName is now handled by the default assignment.
+        // If outputNameInput was empty, it's now filled. If it had a value, it's used (and .pdf is appended if missing).
+        // So, the explicit check `if (!outputName)` for emptiness before parseFloat is no longer needed here
+        // as outputName will always have a value.
+
+        let outputWidth = parseFloat(sheinOutputWidthInput.value);
+        let outputHeight = parseFloat(sheinOutputHeightInput.value);
+
+        // Validate and set default dimensions for Shein Label if input is invalid or empty
+        if (isNaN(outputWidth) || outputWidth <= 0) {
+          outputWidth = 70; // Default width
+          sheinOutputWidthInput.value = '70'; // Update input field to show the default
+        }
+        if (isNaN(outputHeight) || outputHeight <= 0) {
+          outputHeight = 60; // Default height
+          sheinOutputHeightInput.value = '60'; // Update input field to show the default
+        }
+        
+        // Now, outputWidth and outputHeight are guaranteed to be positive numbers (either user-provided or default).
+        // The previous error checks for these specific conditions are no longer needed as they are handled by defaulting.
+
+        // Prepare parameters for backend
+        const params = {
+          pdf1Path: selectedSheinPdf1Path,
+          pdf2Path: selectedSheinPdf2Path,
+          outputName: outputName,
+          outputWidthMM: outputWidth, // Send as mm
+          outputHeightMM: outputHeight // Send as mm
+        };
+
+        try {
+          sheinResultDiv.style.display = 'block'; // Show for "processing" message
+          sheinResultDiv.innerHTML = '<p>正在处理中...</p>'; // Provide feedback
+          const result = await window.electronAPI.generateSheinLabel(params);
+          if (result.success && result.path) {
+            currentGeneratedSheinLabelPath = result.path; // Store the path
+            showToast('Shein Label 生成成功！', 'success');
+            sheinResultDiv.style.display = 'block'; // Show for path message
+            sheinResultDiv.innerHTML = `<p>保存路径：${result.path}</p>`; // Keep path info persistent
+            sheinResultDiv.className = 'success'; // Keep styling for path info
+            sheinPostProcessActionsDiv.style.display = 'block'; // Show action buttons
+          } else {
+            showToast(`Shein Label 生成失败：${result.error || '未知错误'}`, 'error');
+            sheinResultDiv.innerHTML = ''; // Clear the result div
+            sheinResultDiv.style.display = 'none'; // Hide it
+            sheinResultDiv.className = '';
+            sheinPostProcessActionsDiv.style.display = 'none';
+          }
+        } catch (error) {
+          console.error('Error calling generateSheinLabel:', error);
+          showToast(`调用 Shein Label 生成功能时出错：${error.message}`, 'error');
+          sheinResultDiv.innerHTML = ''; // Clear the result div
+          sheinResultDiv.style.display = 'none'; // Hide it
+          sheinResultDiv.className = '';
+          sheinPostProcessActionsDiv.style.display = 'none';
+        }
+      });
+    }
+    // --- End Shein Label Feature ---
+
+  })
+</script>
+
+<!-- Toast Notification Container -->
+<div id="toastContainer" class="toast-container">
+  <!-- Toasts will be dynamically added here by JavaScript -->
+</div>
+</body>
+</html>
