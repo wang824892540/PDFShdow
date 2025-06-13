@@ -242,7 +242,7 @@
 // Function to validate filename against Windows and macOS restricted characters
     function isValidFilename(filename) {
       if (!filename || typeof filename !== 'string') {
-        return { valid: false, message: '文件名不能为空。' };
+        return { valid: true };
       }
       // Windows reserved characters (including / which is also for macOS)
       // eslint-disable-next-line no-control-regex
