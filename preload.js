@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   minimizeWindow: () => ipcRenderer.send('minimize-window'),
   maximizeRestoreWindow: () => ipcRenderer.send('maximize-restore-window'),
   closeWindow: () => ipcRenderer.send('close-window'),
+  toggleDevTools: () => ipcRenderer.send('toggle-dev-tools'),
+  checkForUpdates: () => ipcRenderer.send('check-for-updates'),
 
   // Listeners for window state changes from main process
   onWindowMaximized: (callback) => ipcRenderer.on('window-maximized', callback),

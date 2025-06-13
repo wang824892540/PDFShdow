@@ -10,6 +10,12 @@
     <div class="title-bar-drag-region"></div>
     <div class="title-bar-text">PDF 工具集</div>
     <div class="title-bar-controls">
+      <button id="devToolsBtn" class="title-bar-button" aria-label="开发者工具" title="开发者工具">
+        <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 5,0 5,2 7,2 7,4 5,4 5,6 3,6 3,4 1,4 1,2 3,2 3,0 Z M 1,7 1,9 3,9 3,7 Z M 5,7 5,9 7,9 7,7 Z" /></svg>
+      </button>
+      <button id="updateCheckBtn" class="title-bar-button" aria-label="检查更新" title="检查更新">
+        <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 5,0 8,3 5,6 2,3 Z M 0,5 3,8 6,5 3,2 Z M 4,5 5,4 6,5 5,6 Z" /></svg>
+      </button>
       <button id="minimize-btn" class="title-bar-button" aria-label="最小化">
         <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 0,5 10,5 10,6 0,6 Z" /></svg>
       </button>
@@ -414,6 +420,26 @@
       closeBtn.addEventListener('click', () => {
         if (window.electronAPI && typeof window.electronAPI.closeWindow === 'function') {
           window.electronAPI.closeWindow();
+        }
+      });
+    }
+
+    // 开发者工具按钮事件
+    const devToolsBtn = document.getElementById('devToolsBtn');
+    if (devToolsBtn) {
+      devToolsBtn.addEventListener('click', () => {
+        if (window.electronAPI && typeof window.electronAPI.toggleDevTools === 'function') {
+          window.electronAPI.toggleDevTools();
+        }
+      });
+    }
+
+    // 检查更新按钮事件
+    const updateCheckBtn = document.getElementById('updateCheckBtn');
+    if (updateCheckBtn) {
+      updateCheckBtn.addEventListener('click', () => {
+        if (window.electronAPI && typeof window.electronAPI.checkForUpdates === 'function') {
+          window.electronAPI.checkForUpdates();
         }
       });
     }

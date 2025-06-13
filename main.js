@@ -380,6 +380,16 @@ ipcMain.on('close-window', () => {
     mainWindow.close();
   }
 });
+
+ipcMain.on('toggle-dev-tools', () => {
+  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+    if (!app.isPackaged) { // Only allow in development
+      mainWindow.webContents.toggleDevTools();
+    } else {
+      sendToastToRenderer('开发者工具在生产环境中不可用', 'warning', 3000);
+    }
+  }
+});
 // End IPC Handlers for custom window controls
 
 app.whenReady().then(() => {
@@ -390,7 +400,7 @@ app.whenReady().then(() => {
   // Configure update provider
   autoUpdater.setFeedURL({
     provider: 'generic',
-    url: 'http://hxw1111.xyz:8516/updates/', // Replace with your actual update server URL
+    url: 'http://115.190.92.23:8516/updates/', // Replace with your actual update server URL
     // channel: 'latest', // Optional: specify channel if you use channels
   });
 

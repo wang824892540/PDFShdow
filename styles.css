@@ -1407,7 +1407,7 @@ body.dark-mode .custom-select-options { /* Firefox scrollbar dark mode */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 32px; /* Standard title bar height */
+  height: 50px; /* Standard title bar height */
   background-color: var(--container-bg-color-original); /* Use a theme variable for background */
   color: var(--text-color);
   padding: 0 8px; /* Padding on the sides */
@@ -1514,7 +1514,7 @@ body {
 }
 
 .app-layout {
-  padding-top: 32px; /* Match title bar height, push content down */
+  padding-top: 50px; /* Match title bar height, push content down */
   height: 100vh; /* app-layout itself takes full viewport height */
   /* Existing overflow: hidden on .app-layout is good */
   /* Existing border-radius, border, box-shadow on .app-layout are fine */
