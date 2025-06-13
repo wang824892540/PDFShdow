@@ -242,7 +242,7 @@ body.dark-mode {
   margin-bottom: 14px; /* Reduced */
   padding: 14px;       /* Reduced */
   background-color: var(--container-bg-color-original);
-  /* border: 1px solid var(--border-color-soft);  */
+  border: 1px solid var(--border-color-soft); 
   /* Softer border */
   border-radius: var(--border-radius-lg); /* Kept large radius for cards */
   box-shadow: var(--shadow-sm); /* Softer shadow for sections */
@@ -290,7 +290,6 @@ button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled sepa
   background-color: var(--primary-color);
   color: var(--text-on-primary-color);
   border-color: var(--primary-color);
-  min-width: 140px; /* Reduced */
   font-weight: 600;
 }
 .btn-primary:hover {
@@ -314,7 +313,6 @@ button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled sepa
     transparent 75%,
     transparent
   );
-  min-width: 140px;
   background-size: 40px 40px; /* Size of the repeating stripes */
   animation: progress-bar-stripes 1s linear infinite;
   overflow: hidden;
@@ -379,7 +377,6 @@ select:focus {
 
 .error-message {
   display: none; /* Hidden by default, JS will override with display: block */
-  width: 100%;
   margin-top: 5px; /* Space from the input above */
   font-size: 0.8em; /* Increased */
   color: var(--error-text-color) !important;
@@ -524,7 +521,6 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
 #pdfResizePostProcessActions button,
 #sheinPostProcessActions button {
   flex-grow: 1;
-  min-width: 110px; /* Reduced */
   background-color: var(--button-secondary-bg);
   color: var(--button-secondary-text);
   border: 1px solid var(--button-secondary-border);
