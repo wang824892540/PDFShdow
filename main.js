@@ -103,7 +103,7 @@ function createWindow() {
     width: Math.round(screenWidth * 0.6),
     height: Math.round(screenHeight * 0.8), // Changed from 0.8 to 0.9
     show: false, // Don't show the window until it's ready
-    frame: false, // Create a frameless window
+    frame: true, // Create a frameless window
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

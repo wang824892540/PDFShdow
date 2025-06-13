@@ -315,6 +315,27 @@ button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled sepa
   box-shadow: none;
 }
 
+/* Secondary button styles (e.g., Clear button) */
+.btn-secondary {
+  background-color: var(--button-secondary-bg);
+  color: var(--button-secondary-text);
+  border: 1px solid var(--button-secondary-border);
+  font-weight: 500; /* Consistent with general button */
+}
+
+.btn-secondary:hover {
+  background-color: var(--button-secondary-hover-bg);
+  /* Adjust border color on hover for better feedback */
+  border-color: color-mix(in srgb, var(--button-secondary-border) 85%, var(--text-color) 15%);
+  color: var(--button-secondary-text); /* Text color typically doesn't change on hover for secondary */
+}
+
+.btn-secondary:active {
+  background-color: color-mix(in srgb, var(--button-secondary-hover-bg) 90%, var(--text-color) 10%); /* Darken/lighten hover bg */
+  border-color: color-mix(in srgb, var(--button-secondary-border) 70%, var(--text-color) 30%); /* Further emphasize border */
+  /* transform and box-shadow are handled by general button:active */
+}
+
 .btn-primary {
   /* Icon suggestion: Consider icons for common actions like "Select File", "Process" e.g. <svg>...</svg> Open File */
   background-color: var(--primary-color);
@@ -368,6 +389,48 @@ button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled sepa
 .action-button:hover {
   background-color: var(--button-secondary-hover-bg);
   border-color: color-mix(in srgb, var(--button-secondary-border) 80%, var(--text-color));
+}
+
+/* General disabled button styles */
+button:disabled,
+button[disabled] { /* Cover both attribute forms */
+  cursor: not-allowed !important;
+  opacity: 0.65; /* General opacity for disabled state, adjust as needed */
+  /* Prevent hover/active effects on disabled buttons */
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Disabled state for secondary buttons (like 'Clear') */
+.btn-secondary:disabled,
+.btn-secondary[disabled] {
+  background-color: #e9ecef; /* Light mode: Very light grey, standard muted bg */
+  color: #6c757d;            /* Light mode: Muted grey text */
+  border-color: #ced4da;      /* Light mode: Soft grey border */
+  /* Opacity is handled by the general button:disabled rule */
+  /* Ensure hover/active specific styles from .btn-secondary don't apply */
+}
+
+.btn-secondary:disabled:hover,
+.btn-secondary[disabled]:hover {
+  background-color: #e9ecef !important; /* Keep background same as disabled */
+  border-color: #ced4da !important;   /* Keep border same as disabled */
+  /* transform and box-shadow are already reset by general button:disabled */
+}
+
+
+/* Dark mode disabled state for secondary buttons */
+body.dark-mode .btn-secondary:disabled,
+body.dark-mode .btn-secondary[disabled] {
+  background-color: #2c2f33; /* Dark mode: Dark, slightly desaturated grey */
+  color: #72767d;            /* Dark mode: Muted grey text, visible on dark bg */
+  border-color: #3a3e42;      /* Dark mode: Darker border */
+}
+
+body.dark-mode .btn-secondary:disabled:hover,
+body.dark-mode .btn-secondary[disabled]:hover {
+  background-color: #2c2f33 !important; /* Keep background same as disabled */
+  border-color: #3a3e42 !important;   /* Keep border same as disabled */
 }
 
 

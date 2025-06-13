@@ -726,8 +726,11 @@
 
     document.getElementById('processBtn').addEventListener('click', async () => {
       const processButton = document.getElementById('processBtn');
+      const clearPdfResizeFormBtn = document.getElementById('clearPdfResizeFormBtn'); // Get clear button
       const originalButtonText = processButton.textContent;
       let timerInterval; // Declare timerInterval outside try block
+
+      if (clearPdfResizeFormBtn) clearPdfResizeFormBtn.disabled = true; // Disable clear button
 
       try {
         // Resetting file selection error state (done after global resultDiv reset and before other specific resets)
@@ -1035,6 +1038,7 @@
           processButton.textContent = originalButtonText;
           processButton.classList.remove('processing'); // Remove processing class
       }
+      if (clearPdfResizeFormBtn) clearPdfResizeFormBtn.disabled = false; // Re-enable clear button
       // If resultDiv was used for a "processing..." message and not overwritten by success/failure,
       // it might need clearing here. However, current logic for success/failure does update resultDiv or hides it.
     }
@@ -1426,8 +1430,11 @@
 
       generateSheinLabelBtn.addEventListener('click', async () => {
         const originalButtonText = generateSheinLabelBtn.textContent; // Store original button text
+        const clearSheinLabelFormBtn = document.getElementById('clearSheinLabelFormBtn'); // Get clear button
         let startTime = 0;
         let timerInterval;
+
+        if (clearSheinLabelFormBtn) clearSheinLabelFormBtn.disabled = true; // Disable clear button
 
         generateSheinLabelBtn.disabled = true;
         startTime = Date.now();
@@ -1661,10 +1668,11 @@
           }
         } finally {
           if (timerInterval) clearInterval(timerInterval);
-          generateSheinLabelBtn.disabled = false;
-          generateSheinLabelBtn.textContent = originalButtonText;
-          generateSheinLabelBtn.classList.remove('processing');
-        }
+            generateSheinLabelBtn.disabled = false;
+            generateSheinLabelBtn.textContent = originalButtonText;
+            generateSheinLabelBtn.classList.remove('processing');
+            if (clearSheinLabelFormBtn) clearSheinLabelFormBtn.disabled = false; // Re-enable clear button
+          }
       });
 
     // Shein Label View - Clear Form Button
