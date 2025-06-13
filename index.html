@@ -106,7 +106,7 @@
             <button id="clearPdfResizeFormBtn" class="btn-secondary" style="margin-left: 10px;">清空</button>
           </div>
           <div id="result"></div>
-<div id="pdfResizePostProcessActions" style="margin-top: 10px; display: none;">
+          <div id="pdfResizePostProcessActions" style="margin-top: 10px; display: none;">
             <button id="pdfResizeOpenGeneratedFileBtn" class="action-button">打开文件</button>
             <button id="pdfResizeShowGeneratedFileInFolderBtn" class="action-button">打开文件夹</button>
             <button id="pdfResizeCopyFileBtn" class="action-button" title="尝试复制文件到剪贴板 (若失败则复制路径)">复制文件</button>
@@ -1002,6 +1002,8 @@
             if(apiResult.metadataError){
                 resultHtml += `<p style="color: orange;">输出文件元数据警告: ${apiResult.metadataError}</p>`;
             }
+            const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            resultHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
             resultHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
             resultDiv.innerHTML = resultHtml;
             resultDiv.className = 'success';
@@ -1013,6 +1015,8 @@
       } else {
         handleAndShowApiError(apiResult, 'PDF尺寸调整', undefined, resultDiv, pdfResizePostProcessActionsDiv);
         if (resultDiv) { // Also show total time on error
+            const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            resultDiv.innerHTML += `<p>处理开始时间：${startTimeFormatted}</p>`;
             resultDiv.innerHTML += `<p>总耗时：${totalTimeSeconds}秒</p>`;
             if (!resultDiv.classList.contains('error')) { // Ensure error class if not already set
                 resultDiv.className = 'error';
@@ -1643,6 +1647,8 @@
             if(result.metadataError){
                 resultHtmlShein += `<p style="color: orange;">输出文件元数据警告: ${result.metadataError}</p>`;
             }
+            const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            resultHtmlShein += `<p>处理开始时间：${startTimeFormatted}</p>`;
             resultHtmlShein += `<p>总耗时：${totalTimeSeconds}秒</p>`;
             sheinResultDiv.innerHTML = resultHtmlShein;
             sheinResultDiv.className = 'success';
@@ -1650,6 +1656,8 @@
           } else {
             handleAndShowApiError(result, 'Shein Label 生成', undefined, sheinResultDiv, sheinPostProcessActionsDiv);
             if (sheinResultDiv) {
+                const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                sheinResultDiv.innerHTML += `<p>处理开始时间：${startTimeFormatted}</p>`;
                 sheinResultDiv.innerHTML += `<p>总耗时：${totalTimeSeconds}秒</p>`;
                  if (!sheinResultDiv.classList.contains('error')) {
                     sheinResultDiv.className = 'error';
