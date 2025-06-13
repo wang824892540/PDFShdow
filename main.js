@@ -37,6 +37,53 @@ function sendToastToRenderer(message, type = 'info', duration = 3500) {
   }
 }
 
+// --- PDF Metadata Helper ---
+async function getPdfMetadataInternal(filePath) {
+  try {
+    const stats = await fs.stat(filePath);
+    const fileBuffer = await fs.readFile(filePath);
+    const pdfDoc = await PDFDocument.load(fileBuffer, {
+      // Ignore errors for potentially problematic PDFs, try to get page count if possible
+      ignoreEncryption: true,
+      updateMetadata: false
+    });
+    return {
+      success: true,
+      size: stats.size,
+      pageCount: pdfDoc.getPageCount()
+    };
+  } catch (error) {
+    console.error(`Error getting metadata for ${filePath}:`, error);
+    // Try to get size even if page count fails
+    try {
+      const stats = await fs.stat(filePath);
+      return {
+        success: false, // Indicate partial success or specific error type
+        error: `无法完全读取PDF元数据 (例如页数): ${error.message}`,
+        size: stats.size,
+        pageCount: null // Explicitly null if page count failed
+      };
+    } catch (statError) {
+      console.error(`Error getting even file size for ${filePath} after PDF error:`, statError);
+      return {
+        success: false,
+        error: `无法读取文件属性: ${statError.message}`,
+        size: null,
+        pageCount: null
+      };
+    }
+  }
+}
+
+// IPC handler for getting PDF metadata
+ipcMain.handle('get-pdf-metadata', async (event, filePath) => {
+  if (!filePath || typeof filePath !== 'string') {
+    return { success: false, error: '无效的文件路径。', size: null, pageCount: null };
+  }
+  return await getPdfMetadataInternal(filePath);
+});
+// --- End PDF Metadata Helper ---
+
 const SETTINGS_FILE_NAME = 'user-settings.json';
 let settingsFilePath = ''; // Will be initialized in app.whenReady
 
@@ -106,10 +153,23 @@ ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName }) =>
 
     let resolved = false; // Flag to prevent multiple resolves
 
-    worker.on('message', (result) => {
+    worker.on('message', async (result) => { // Made async
       if (resolved) return;
       resolved = true;
       console.log('[Main Process - process-pdf] Worker finished with result:', result);
+      if (result.success && result.path) {
+        const metadata = await getPdfMetadataInternal(result.path);
+        if (metadata.success) {
+          result.outputFileSize = metadata.size;
+          result.outputPageCount = metadata.pageCount;
+        } else {
+          // Log error but don't fail the whole operation if metadata retrieval fails for output
+          console.warn(`[Main Process - process-pdf] Could not get metadata for output file ${result.path}: ${metadata.error}`);
+          result.outputFileSize = null;
+          result.outputPageCount = null;
+          result.metadataError = metadata.error; // Optionally pass this info
+        }
+      }
       resolve(result);
     });
 
@@ -149,10 +209,22 @@ ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputNam
 
     let resolved = false; // Flag to prevent multiple resolves
 
-    worker.on('message', (result) => {
+    worker.on('message', async (result) => { // Made async
       if (resolved) return;
       resolved = true;
       console.log('[Main Process - generate-shein-label] Worker finished with result:', result);
+      if (result.success && result.path) {
+        const metadata = await getPdfMetadataInternal(result.path);
+        if (metadata.success) {
+          result.outputFileSize = metadata.size;
+          result.outputPageCount = metadata.pageCount;
+        } else {
+          console.warn(`[Main Process - generate-shein-label] Could not get metadata for output file ${result.path}: ${metadata.error}`);
+          result.outputFileSize = null;
+          result.outputPageCount = null;
+          result.metadataError = metadata.error;
+        }
+      }
       resolve(result);
     });
 

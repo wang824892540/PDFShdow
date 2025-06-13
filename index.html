@@ -9,7 +9,7 @@
   <div class="app-layout">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <h2>⚙️ 功能导航</h2>
+        <h2>功能导航</h2>
       </div>
       <nav>
         <ul>
@@ -24,7 +24,7 @@
       <div class="view-container" id="pdfResizeView" style="display: none;">
         <!-- Existing content will be wrapped by its own .container if needed, or styled directly -->
         <div class="container"> <!-- This is the original .container -->
-          <h2>📐 PDF 尺寸调整</h2>
+          <h2>PDF 尺寸调整</h2>
           
           <div class="section">
             <div class="field-wrapper"> <!-- Added wrapper for layout with error message -->
@@ -80,7 +80,7 @@
 
       <div class="view-container" id="sheinLabelView" style="display: block;">
         <div class="container"> <!-- Each view can have its own container for consistency -->
-          <h2>🏷️ Shein Label 生成</h2>
+          <h2>Shein Label 生成</h2>
           
           <div class="section">
             <div class="field-wrapper"> <!-- Added wrapper -->
@@ -207,18 +207,49 @@
       return normalizedPath.substring(lastSlashIndex + 1);
     }
 
-    function updateFileSelectionUI(filePath, spanElementId) {
+    function formatBytes(bytes, decimals = 2) {
+      if (bytes === null || bytes === undefined || isNaN(parseFloat(bytes)) || !isFinite(bytes) || bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const dm = decimals < 0 ? 0 : decimals;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    function updateFileSelectionUI(filePath, spanElementId, pageCount = null, fileSize = null) {
       const spanElement = document.getElementById(spanElementId);
       if (!spanElement) return;
 
       if (filePath && typeof filePath === 'string' && filePath.trim() !== '') {
-        spanElement.textContent = getBasenameFrontend(filePath);
+        let displayText = getBasenameFrontend(filePath);
+        let details = [];
+        if (pageCount !== null && pageCount !== undefined) {
+          details.push(`页数: ${pageCount}`);
+        }
+        if (fileSize !== null && fileSize !== undefined) {
+          details.push(`大小: ${formatBytes(fileSize)}`);
+        }
+        if (details.length > 0) {
+          displayText += ` (${details.join(', ')})`;
+        }
+        spanElement.textContent = displayText;
         spanElement.classList.add('file-selected-badge');
       } else {
         spanElement.textContent = '未选择文件';
         spanElement.classList.remove('file-selected-badge');
       }
     }
+    
+    // Function to clear specific inline error associated with a file input
+    function clearInlineFileError(errorElementId) {
+        const errorEl = document.getElementById(errorElementId);
+        if (errorEl) {
+            errorEl.textContent = '';
+            errorEl.style.display = 'none';
+            errorEl.classList.remove('warning-text'); // Remove warning class if it was added
+        }
+    }
+
 
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     // Theme persistence will also use appSettings
@@ -358,59 +389,57 @@
 
     document.getElementById('openFile').addEventListener('click', async () => {
       const newPath = await window.electronAPI.openFile();
+      const selectedFileErrorEl = document.getElementById('selectedFileError');
+      const openFileButton = document.getElementById('openFile');
+
       if (!newPath) {
         showToast('操作已取消，未选择任何文件。', 'info');
-        // selectedFilePath remains unchanged or empty
-        // No need to save settings if no file was selected or selection was cancelled
+        // If a file was previously selected, and now cancelled, selectedFilePath might still hold old path.
+        // We should update UI to "未选择文件" if cancellation truly means no file.
+        // If selectedFilePath is already empty or user cancels, updateFileSelectionUI will handle it.
+        // No specific metadata fetch needed if no new path.
+        updateFileSelectionUI(selectedFilePath, 'selectedFile'); // Update with current selectedFilePath (might be old or empty)
       } else {
-        selectedFilePath = newPath; // Update global var
-        appSettings.pdfResizeSelectedPath = selectedFilePath; // Update settings object
+        selectedFilePath = newPath;
+        appSettings.pdfResizeSelectedPath = selectedFilePath;
+        try {
+          const metadata = await window.electronAPI.getPdfMetadata(selectedFilePath);
+          if (metadata.success) {
+            updateFileSelectionUI(selectedFilePath, 'selectedFile', metadata.pageCount, metadata.size);
+            if (openFileButton) openFileButton.classList.remove('input-error');
+            if (selectedFileErrorEl) {
+                selectedFileErrorEl.textContent = '';
+                selectedFileErrorEl.style.display = 'none';
+            }
+          } else {
+            showToast(`无法读取文件元数据: ${metadata.error || '未知错误'}`, 'error');
+            updateFileSelectionUI(selectedFilePath, 'selectedFile'); // Show filename at least
+          }
+        } catch (err) {
+          showToast(`获取文件元数据时出错: ${err.message}`, 'error');
+          updateFileSelectionUI(selectedFilePath, 'selectedFile'); // Show filename at least
+        }
         const saveResult = await window.electronAPI.saveSettings(appSettings);
         if (!saveResult || !saveResult.success) {
           console.error('Failed to save settings after PDF Resize file selection:', saveResult ? saveResult.error : 'Unknown error');
           showToast('警告：无法保存文件选择设置。', 'warning');
         }
       }
-      
-      // This UI update should happen regardless of whether a new path was selected or not,
-      // to correctly reflect the state of selectedFilePath (which might be empty if cancelled)
-      const saveResult = await window.electronAPI.saveSettings(appSettings);
-      if (!saveResult || !saveResult.success) {
-        console.error('Failed to save settings after PDF Resize file selection:', saveResult ? saveResult.error : 'Unknown error');
-        showToast('警告：无法保存文件选择设置。', 'warning');
-      }
-
-      updateFileSelectionUI(selectedFilePath, 'selectedFile');
-
-      // Clear error state for file selection if a file was actually chosen,
-      // or ensure it's cleared if selection was cancelled and previously there was an error.
-      const openFileButton = document.getElementById('openFile');
-      const selectedFileErrorEl = document.getElementById('selectedFileError');
-      if (selectedFilePath) { // A file was selected
-        if (openFileButton) {
-            openFileButton.classList.remove('input-error');
-        }
-        if (selectedFileErrorEl) {
-            selectedFileErrorEl.textContent = '';
-            selectedFileErrorEl.style.display = 'none';
-        }
-      } else { // No file selected or selection cancelled
-        // If there was an error previously shown for file selection,
-        // and now the user cancels, the error should ideally be cleared
-        // or the state reset. However, the current logic for showing errors
-        // is typically on "process" if no file is selected.
-        // For now, just ensuring the UI updates correctly.
-        // If `openFileButton` had `input-error`, it should remain if `selectedFilePath` is still empty.
-        // The `updateFileSelectionUI` will set "未选择文件".
-      }
+      // If newPath is null (cancelled), selectedFilePath might still hold the previous value.
+      // The UI update for "未选择文件" is handled by updateFileSelectionUI if selectedFilePath becomes empty.
+      // If user cancels, and selectedFilePath was already empty, updateFileSelectionUI will show "未选择文件".
+      // If user cancels, and selectedFilePath had a value, it will still show that old file's info
+      // unless we explicitly clear selectedFilePath here on cancel.
+      // For now, let's assume cancelling means "keep the last valid selection or show '未选择文件' if none".
+      // The error clearing logic for the button itself is handled above if a new file is successfully processed.
     })
 
-    // Initialize the badge state on load, in case of refresh or pre-filled (though not applicable here)
-    const initialSelectedFileElement = document.getElementById('selectedFile');
-    if (!selectedFilePath) { // Assuming selectedFilePath is empty on initial load
-        initialSelectedFileElement.textContent = '未选择文件'; // Ensure placeholder is set
-        initialSelectedFileElement.classList.remove('file-selected-badge');
-    }
+    // Initialize the badge state on load - this will be handled by loadAndApplySettings
+    // const initialSelectedFileElement = document.getElementById('selectedFile');
+    // if (!selectedFilePath) {
+    //     initialSelectedFileElement.textContent = '未选择文件';
+    //     initialSelectedFileElement.classList.remove('file-selected-badge');
+    // }
 
 
     document.getElementById('pageSize').addEventListener('change', async function() { // Added async
@@ -671,7 +700,20 @@
         showToast('处理成功！', 'success');
         if (resultDiv) {
             resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `<p>保存路径：${apiResult.path}</p>`;
+            let resultHtml = `<p>保存路径：${apiResult.path}</p>`;
+            if (apiResult.outputFileSize !== null && apiResult.outputFileSize !== undefined) {
+              resultHtml += `<p>文件大小：${formatBytes(apiResult.outputFileSize)}`;
+              if (apiResult.outputPageCount !== null && apiResult.outputPageCount !== undefined) {
+                resultHtml += `，页数：${apiResult.outputPageCount}`;
+              }
+              resultHtml += `</p>`;
+            } else if (apiResult.outputPageCount !== null && apiResult.outputPageCount !== undefined) {
+              resultHtml += `<p>页数：${apiResult.outputPageCount}</p>`;
+            }
+            if(apiResult.metadataError){
+                resultHtml += `<p style="color: orange;">输出文件元数据警告: ${apiResult.metadataError}</p>`;
+            }
+            resultDiv.innerHTML = resultHtml;
             resultDiv.className = 'success';
         }
         currentGeneratedPdfResizePath = apiResult.path;
@@ -703,7 +745,7 @@
       clearPdfResizeFormBtn.addEventListener('click', async () => {
         // Clear file selection
         selectedFilePath = '';
-        updateFileSelectionUI(selectedFilePath, 'selectedFile');
+        updateFileSelectionUI(selectedFilePath, 'selectedFile', null, null); // Pass nulls for metadata
         appSettings.pdfResizeSelectedPath = '';
         const openFileButton = document.getElementById('openFile');
         const selectedFileErrorEl = document.getElementById('selectedFileError');
@@ -907,84 +949,88 @@
     if (sheinOpenFile1Btn) {
       sheinOpenFile1Btn.addEventListener('click', async () => {
         const newPath = await window.electronAPI.openFile();
+        const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
+        const sheinOpenFile1Button = document.getElementById('sheinOpenFile1Btn');
+        
+        // Always clear previous specific warning for EC Rep page count
+        if (sheinSelectedFile1ErrorEl) {
+            clearInlineFileError('sheinSelectedFile1Error');
+        }
+
         if (!newPath) {
           showToast('操作已取消，未选择任何文件。', 'info');
+          updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1'); // Update with current (possibly old or empty)
         } else {
-          selectedSheinPdf1Path = newPath; // Update global var
-          appSettings.sheinEcRepPdfPath = selectedSheinPdf1Path; // Update settings object
+          selectedSheinPdf1Path = newPath;
+          appSettings.sheinEcRepPdfPath = selectedSheinPdf1Path;
+          try {
+            const metadata = await window.electronAPI.getPdfMetadata(selectedSheinPdf1Path);
+            if (metadata.success) {
+              updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', metadata.pageCount, metadata.size);
+              if (sheinOpenFile1Button) sheinOpenFile1Button.classList.remove('input-error');
+              // No need to clear general error here, as it's for file selection, not page count.
+              // The specific page count warning is handled below.
+
+              if (metadata.pageCount !== null && metadata.pageCount !== 1) {
+                const warningMsg = `警告：欧代文件通常为1页。当前页数：${metadata.pageCount}`;
+                showToast('请检查，欧代PDF文件通常为1页PDF', 'warning', 6000);
+                if (sheinSelectedFile1ErrorEl) {
+                  sheinSelectedFile1ErrorEl.textContent = warningMsg;
+                  sheinSelectedFile1ErrorEl.style.display = 'block';
+                  sheinSelectedFile1ErrorEl.classList.add('warning-text'); // Add class for styling
+                }
+              }
+            } else {
+              showToast(`无法读取欧代文件元数据: ${metadata.error || '未知错误'}`, 'error');
+              updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1'); // Show filename at least
+            }
+          } catch (err) {
+            showToast(`获取欧代文件元数据时出错: ${err.message}`, 'error');
+            updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
+          }
           const saveResult = await window.electronAPI.saveSettings(appSettings);
           if (!saveResult || !saveResult.success) {
             console.error('Failed to save settings after Shein File 1 selection:', saveResult ? saveResult.error : 'Unknown error');
             showToast('警告：无法保存文件选择设置。', 'warning');
           }
         }
-        
-        updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
-
-        // Clear error state for Shein file 1 selection if a file was actually chosen
-        const saveResult = await window.electronAPI.saveSettings(appSettings);
-        if (!saveResult || !saveResult.success) {
-          console.error('Failed to save settings after Shein File 1 selection:', saveResult ? saveResult.error : 'Unknown error');
-          showToast('警告：无法保存文件选择设置。', 'warning');
-        }
-
-        updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
-
-        const sheinOpenFile1Button = document.getElementById('sheinOpenFile1Btn');
-        const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
-        if (selectedSheinPdf1Path) { // A file was selected
-          if (sheinOpenFile1Button) {
-              sheinOpenFile1Button.classList.remove('input-error');
-          }
-          if (sheinSelectedFile1ErrorEl) {
-              sheinSelectedFile1ErrorEl.textContent = '';
-              sheinSelectedFile1ErrorEl.style.display = 'none';
-          }
-        }
-        // If newPath is null, selectedSheinPdf1Path would be '', and the error state logic
-        // for the button (if any was previously set) would remain or be cleared by other logic.
-        // updateFileSelectionUI handles displaying "未选择文件".
       });
     }
 
     if (sheinOpenFile2Btn) {
       sheinOpenFile2Btn.addEventListener('click', async () => {
         const newPath = await window.electronAPI.openFile();
+        const sheinOpenFile2Button = document.getElementById('sheinOpenFile2Btn');
+        const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
+
         if (!newPath) {
           showToast('操作已取消，未选择任何文件。', 'info');
+          updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
         } else {
-          selectedSheinPdf2Path = newPath; // Update global var
-          appSettings.sheinBarcodePdfPath = selectedSheinPdf2Path; // Update settings object
+          selectedSheinPdf2Path = newPath;
+          appSettings.sheinBarcodePdfPath = selectedSheinPdf2Path;
+          try {
+            const metadata = await window.electronAPI.getPdfMetadata(selectedSheinPdf2Path);
+            if (metadata.success) {
+              updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', metadata.pageCount, metadata.size);
+              if (sheinOpenFile2Button) sheinOpenFile2Button.classList.remove('input-error');
+              if (sheinSelectedFile2ErrorEl) {
+                  clearInlineFileError('sheinSelectedFile2Error'); // Clear general file selection error
+              }
+            } else {
+              showToast(`无法读取条码文件元数据: ${metadata.error || '未知错误'}`, 'error');
+              updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
+            }
+          } catch (err) {
+            showToast(`获取条码文件元数据时出错: ${err.message}`, 'error');
+            updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
+          }
           const saveResult = await window.electronAPI.saveSettings(appSettings);
           if (!saveResult || !saveResult.success) {
             console.error('Failed to save settings after Shein File 2 selection:', saveResult ? saveResult.error : 'Unknown error');
             showToast('警告：无法保存文件选择设置。', 'warning');
           }
         }
-        
-        updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
-
-        // Clear error state for Shein file 2 selection if a file was actually chosen
-        const saveResult = await window.electronAPI.saveSettings(appSettings);
-        if (!saveResult || !saveResult.success) {
-          console.error('Failed to save settings after Shein File 2 selection:', saveResult ? saveResult.error : 'Unknown error');
-          showToast('警告：无法保存文件选择设置。', 'warning');
-        }
-
-        updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
-
-        const sheinOpenFile2Button = document.getElementById('sheinOpenFile2Btn');
-        const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
-        if (selectedSheinPdf2Path) { // A file was selected
-          if (sheinOpenFile2Button) {
-              sheinOpenFile2Button.classList.remove('input-error');
-          }
-          if (sheinSelectedFile2ErrorEl) {
-              sheinSelectedFile2ErrorEl.textContent = '';
-              sheinSelectedFile2ErrorEl.style.display = 'none';
-          }
-        }
-        // Similar to other file selections, if newPath is null, UI updates accordingly.
       });
     }
 
@@ -1233,10 +1279,23 @@
           if (result.success && result.path) {
             currentGeneratedSheinLabelPath = result.path; // Store the path
             showToast('Shein Label 生成成功！', 'success');
-            sheinResultDiv.style.display = 'block'; // Show for path message
-            sheinResultDiv.innerHTML = `<p>保存路径：${result.path}</p>`; // Keep path info persistent
-            sheinResultDiv.className = 'success'; // Keep styling for path info
-            sheinPostProcessActionsDiv.style.display = 'block'; // Show action buttons
+            sheinResultDiv.style.display = 'block';
+            let resultHtmlShein = `<p>保存路径：${result.path}</p>`;
+            if (result.outputFileSize !== null && result.outputFileSize !== undefined) {
+              resultHtmlShein += `<p>文件大小：${formatBytes(result.outputFileSize)}`;
+              if (result.outputPageCount !== null && result.outputPageCount !== undefined) {
+                resultHtmlShein += `，页数：${result.outputPageCount}`;
+              }
+              resultHtmlShein += `</p>`;
+            } else if (result.outputPageCount !== null && result.outputPageCount !== undefined) {
+               resultHtmlShein += `<p>页数：${result.outputPageCount}</p>`;
+            }
+            if(result.metadataError){
+                resultHtmlShein += `<p style="color: orange;">输出文件元数据警告: ${result.metadataError}</p>`;
+            }
+            sheinResultDiv.innerHTML = resultHtmlShein;
+            sheinResultDiv.className = 'success';
+            sheinPostProcessActionsDiv.style.display = 'block';
           } else {
             handleAndShowApiError(result, 'Shein Label 生成', undefined, sheinResultDiv, sheinPostProcessActionsDiv);
           }
@@ -1256,26 +1315,18 @@
       clearSheinLabelFormBtn.addEventListener('click', async () => {
         // Clear file selections
         selectedSheinPdf1Path = '';
-        updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
+        updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', null, null);
         appSettings.sheinEcRepPdfPath = '';
         const sheinOpenFile1Button = document.getElementById('sheinOpenFile1Btn');
-        const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
         if (sheinOpenFile1Button) sheinOpenFile1Button.classList.remove('input-error');
-        if (sheinSelectedFile1ErrorEl) {
-          sheinSelectedFile1ErrorEl.textContent = '';
-          sheinSelectedFile1ErrorEl.style.display = 'none';
-        }
+        clearInlineFileError('sheinSelectedFile1Error'); // Clear specific EC rep warning too
 
         selectedSheinPdf2Path = '';
-        updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
+        updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null);
         appSettings.sheinBarcodePdfPath = '';
         const sheinOpenFile2Button = document.getElementById('sheinOpenFile2Btn');
-        const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
         if (sheinOpenFile2Button) sheinOpenFile2Button.classList.remove('input-error');
-        if (sheinSelectedFile2ErrorEl) {
-          sheinSelectedFile2ErrorEl.textContent = '';
-          sheinSelectedFile2ErrorEl.style.display = 'none';
-        }
+        clearInlineFileError('sheinSelectedFile2Error');
 
         // Clear output name
         if (sheinOutputNameInput) sheinOutputNameInput.value = '';
@@ -1362,15 +1413,50 @@
       // Set theme (without re-saving immediately)
       await setTheme(appSettings.theme || 'light', false);
 
-      // Load selected file paths
+      // Load selected file paths and their metadata
       selectedFilePath = appSettings.pdfResizeSelectedPath || '';
+      if (selectedFilePath) {
+        try {
+          const metadata = await window.electronAPI.getPdfMetadata(selectedFilePath);
+          updateFileSelectionUI(selectedFilePath, 'selectedFile', metadata.pageCount, metadata.size);
+        } catch (e) { updateFileSelectionUI(selectedFilePath, 'selectedFile'); /* Show filename at least */ }
+      } else {
+        updateFileSelectionUI(null, 'selectedFile');
+      }
+
       selectedSheinPdf1Path = appSettings.sheinEcRepPdfPath || '';
+      if (selectedSheinPdf1Path) {
+        try {
+          const metadata = await window.electronAPI.getPdfMetadata(selectedSheinPdf1Path);
+          updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', metadata.pageCount, metadata.size);
+           // Also re-check EC Rep page count warning on load
+          const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
+          if (sheinSelectedFile1ErrorEl) clearInlineFileError('sheinSelectedFile1Error'); // Clear previous before check
+          if (metadata.success && metadata.pageCount !== null && metadata.pageCount !== 1) {
+            const warningMsg = `警告：欧代文件通常为1页。当前页数：${metadata.pageCount}`;
+            // No toast on load, just inline warning
+            if (sheinSelectedFile1ErrorEl) {
+              sheinSelectedFile1ErrorEl.textContent = warningMsg;
+              sheinSelectedFile1ErrorEl.style.display = 'block';
+              sheinSelectedFile1ErrorEl.classList.add('warning-text');
+            }
+          }
+        } catch (e) { updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1'); }
+      } else {
+        updateFileSelectionUI(null, 'sheinSelectedFile1');
+        clearInlineFileError('sheinSelectedFile1Error');
+      }
+
       selectedSheinPdf2Path = appSettings.sheinBarcodePdfPath || '';
-
-      updateFileSelectionUI(selectedFilePath, 'selectedFile');
-      updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
-      updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
-
+      if (selectedSheinPdf2Path) {
+        try {
+          const metadata = await window.electronAPI.getPdfMetadata(selectedSheinPdf2Path);
+          updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', metadata.pageCount, metadata.size);
+        } catch (e) { updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2'); }
+      } else {
+        updateFileSelectionUI(null, 'sheinSelectedFile2');
+      }
+      
       // Load form elements
       const formElementsToPersist = [
         { id: 'pdfResizeOutputName', type: 'text' },

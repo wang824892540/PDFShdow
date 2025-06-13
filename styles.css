@@ -443,7 +443,6 @@ select:focus {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis; /* This is now on the base .file-select-status-span */
-  max-width: 250px; /* Reduced */
   vertical-align: middle;
   display: inline-block;
   padding: 5px 8px; /* Reduced */

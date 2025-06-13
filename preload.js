@@ -9,5 +9,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   copyFileToClipboard: (filePath) => ipcRenderer.invoke('copy-file-to-clipboard', filePath),
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
-  onShowToast: (callback) => ipcRenderer.on('show-toast', (_event, ...args) => callback(...args))
+  onShowToast: (callback) => ipcRenderer.on('show-toast', (_event, ...args) => callback(...args)),
+  getPdfMetadata: (filePath) => ipcRenderer.invoke('get-pdf-metadata', filePath)
 })
