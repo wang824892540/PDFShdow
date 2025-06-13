@@ -35,12 +35,12 @@
           </div>
       
           <div class="section">
-            <label for="pdfResizeOutputName">输出文件名称:</label>
+            <label for="pdfResizeOutputName">文件名称</label>
             <input type="text" id="pdfResizeOutputName" placeholder="例如: resized_document">
           </div>
       
           <div class="section">
-            <label for="pageSize">页面尺寸调整</label>
+            <label for="pageSize">页面尺寸</label>
             <select id="pageSize">
               <option value="A4">A4 (210x297mm)</option>
               <option value="Letter">Letter (215.9x279.4mm)</option>
@@ -99,12 +99,12 @@
           </div>
 
           <div class="section">
-            <label for="sheinOutputName">输出文件名称:</label>
+            <label for="sheinOutputName">文件名称</label>
             <input type="text" id="sheinOutputName" placeholder="例如: shein_label_output">
           </div>
 
           <div class="section">
-            <label for="sheinOutputPageSize">输出页面尺寸 (mm):</label>
+            <label for="sheinOutputPageSize">页面尺寸</label>
             <select id="sheinOutputPageSize">
               <option value="A4">A4 (210x297mm)</option>
               <option value="Letter">Letter (215.9x279.4mm)</option>
@@ -207,6 +207,55 @@
       return normalizedPath.substring(lastSlashIndex + 1);
     }
 
+    function getFilenameWithoutExtension(filePath) {
+      if (!filePath || typeof filePath !== 'string') {
+        return '';
+      }
+      const basename = getBasenameFrontend(filePath);
+      const lastDotIndex = basename.lastIndexOf('.');
+      if (lastDotIndex === -1) {
+        return basename; // No extension
+      }
+      return basename.substring(0, lastDotIndex);
+    }
+
+    function getCurrentHHMMSS() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      return `${hours}${minutes}${seconds}`;
+    }
+
+    // Function to get the output filename suffix for PDF Resize based on selected/custom dimensions
+    function getOutputSuffixForPdfResize() {
+      const pageSizeSelect = document.getElementById('pageSize');
+      const customWidthInput = document.getElementById('customWidth');
+      const customHeightInput = document.getElementById('customHeight');
+
+      if (!pageSizeSelect) return '_尺寸修改_未知尺寸'; // Fallback
+
+      const selectedPageSizeValue = pageSizeSelect.value;
+      let width = '';
+      let height = '';
+
+      if (selectedPageSizeValue === 'custom') {
+        width = customWidthInput ? customWidthInput.value.trim() : '';
+        height = customHeightInput ? customHeightInput.value.trim() : '';
+        if (width && height && !isNaN(parseFloat(width)) && parseFloat(width) > 0 && !isNaN(parseFloat(height)) && parseFloat(height) > 0) {
+          return `_尺寸修改_${parseFloat(width)}x${parseFloat(height)}`;
+        } else {
+          return '_尺寸修改_自定义'; // Or some other indicator of custom but invalid/incomplete
+        }
+      } else {
+        const presetDimensions = pageSizeMapMM[selectedPageSizeValue]; // pageSizeMapMM should be defined
+        if (presetDimensions) {
+          return `_尺寸修改_${presetDimensions.width}x${presetDimensions.height}`;
+        }
+      }
+      return '_尺寸修改_预设'; // Fallback for unknown preset
+    }
+
     function formatBytes(bytes, decimals = 2) {
       if (bytes === null || bytes === undefined || isNaN(parseFloat(bytes)) || !isFinite(bytes) || bytes === 0) return '0 Bytes';
       const k = 1024;
@@ -246,7 +295,7 @@
       }
       // Windows reserved characters (including / which is also for macOS)
       // eslint-disable-next-line no-control-regex
-      const windowsReservedChars = /[&lt;&gt;:"/\\|?*\x00-\x1F]/g;
+      const windowsReservedChars = /[<>;:"/\\|?*\x00-\x1F]/g;
       // macOS reserved characters (colon is already in windowsReservedChars, / is also covered)
       // Technically, macOS only forbids ':' and '/', but '/' is path separator everywhere.
       // For simplicity and broader compatibility, we'll stick to the Windows set as it's more restrictive.
@@ -427,12 +476,12 @@
       const openFileButton = document.getElementById('openFile');
 
       if (!newPath) {
-        showToast('操作已取消，未选择任何文件。', 'info');
+        showToast('操作已取消。', 'info');
         // If a file was previously selected, and now cancelled, selectedFilePath might still hold old path.
         // We should update UI to "未选择文件" if cancellation truly means no file.
         // If selectedFilePath is already empty or user cancels, updateFileSelectionUI will handle it.
         // No specific metadata fetch needed if no new path.
-        updateFileSelectionUI(selectedFilePath, 'selectedFile'); // Update with current selectedFilePath (might be old or empty)
+        // updateFileSelectionUI(selectedFilePath, 'selectedFile'); // Update with current selectedFilePath (might be old or empty)
       } else {
         selectedFilePath = newPath;
         appSettings.pdfResizeSelectedPath = selectedFilePath;
@@ -453,7 +502,20 @@
           showToast(`获取文件元数据时出错: ${err.message}`, 'error');
           updateFileSelectionUI(selectedFilePath, 'selectedFile'); // Show filename at least
         }
-        const saveResult = await window.electronAPI.saveSettings(appSettings);
+
+        // Auto-fill output name for PDF Resize
+        const pdfResizeOutputNameInput = document.getElementById('pdfResizeOutputName');
+        if (pdfResizeOutputNameInput) {
+          const baseNameNoExt = getFilenameWithoutExtension(selectedFilePath);
+          const suffix = getOutputSuffixForPdfResize(); // Use new function
+          const newOutputName = `${baseNameNoExt}${suffix}`; // No .pdf here
+          pdfResizeOutputNameInput.value = newOutputName;
+          // Trigger input event for live validation and settings saving
+          const inputEvent = new Event('input', { bubbles: true });
+          pdfResizeOutputNameInput.dispatchEvent(inputEvent);
+        }
+
+        const saveResult = await window.electronAPI.saveSettings(appSettings); // Save other settings like selected path
         if (!saveResult || !saveResult.success) {
           console.error('Failed to save settings after PDF Resize file selection:', saveResult ? saveResult.error : 'Unknown error');
           showToast('警告：无法保存文件选择设置。', 'warning');
@@ -476,6 +538,22 @@
     // }
 
 
+    // Function to update PDF resize output name based on current selections
+    function updatePdfResizeOutputNameBasedOnSelections() {
+      if (selectedFilePath) { // Only update if a file is selected
+        const pdfResizeOutputNameInput = document.getElementById('pdfResizeOutputName');
+        if (pdfResizeOutputNameInput) {
+          const baseNameNoExt = getFilenameWithoutExtension(selectedFilePath);
+          const suffix = getOutputSuffixForPdfResize();
+          const newOutputName = `${baseNameNoExt}${suffix}`;
+          pdfResizeOutputNameInput.value = newOutputName;
+          // Trigger input event for live validation and settings saving
+          const inputEvent = new Event('input', { bubbles: true });
+          pdfResizeOutputNameInput.dispatchEvent(inputEvent);
+        }
+      }
+    }
+
     document.getElementById('pageSize').addEventListener('change', async function() { // Added async
       const customSizeEl = document.getElementById('customSize');
       if (this.value === 'custom') {
@@ -485,11 +563,12 @@
       }
       appSettings.pageSize = this.value;
       await window.electronAPI.saveSettings(appSettings);
+      updatePdfResizeOutputNameBasedOnSelections(); // Update output name on page size change
     })
     // Ensure sheinOutputCustomSize is flex by default if it's always visible
     // Or add a similar JS logic if it needs to be toggled. For now, CSS will handle it.
 
-    // Add event listeners to custom dimension inputs for PDF Resize to clear errors on valid input
+    // Add event listeners to custom dimension inputs for PDF Resize
     const customWidthInput = document.getElementById('customWidth');
     const customHeightInput = document.getElementById('customHeight');
     const customWidthErrorEl = document.getElementById('customWidthError');
@@ -503,19 +582,21 @@
           customWidthErrorEl.textContent = '';
           customWidthErrorEl.style.display = 'none';
         }
+        updatePdfResizeOutputNameBasedOnSelections(); // Update output name on custom width change
       });
-    }
+   }
 
-    if (customHeightInput && customHeightErrorEl) {
-      customHeightInput.addEventListener('input', () => {
-        const heightVal = parseFloat(customHeightInput.value);
-        if (!isNaN(heightVal) && heightVal > 0) {
-          customHeightInput.classList.remove('input-error');
-          customHeightErrorEl.textContent = '';
-          customHeightErrorEl.style.display = 'none';
-        }
-      });
-    }
+   if (customHeightInput && customHeightErrorEl) {
+     customHeightInput.addEventListener('input', () => {
+       const heightVal = parseFloat(customHeightInput.value);
+       if (!isNaN(heightVal) && heightVal > 0) {
+         customHeightInput.classList.remove('input-error');
+         customHeightErrorEl.textContent = '';
+         customHeightErrorEl.style.display = 'none';
+       }
+       updatePdfResizeOutputNameBasedOnSelections(); // Update output name on custom height change
+     });
+   }
 
     // Add input event listener for pdfResizeOutputName to clear error on valid input
     const pdfResizeOutputNameInputForLiveValidation = document.getElementById('pdfResizeOutputName');
@@ -616,21 +697,19 @@
           selectedFileErrorForReset.style.display = 'none';
       }
 
-      function getCurrentHHMMSS() {
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        return `${hours}${minutes}${seconds}`;
-      }
+      // getCurrentHHMMSS is now a global helper function
 
       let outputName = pdfResizeOutputNameInput.value.trim();
+      // Auto-generation of outputName if empty is now handled by file selection,
+      // but keep this as a fallback if user clears it and then clicks process.
       if (!outputName) {
-        outputName = `resized_${getCurrentHHMMSS()}.pdf`;
-      } else if (!outputName.toLowerCase().endsWith('.pdf')) {
-        outputName += '.pdf';
+        const base = selectedFilePath ? getFilenameWithoutExtension(selectedFilePath) : 'resized_file';
+        const suffix = selectedFilePath ? getOutputSuffixForPdfResize() : `_尺寸修改_${getCurrentHHMMSS()}`; // Fallback suffix if no file selected
+        outputName = `${base}${suffix}`; // No .pdf here
+        // pdfResizeOutputNameInput.value = outputName; // Optionally update the input if it was empty
       }
 
+      // Validate the name part without .pdf
       const filenameValidation = isValidFilename(outputName);
       if (!filenameValidation.valid) {
         showToast(filenameValidation.message, 'error');
@@ -785,11 +864,12 @@
       // }
       // --- End Show Processing State ---
 
-      console.log('[PDF Resize] Before calling window.electronAPI.processPDF. Params:', { filePath: selectedFilePath, operations, outputName }); // DEBUG LOG
+      const finalOutputNameWithPdf = outputName.toLowerCase().endsWith('.pdf') ? outputName : outputName + '.pdf';
+      console.log('[PDF Resize] Before calling window.electronAPI.processPDF. Params:', { filePath: selectedFilePath, operations, outputName: finalOutputNameWithPdf }); // DEBUG LOG
       const apiResult = await window.electronAPI.processPDF({ // Renamed to apiResult
         filePath: selectedFilePath,
         operations,
-        outputName: outputName
+        outputName: finalOutputNameWithPdf // Pass name with .pdf
       });
       console.log('[PDF Resize] After calling window.electronAPI.processPDF. Result:', apiResult); // DEBUG LOG
 
@@ -1089,8 +1169,8 @@
         }
 
         if (!newPath) {
-          showToast('操作已取消，未选择任何文件。', 'info');
-          updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1'); // Update with current (possibly old or empty)
+          showToast('操作已取消。', 'info');
+          //updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1'); // Update with current (possibly old or empty)
         } else {
           selectedSheinPdf1Path = newPath;
           appSettings.sheinEcRepPdfPath = selectedSheinPdf1Path;
@@ -1135,8 +1215,8 @@
         const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
 
         if (!newPath) {
-          showToast('操作已取消，未选择任何文件。', 'info');
-          updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
+          showToast('操作已取消。', 'info');
+          //updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
         } else {
           selectedSheinPdf2Path = newPath;
           appSettings.sheinBarcodePdfPath = selectedSheinPdf2Path;
@@ -1156,7 +1236,19 @@
             showToast(`获取条码文件元数据时出错: ${err.message}`, 'error');
             updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
           }
-          const saveResult = await window.electronAPI.saveSettings(appSettings);
+  
+          // Auto-fill output name for Shein Label (based on barcode file)
+          const sheinOutputNameInput = document.getElementById('sheinOutputName');
+          if (sheinOutputNameInput) {
+            const baseNameNoExt = getFilenameWithoutExtension(selectedSheinPdf2Path);
+            const newOutputName = `${baseNameNoExt}_Shein标签_${getCurrentHHMMSS()}`; // No .pdf here
+            sheinOutputNameInput.value = newOutputName;
+            // Trigger input event for live validation and settings saving
+            const inputEvent = new Event('input', { bubbles: true });
+            sheinOutputNameInput.dispatchEvent(inputEvent);
+          }
+          
+          const saveResult = await window.electronAPI.saveSettings(appSettings); // Save other settings like selected path
           if (!saveResult || !saveResult.success) {
             console.error('Failed to save settings after Shein File 2 selection:', saveResult ? saveResult.error : 'Unknown error');
             showToast('警告：无法保存文件选择设置。', 'warning');
@@ -1373,21 +1465,18 @@
           generateSheinLabelBtn.textContent = `正在处理中... (${secondsElapsed}秒)`;
         }, 1000);
 
-        function getCurrentHHMMSS() {
-          const now = new Date();
-          const hours = String(now.getHours()).padStart(2, '0');
-          const minutes = String(now.getMinutes()).padStart(2, '0');
-          const seconds = String(now.getSeconds()).padStart(2, '0');
-          return `${hours}${minutes}${seconds}`;
-        }
+        // getCurrentHHMMSS is now a global helper function
 
         let outputName = sheinOutputNameInput.value.trim();
+        // Auto-generation of outputName if empty is now handled by file selection,
+        // but keep this as a fallback if user clears it and then clicks process.
         if (!outputName) {
-          outputName = `SheinLabel_${getCurrentHHMMSS()}.pdf`;
-        } else if (!outputName.toLowerCase().endsWith('.pdf')) {
-          outputName += '.pdf';
+          const base = selectedSheinPdf2Path ? getFilenameWithoutExtension(selectedSheinPdf2Path) : 'SheinLabel_file';
+          outputName = `${base}_Shein标签_${getCurrentHHMMSS()}`; // No .pdf here
+          // sheinOutputNameInput.value = outputName; // Optionally update the input if it was empty
         }
 
+        // Validate the name part without .pdf
         const sheinFilenameValidation = isValidFilename(outputName);
         if (!sheinFilenameValidation.valid) {
           showToast(sheinFilenameValidation.message, 'error');
@@ -1407,7 +1496,7 @@
         const params = {
           pdf1Path: selectedSheinPdf1Path,
           pdf2Path: selectedSheinPdf2Path,
-          outputName: outputName,
+          outputName: outputName.toLowerCase().endsWith('.pdf') ? outputName : outputName + '.pdf', // Add .pdf before sending to API
           outputWidthMM: outputWidth,
           outputHeightMM: outputHeight
         };
