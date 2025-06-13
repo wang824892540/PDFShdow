@@ -1,6 +1,6 @@
 {
   "name": "pdf-tool",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A PDF processing utility",
   "author": "hxw <82489254@qq.com>",
   "main": "main.js",
@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "cross-blob": "^3.0.0",
+    "electron-log": "^5.4.1",
+    "electron-updater": "^6.6.2",
     "pdf-lib": "^1.17.1"
   },
   "devDependencies": {
@@ -23,6 +25,12 @@
     "directories": {
       "output": "dist"
     },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "http://hxw1111.xyz:8516/updates/"
+      }
+    ],
     "win": {
       "target": [
         {

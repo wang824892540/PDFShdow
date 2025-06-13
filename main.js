@@ -3,6 +3,15 @@ const path = require('path')
 const fs = require('fs').promises; // For asynchronous file operations
 const { PDFDocument } = require('pdf-lib') // PDFDocument will be used by worker, but main might not need it directly for this handler anymore. Keep for now.
 const { Worker } = require('worker_threads') // Added Worker
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
+// Configure electron-log
+log.transports.file.level = 'info';
+log.transports.console.level = 'info';
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+autoUpdater.autoDownload = false; // We will handle download manually or prompt user
 
 // Early setup for unhandled exception toaster
 let mainWindow // mainWindow will be assigned later in createWindow
@@ -376,11 +385,129 @@ ipcMain.on('close-window', () => {
 app.whenReady().then(() => {
   getSettingsFilePath(); // Initialize settings path
   createWindow();
+
+  // Auto-updater logic
+  // Configure update provider
+  autoUpdater.setFeedURL({
+    provider: 'generic',
+    url: 'http://hxw1111.xyz:8516/updates/', // Replace with your actual update server URL
+    // channel: 'latest', // Optional: specify channel if you use channels
+  });
+
+  // Check for updates when the app is ready
+  // We'll call this explicitly or via IPC later, for now, let's log availability
+  log.info('App starting, autoUpdater configured.');
+
   // Send startup toast after a short delay to allow renderer to initialize
   setTimeout(() => {
     // sendToastToRenderer('应用程序已成功启动！', 'success', 2500);
-  }, 1500); // Increased delay slightly
+    // Initial check for updates after a delay, or trigger via UI
+    // autoUpdater.checkForUpdatesAndNotify(); // Or just checkForUpdates()
+    log.info('Checking for updates after startup delay...');
+    autoUpdater.checkForUpdates();
+  }, 5000); // Increased delay slightly, and added update check
 })
+
+// Auto-updater event listeners
+autoUpdater.on('checking-for-update', () => {
+  log.info('Checking for update...');
+  sendToastToRenderer('正在检查更新...', 'info', 2000);
+  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-status', { status: 'checking' });
+  }
+})
+
+autoUpdater.on('update-available', (info) => {
+  log.info('Update available.', info);
+  sendToastToRenderer(`发现新版本 ${info.version}！正在准备下载...`, 'info', 5000);
+  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-status', { status: 'available', version: info.version });
+  }
+  // Example: Automatically start download if update is available
+  // Or prompt user via dialog before downloading
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: '发现新版本',
+    message: `发现新版本 ${info.version}。是否现在下载？`,
+    buttons: ['是', '否']
+  }).then(result => {
+    if (result.response === 0) { // '是' button
+      log.info('User agreed to download update. Starting download...');
+      autoUpdater.downloadUpdate();
+    } else {
+      log.info('User declined to download update.');
+    }
+  });
+})
+
+autoUpdater.on('update-not-available', (info) => {
+  log.info('Update not available.', info);
+  sendToastToRenderer('当前已是最新版本。', 'success', 3000);
+  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-status', { status: 'not-available' });
+  }
+})
+
+autoUpdater.on('error', (err) => {
+  log.error('Error in auto-updater. ' + err);
+  sendToastToRenderer('更新检查失败: ' + (err.message || err), 'error', 5000);
+  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-status', { status: 'error', error: err.message || String(err) });
+  }
+})
+
+autoUpdater.on('download-progress', (progressObj) => {
+  let log_message = "Download speed: " + progressObj.bytesPerSecond;
+  log_message = log_message + ' - Downloaded ' + progressObj.percent.toFixed(2) + '%';
+  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+  log.info(log_message);
+  // sendToastToRenderer(`正在下载更新: ${progressObj.percent.toFixed(2)}%`, 'info', 1500); // Can be too spammy
+  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-status', {
+        status: 'downloading',
+        progress: {
+            percent: progressObj.percent,
+            bytesPerSecond: progressObj.bytesPerSecond,
+            transferred: progressObj.transferred,
+            total: progressObj.total
+        }
+    });
+  }
+})
+
+autoUpdater.on('update-downloaded', (info) => {
+  log.info('Update downloaded; will install now or on next restart.', info);
+  sendToastToRenderer(`新版本 ${info.version} 已下载。重启应用以安装。`, 'success', 10000);
+  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-status', { status: 'downloaded', version: info.version });
+  }
+  // Prompt user to quit and install
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: '更新已就绪',
+    message: `新版本 ${info.version} 已下载。是否立即重启并安装？`,
+    buttons: ['立即重启', '稍后重启']
+  }).then(result => {
+    if (result.response === 0) { // '立即重启' button
+      log.info('User agreed to quit and install update.');
+      autoUpdater.quitAndInstall();
+    } else {
+      log.info('User chose to install update later.');
+    }
+  });
+});
+
+// IPC handler for renderer to manually check for updates
+ipcMain.on('check-for-updates', () => {
+  log.info('Renderer requested update check.');
+  autoUpdater.checkForUpdates();
+});
+
+// IPC handler for renderer to quit and install (if update is downloaded)
+ipcMain.on('quit-and-install-update', () => {
+  log.info('Renderer requested quit and install.');
+  autoUpdater.quitAndInstall(true, true); // isSilent = true, isForceRunAfter = true
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
