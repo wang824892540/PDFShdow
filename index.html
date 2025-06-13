@@ -239,6 +239,40 @@
         spanElement.classList.remove('file-selected-badge');
       }
     }
+// Function to validate filename against Windows and macOS restricted characters
+    function isValidFilename(filename) {
+      if (!filename || typeof filename !== 'string') {
+        return { valid: false, message: '文件名不能为空。' };
+      }
+      // Windows reserved characters (including / which is also for macOS)
+      // eslint-disable-next-line no-control-regex
+      const windowsReservedChars = /[&lt;&gt;:"/\\|?*\x00-\x1F]/g;
+      // macOS reserved characters (colon is already in windowsReservedChars, / is also covered)
+      // Technically, macOS only forbids ':' and '/', but '/' is path separator everywhere.
+      // For simplicity and broader compatibility, we'll stick to the Windows set as it's more restrictive.
+
+      if (windowsReservedChars.test(filename)) {
+        return { valid: false, message: '文件名包含无效字符 (例如: &lt; &gt; : " / \\ | ? *)。请移除这些字符。' };
+      }
+
+      // Windows reserved filenames (case-insensitive)
+      const reservedNames = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/i;
+      // Remove extension before checking reserved names
+      const nameWithoutExtension = filename.includes('.') ? filename.substring(0, filename.lastIndexOf('.')) : filename;
+      if (reservedNames.test(nameWithoutExtension)) {
+        return { valid: false, message: '文件名是系统保留名称 (例如: CON, PRN, AUX, NUL, COM1-9, LPT1-9)。请输入其他名称。' };
+      }
+
+      if (filename.startsWith(' ') || filename.endsWith(' ') || filename.endsWith('.')) {
+        return { valid: false, message: '文件名不能以空格开头或结尾，也不能以点号结尾。' };
+      }
+      
+      if (filename.length > 255) { // Common file system limit
+        return { valid: false, message: '文件名过长 (最多255个字符)。' };
+      }
+
+      return { valid: true, message: '' };
+    }
     
     // Function to clear specific inline error associated with a file input
     function clearInlineFileError(errorElementId) {
@@ -483,9 +517,31 @@
       });
     }
 
+    // Add input event listener for pdfResizeOutputName to clear error on valid input
+    const pdfResizeOutputNameInputForLiveValidation = document.getElementById('pdfResizeOutputName');
+    if (pdfResizeOutputNameInputForLiveValidation) {
+      pdfResizeOutputNameInputForLiveValidation.addEventListener('input', function() {
+        // Construct a temporary full filename if it doesn't end with .pdf for validation purposes
+        let tempOutputName = this.value.trim();
+        if (tempOutputName && !tempOutputName.toLowerCase().endsWith('.pdf')) {
+          // We don't append .pdf here for live validation,
+          // as the user might be typing the extension or it might be optional until submission.
+          // The main validation on submit handles adding .pdf if missing.
+          // isValidFilename should handle names with or without extensions correctly.
+        }
+        const validation = isValidFilename(tempOutputName);
+        if (validation.valid) {
+          this.classList.remove('input-error');
+        }
+        // We don't add 'input-error' here, as that's handled on submit.
+        // This listener is only for clearing the error.
+      });
+    }
+
     document.getElementById('processBtn').addEventListener('click', async () => {
       const processButton = document.getElementById('processBtn');
       const originalButtonText = processButton.textContent;
+      let timerInterval; // Declare timerInterval outside try block
 
       try {
         // Resetting file selection error state (done after global resultDiv reset and before other specific resets)
@@ -510,9 +566,17 @@
             console.error("PDF Resize Error: selectedFileError element not found in DOM!");
             // Toast already shown, so no need for resultDiv fallback for this specific message
         }
+        // Ensure button is reset if validation fails early
+        if (processButton) {
+            processButton.disabled = false;
+            processButton.textContent = originalButtonText;
+            processButton.classList.remove('processing');
+        }
+        // No timer should be active here yet, but good practice if logic changes
+        if (timerInterval) clearInterval(timerInterval);
         return;
       }
-
+ 
       const operations = {}
       const pdfResizeOutputNameInput = document.getElementById('pdfResizeOutputName');
 
@@ -565,6 +629,25 @@
         outputName = `resized_${getCurrentHHMMSS()}.pdf`;
       } else if (!outputName.toLowerCase().endsWith('.pdf')) {
         outputName += '.pdf';
+      }
+
+      const filenameValidation = isValidFilename(outputName);
+      if (!filenameValidation.valid) {
+        showToast(filenameValidation.message, 'error');
+        // Optionally, highlight the input field
+        if (pdfResizeOutputNameInput) {
+          pdfResizeOutputNameInput.classList.add('input-error');
+          pdfResizeOutputNameInput.focus();
+        }
+        // Restore button state if validation fails before processing starts
+        if (processButton) {
+            processButton.disabled = false;
+            processButton.textContent = originalButtonText;
+            processButton.classList.remove('processing');
+        }
+        // timerInterval should be cleared here as per the logic
+        if (timerInterval) clearInterval(timerInterval);
+        return;
       }
       
       // 获取尺寸参数
@@ -661,6 +744,13 @@
         console.log(`Final validationPassed state before return check: ${validationPassed}`);
         if (!validationPassed) {
           console.log("Validation failed (or critical elements missing), returning early from processBtn.");
+          // Ensure button is reset if validation fails here
+          if (processButton) {
+              processButton.disabled = false;
+              processButton.textContent = originalButtonText;
+              processButton.classList.remove('processing');
+          }
+          if (timerInterval) clearInterval(timerInterval); // Clear timer if it started before this point
           return; // Stop if elements are missing or validation fails
         }
         console.log("Validation passed, proceeding to operations.resize.");
@@ -673,7 +763,7 @@
       }
       // --- Show Processing State ---
       let startTime = 0;
-      let timerInterval;
+      // timerInterval is already declared in the outer scope (line 523)
       // processButton and originalButtonText are defined at the start of the event listener
       if (processButton) {
         processButton.disabled = true;
@@ -963,6 +1053,21 @@
           sheinOutputHeightErrorEl.textContent = '';
           sheinOutputHeightErrorEl.style.display = 'none';
         }
+      });
+    }
+
+    // Add input event listener for sheinOutputName to clear error on valid input
+    const sheinOutputNameInputForLiveValidation = document.getElementById('sheinOutputName');
+    if (sheinOutputNameInputForLiveValidation) {
+      sheinOutputNameInputForLiveValidation.addEventListener('input', function() {
+        let tempOutputName = this.value.trim();
+        // Similar to pdfResizeOutputName, handle potential .pdf extension for validation
+        // isValidFilename should handle names with or without extensions correctly.
+        const validation = isValidFilename(tempOutputName);
+        if (validation.valid) {
+          this.classList.remove('input-error');
+        }
+        // Only for clearing error, not adding it.
       });
     }
 
@@ -1281,6 +1386,22 @@
           outputName = `SheinLabel_${getCurrentHHMMSS()}.pdf`;
         } else if (!outputName.toLowerCase().endsWith('.pdf')) {
           outputName += '.pdf';
+        }
+
+        const sheinFilenameValidation = isValidFilename(outputName);
+        if (!sheinFilenameValidation.valid) {
+          showToast(sheinFilenameValidation.message, 'error');
+          if (sheinOutputNameInput) {
+            sheinOutputNameInput.classList.add('input-error');
+            sheinOutputNameInput.focus();
+          }
+          // Restore button state if validation fails before processing starts
+          // generateSheinLabelBtn, originalButtonText, timerInterval are defined in this scope
+          generateSheinLabelBtn.disabled = false;
+          generateSheinLabelBtn.textContent = originalButtonText;
+          generateSheinLabelBtn.classList.remove('processing'); // Remove if added before validation
+          if (timerInterval) clearInterval(timerInterval);
+          return;
         }
         
         const params = {
