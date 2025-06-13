@@ -672,11 +672,19 @@
         }
       }
       // --- Show Processing State ---
+      let startTime = 0;
+      let timerInterval;
       // processButton and originalButtonText are defined at the start of the event listener
       if (processButton) {
         processButton.disabled = true;
-        processButton.textContent = '正在处理中...';
+        startTime = Date.now();
+        let secondsElapsed = 0;
+        processButton.textContent = `正在处理中... (${secondsElapsed}秒)`;
         processButton.classList.add('processing'); // Add processing class
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          processButton.textContent = `正在处理中... (${secondsElapsed}秒)`;
+        }, 1000);
       }
       // Optional: Show a processing message in resultDiv
       // const resultDivForProcessing = document.getElementById('result');
@@ -694,6 +702,9 @@
         outputName: outputName
       });
       console.log('[PDF Resize] After calling window.electronAPI.processPDF. Result:', apiResult); // DEBUG LOG
+
+      const endTime = Date.now();
+      const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
 
       const resultDiv = document.getElementById('result'); // Ensure it's defined before use
       if (apiResult && apiResult.success && apiResult.path) {
@@ -713,6 +724,7 @@
             if(apiResult.metadataError){
                 resultHtml += `<p style="color: orange;">输出文件元数据警告: ${apiResult.metadataError}</p>`;
             }
+            resultHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
             resultDiv.innerHTML = resultHtml;
             resultDiv.className = 'success';
         }
@@ -722,12 +734,26 @@
         }
       } else {
         handleAndShowApiError(apiResult, 'PDF尺寸调整', undefined, resultDiv, pdfResizePostProcessActionsDiv);
+        if (resultDiv) { // Also show total time on error
+            resultDiv.innerHTML += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+            if (!resultDiv.classList.contains('error')) { // Ensure error class if not already set
+                resultDiv.className = 'error';
+                resultDiv.style.display = 'block';
+            }
+        }
       }
     } catch (error) {
       console.error('[PDF Resize] Error in processBtn click handler:', error);
-      handleAndShowClientError(error, 'PDF尺寸调整', undefined, document.getElementById('result'), pdfResizePostProcessActionsDiv);
+      const endTime = Date.now();
+      const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
+      const errorResultDiv = document.getElementById('result');
+      handleAndShowClientError(error, 'PDF尺寸调整', undefined, errorResultDiv, pdfResizePostProcessActionsDiv);
+      if (errorResultDiv) { // Also show total time on client error
+        errorResultDiv.innerHTML += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+      }
     } finally {
       // --- Reset Processing State ---
+      if (timerInterval) clearInterval(timerInterval);
       // processButton and originalButtonText are defined at the start of the event listener
       if (processButton) {
           processButton.disabled = false;
@@ -1090,8 +1116,14 @@
 
       generateSheinLabelBtn.addEventListener('click', async () => {
         const originalButtonText = generateSheinLabelBtn.textContent; // Store original button text
+        let startTime = 0;
+        let timerInterval;
+
         generateSheinLabelBtn.disabled = true;
-        generateSheinLabelBtn.textContent = '正在处理中...';
+        startTime = Date.now();
+        let secondsElapsed = 0;
+        generateSheinLabelBtn.textContent = `正在处理中... (${secondsElapsed}秒)`;
+        // generateSheinLabelBtn.classList.add('processing'); // Will be added after validation
 
         sheinResultDiv.innerHTML = ''; // Clear previous results
         sheinResultDiv.className = '';
@@ -1112,7 +1144,7 @@
         const sheinSelectedFile2ErrorForReset = document.getElementById('sheinSelectedFile2Error');
         if (sheinOpenFile2ButtonForReset && sheinSelectedFile2ErrorForReset) {
             sheinOpenFile2ButtonForReset.classList.remove('input-error');
-            sheinSelectedFile2ErrorForReset.textContent = '';
+            selectedSheinPdf2Path.textContent = '';
             sheinSelectedFile2ErrorForReset.style.display = 'none';
         }
         // Reset inline error messages for Shein custom dimensions
@@ -1144,7 +1176,6 @@
               sheinSelectedFile1ErrorEl.style.display = 'block';
           } else {
               console.error("Shein Label Error: sheinSelectedFile1Error element not found in DOM!");
-              // Fallback to global error if inline element is missing
               if (sheinResultDiv) {
                   sheinResultDiv.innerHTML = '<p>请选择欧代文件 (UI Error: msg element missing)</p>';
                   sheinResultDiv.className = 'error';
@@ -1176,10 +1207,9 @@
           sheinValidationPassed = false;
         }
         
-        // Validate Shein custom dimensions if "custom" is selected
         const sheinPageSizeSelectedValue = sheinOutputPageSizeSelect.value;
-        let outputWidth = parseFloat(sheinOutputWidthInput.value); // Get once
-        let outputHeight = parseFloat(sheinOutputHeightInput.value); // Get once
+        let outputWidth = parseFloat(sheinOutputWidthInput.value);
+        let outputHeight = parseFloat(sheinOutputHeightInput.value);
         const sheinOutputWidthErrorEl = document.getElementById('sheinOutputWidthError');
         const sheinOutputHeightErrorEl = document.getElementById('sheinOutputHeightError');
 
@@ -1192,7 +1222,7 @@
                     sheinOutputWidthErrorEl.textContent = sheinWidthErrorMessage;
                     sheinOutputWidthErrorEl.style.display = 'block';
                 }
-                if (sheinValidationPassed && sheinOutputWidthInput) sheinOutputWidthInput.focus(); // Focus if it's the first error
+                if (sheinValidationPassed && sheinOutputWidthInput) sheinOutputWidthInput.focus();
                 sheinValidationPassed = false;
             }
             if (isNaN(outputHeight) || outputHeight <= 0) {
@@ -1203,39 +1233,40 @@
                     sheinOutputHeightErrorEl.textContent = sheinHeightErrorMessage;
                     sheinOutputHeightErrorEl.style.display = 'block';
                 }
-                // Focus height only if width was valid or width input was missing, and height is now the error
                 if (sheinValidationPassed && sheinOutputHeightInput) sheinOutputHeightInput.focus();
                 else if (!sheinValidationPassed && sheinOutputWidthInput && document.activeElement !== sheinOutputWidthInput && sheinOutputHeightInput) {
-                    // If width also failed, and focus is not on width input, focus height
                      sheinOutputHeightInput.focus();
-                } else if (!sheinOutputWidthInput && sheinOutputHeightInput) { // If width input was missing, focus height
+                } else if (!sheinOutputWidthInput && sheinOutputHeightInput) {
                     sheinOutputHeightInput.focus();
                 }
                 sheinValidationPassed = false;
             }
         } else {
-            // If not custom, ensure values are from the selected preset (already handled by change listener, but good for robustness)
             const presetSize = pageSizeMapMM[sheinPageSizeSelectedValue];
             if (presetSize) {
                 outputWidth = presetSize.width;
                 outputHeight = presetSize.height;
-                // No need to update input fields here as the change listener does that.
             } else {
-                // This case should ideally not happen if select options are synced with pageSizeMapMM
                 console.error("Shein Label: Selected preset size not found in map. Using defaults.");
-                outputWidth = 70; // Fallback default
-                outputHeight = 60; // Fallback default
+                outputWidth = 70;
+                outputHeight = 60;
             }
         }
 
-
         if (!sheinValidationPassed) {
-          generateSheinLabelBtn.disabled = false; // Re-enable button on validation failure
-          generateSheinLabelBtn.textContent = originalButtonText; // Restore original text
-          generateSheinLabelBtn.classList.remove('processing'); // Also remove processing class if validation fails early
+          generateSheinLabelBtn.disabled = false;
+          generateSheinLabelBtn.textContent = originalButtonText;
+          // generateSheinLabelBtn.classList.remove('processing'); // Not added yet
+          if(timerInterval) clearInterval(timerInterval); // Clear interval if validation fails after it started (though unlikely here)
           return;
         }
-        generateSheinLabelBtn.classList.add('processing'); // Add processing class - MOVED HERE
+        
+        // If validation passed, now add processing class and start timer
+        generateSheinLabelBtn.classList.add('processing');
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          generateSheinLabelBtn.textContent = `正在处理中... (${secondsElapsed}秒)`;
+        }, 1000);
 
         function getCurrentHHMMSS() {
           const now = new Date();
@@ -1248,36 +1279,25 @@
         let outputName = sheinOutputNameInput.value.trim();
         if (!outputName) {
           outputName = `SheinLabel_${getCurrentHHMMSS()}.pdf`;
-          // Optionally, update the input field to show the default name to the user
-          // sheinOutputNameInput.value = outputName;
         } else if (!outputName.toLowerCase().endsWith('.pdf')) {
-          // Ensure .pdf extension if user provides a name without it
           outputName += '.pdf';
         }
         
-        // The original check for empty outputName is now handled by the default assignment.
-        // If outputNameInput was empty, it's now filled. If it had a value, it's used (and .pdf is appended if missing).
-        // So, the explicit check `if (!outputName)` for emptiness before parseFloat is no longer needed here
-        // as outputName will always have a value.
-
-        // outputWidth and outputHeight are already parsed and validated (or set from preset) above.
-        // No need to re-parse or re-validate here.
-        
-        // Prepare parameters for backend
         const params = {
           pdf1Path: selectedSheinPdf1Path,
           pdf2Path: selectedSheinPdf2Path,
           outputName: outputName,
-          outputWidthMM: outputWidth, // Send as mm
-          outputHeightMM: outputHeight // Send as mm
+          outputWidthMM: outputWidth,
+          outputHeightMM: outputHeight
         };
 
         try {
-          // sheinResultDiv.style.display = 'block'; // No longer showing "processing" in result div
-          // sheinResultDiv.innerHTML = '<p>正在处理中...</p>'; // Removed
           const result = await window.electronAPI.generateSheinLabel(params);
+          const endTime = Date.now();
+          const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
+
           if (result.success && result.path) {
-            currentGeneratedSheinLabelPath = result.path; // Store the path
+            currentGeneratedSheinLabelPath = result.path;
             showToast('Shein Label 生成成功！', 'success');
             sheinResultDiv.style.display = 'block';
             let resultHtmlShein = `<p>保存路径：${result.path}</p>`;
@@ -1293,19 +1313,34 @@
             if(result.metadataError){
                 resultHtmlShein += `<p style="color: orange;">输出文件元数据警告: ${result.metadataError}</p>`;
             }
+            resultHtmlShein += `<p>总耗时：${totalTimeSeconds}秒</p>`;
             sheinResultDiv.innerHTML = resultHtmlShein;
             sheinResultDiv.className = 'success';
             sheinPostProcessActionsDiv.style.display = 'block';
           } else {
             handleAndShowApiError(result, 'Shein Label 生成', undefined, sheinResultDiv, sheinPostProcessActionsDiv);
+            if (sheinResultDiv) {
+                sheinResultDiv.innerHTML += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+                 if (!sheinResultDiv.classList.contains('error')) {
+                    sheinResultDiv.className = 'error';
+                    sheinResultDiv.style.display = 'block';
+                }
+            }
           }
         } catch (error) {
           console.error('Error calling generateSheinLabel:', error);
-          handleAndShowClientError(error, 'Shein Label 生成', undefined, sheinResultDiv, sheinPostProcessActionsDiv);
+          const endTime = Date.now();
+          const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
+          const errorSheinResultDiv = sheinResultDiv; // Use existing sheinResultDiv
+          handleAndShowClientError(error, 'Shein Label 生成', undefined, errorSheinResultDiv, sheinPostProcessActionsDiv);
+          if (errorSheinResultDiv) {
+            errorSheinResultDiv.innerHTML += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+          }
         } finally {
-          generateSheinLabelBtn.disabled = false; // Re-enable button
-          generateSheinLabelBtn.textContent = originalButtonText; // Restore original text
-          generateSheinLabelBtn.classList.remove('processing'); // Remove processing class
+          if (timerInterval) clearInterval(timerInterval);
+          generateSheinLabelBtn.disabled = false;
+          generateSheinLabelBtn.textContent = originalButtonText;
+          generateSheinLabelBtn.classList.remove('processing');
         }
       });
 
