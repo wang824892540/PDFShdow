@@ -1025,7 +1025,7 @@
 
       const openBtn = document.createElement('button');
       openBtn.textContent = '打开文件';
-      openBtn.className = 'action-button';
+      openBtn.className = 'action-button action-button-primary'; // Primary action
       if (!generatedPath) openBtn.disabled = true;
       openBtn.addEventListener('click', async () => {
         if (generatedPath) {
@@ -1088,10 +1088,11 @@
       // Add disabled action buttons for client errors as well for consistency
       const errorActionsDiv = document.createElement('div');
       errorActionsDiv.className = 'action-buttons-container'; // Use new class for button container
-      ['打开文件', '打开文件夹', '复制文件'].forEach(text => {
+      ['打开文件', '打开文件夹', '复制文件'].forEach((text, index) => {
           const btn = document.createElement('button');
           btn.textContent = text;
-          btn.className = 'action-button';
+          // Apply primary style to "打开文件"
+          btn.className = (index === 0) ? 'action-button action-button-primary' : 'action-button';
           btn.disabled = true;
           errorActionsDiv.appendChild(btn);
       });
@@ -1688,7 +1689,7 @@
 
           const openBtnShein = document.createElement('button');
           openBtnShein.textContent = '打开文件';
-          openBtnShein.className = 'action-button';
+          openBtnShein.className = 'action-button action-button-primary'; // Primary action
           if (!generatedPath) openBtnShein.disabled = true;
           openBtnShein.addEventListener('click', async () => {
             if (generatedPath) {
@@ -1752,10 +1753,11 @@
           // Add disabled action buttons for client errors as well for consistency
           const errorActionsDiv = document.createElement('div');
           errorActionsDiv.className = 'action-buttons-container'; // Use new class for button container
-          ['打开文件', '打开文件夹', '复制文件'].forEach(text => {
+          ['打开文件', '打开文件夹', '复制文件'].forEach((text, index) => {
               const btn = document.createElement('button');
               btn.textContent = text;
-              btn.className = 'action-button';
+              // Apply primary style to "打开文件"
+              btn.className = (index === 0) ? 'action-button action-button-primary' : 'action-button';
               btn.disabled = true;
               errorActionsDiv.appendChild(btn);
           });

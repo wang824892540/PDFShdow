@@ -391,6 +391,47 @@ button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled sepa
   border-color: color-mix(in srgb, var(--button-secondary-border) 80%, var(--text-color));
 }
 
+/* Primary action button within result entries */
+.action-button-primary {
+  background-color: var(--primary-color);
+  color: var(--text-on-primary-color);
+  border-color: var(--primary-color);
+  font-weight: 600; /* Consistent with .btn-primary */
+}
+
+.action-button-primary:hover {
+  background-color: var(--primary-color-hover);
+  border-color: var(--primary-color-hover);
+}
+
+.action-button-primary:active {
+  background-color: var(--primary-color-active);
+  border-color: var(--primary-color-active);
+}
+
+/* Disabled state for primary action buttons */
+.action-button-primary:disabled,
+.action-button-primary[disabled] {
+  background-color: var(--primary-color); /* Keep base color but opacity will mute it */
+  border-color: var(--primary-color);   /* Keep base color but opacity will mute it */
+  color: var(--text-on-primary-color);  /* Keep base color but opacity will mute it */
+  /* Opacity is handled by the general button:disabled rule */
+}
+
+.action-button-primary:disabled:hover,
+.action-button-primary[disabled]:hover {
+  background-color: var(--primary-color) !important; /* Prevent hover color change */
+  border-color: var(--primary-color) !important;   /* Prevent hover border change */
+}
+
+/* Dark mode specific disabled state for primary action buttons (if needed, usually opacity is enough) */
+/* body.dark-mode .action-button-primary:disabled,
+body.dark-mode .action-button-primary[disabled] {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--text-on-primary-color);
+} */
+
 /* General disabled button styles */
 button:disabled,
 button[disabled] { /* Cover both attribute forms */
@@ -613,7 +654,6 @@ body.dark-mode .file-select-status-span.file-selected-badge {
 /* Result Area */
 #result, #sheinResult {
   margin-top: 20px; /* Reduced */
-  padding: 14px 18px; /* Reduced */
   border-radius: var(--border-radius-md);
   font-size: 0.9em; /* Increased */
   line-height: 1.7;
@@ -881,7 +921,6 @@ body.dark-mode .dimension-inputs-container .input-group .unit { /* Replaced #cus
 #result, #sheinResult { /* Apply common result styling to sheinResult too */
   display: none; /* Hide by default */
   margin-top: 24px; /* Reduced */
-  padding: 15px 18px; /* Reduced */
   border-radius: 8px;
   font-size: 0.9em; /* Increased */
   transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
