@@ -956,3 +956,117 @@ body.dark-mode {
   --warning-color: #f57f17; /* Darker yellow/orange for dark mode */
   /* --text-color-light and --text-color-dark should be respected by default toast text colors */
 }
+
+/* Custom Select Dropdown Styles */
+.custom-select-wrapper {
+  position: relative;
+  width: 100%; /* Or match the width of other inputs */
+  margin-bottom: 8px; /* Consistent with other inputs */
+}
+
+.custom-select-container {
+  position: relative;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color-soft);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-color);
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px; /* Match input padding */
+  height: calc(1.6em + 12px + 2px); /* Approximate height of a standard input with padding and border */
+  line-height: 1.6; /* Match body line-height for consistency */
+}
+
+.custom-select-trigger span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+}
+
+.custom-select-trigger .arrow {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--text-color-muted);
+  transition: transform 0.2s ease;
+  margin-left: 8px;
+}
+
+.custom-select-container.open .custom-select-trigger .arrow {
+  transform: rotate(180deg);
+}
+
+.custom-select-options {
+  display: none;
+  position: absolute;
+  top: 100%; /* Position below the trigger */
+  left: 0;
+  right: 0;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color-strong); /* Slightly stronger border for dropdown */
+  border-top: none; /* Avoid double border with trigger */
+  border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
+  z-index: 10; /* Ensure it's above other elements */
+  max-height: 200px; /* Limit height and allow scrolling */
+  overflow-y: auto;
+  box-shadow: var(--shadow-md);
+}
+
+.custom-select-option {
+  padding: 8px 10px; /* Slightly more padding for options */
+  transition: background-color 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-select-option:hover {
+  background-color: var(--nav-link-hover-bg); /* Use nav link hover for consistency */
+  color: var(--nav-link-hover-color);
+}
+
+.custom-select-option.selected {
+  background-color: var(--primary-color);
+  color: var(--text-on-primary-color);
+  font-weight: 500;
+}
+
+/* Focus state for the container (when trigger is clicked) */
+.custom-select-container.open,
+.custom-select-container:focus-within { /* For keyboard navigation if implemented */
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--input-focus-ring);
+  outline: none;
+}
+
+/* Scrollbar for custom select options (if needed) */
+.custom-select-options::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-select-options::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-select-options::-webkit-scrollbar-thumb {
+  background-color: var(--border-color-soft);
+  border-radius: 3px;
+}
+.custom-select-options { /* Firefox scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color-soft) transparent;
+}
+body.dark-mode .custom-select-options::-webkit-scrollbar-thumb {
+   background-color: var(--border-color-strong); /* Dark mode scrollbar thumb */
+}
+body.dark-mode .custom-select-options { /* Firefox scrollbar dark mode */
+  scrollbar-color: var(--border-color-strong) transparent;
+}

@@ -41,12 +41,20 @@
       
           <div class="section">
             <label for="pageSize">页面尺寸</label>
-            <select id="pageSize">
-              <option value="A4">A4 (210x297mm)</option>
-              <option value="Letter">Letter (215.9x279.4mm)</option>
-              <option value="Shein" selected>Shein (70x60mm)</option>
-              <option value="custom">自定义</option>
-            </select>
+            <div class="custom-select-wrapper">
+              <select id="pageSize" style="display:none;">
+                <option value="A4">A4 (210x297mm)</option>
+                <option value="Letter">Letter (215.9x279.4mm)</option>
+                <option value="Shein" selected>Shein (70x60mm)</option>
+                <option value="custom">自定义</option>
+              </select>
+              <div class="custom-select-container" id="customPageSizeSelect">
+                <div class="custom-select-trigger"><span>Shein (70x60mm)</span><div class="arrow"></div></div>
+                <div class="custom-select-options">
+                  {/* Options will be populated by JS */}
+                </div>
+              </div>
+            </div>
             <div id="customSize" class="dimension-inputs-container" style="display: none;">
               <div class="field-wrapper">
                 <div class="input-group">
@@ -105,12 +113,20 @@
 
           <div class="section">
             <label for="sheinOutputPageSize">页面尺寸</label>
-            <select id="sheinOutputPageSize">
-              <option value="A4">A4 (210x297mm)</option>
-              <option value="Letter">Letter (215.9x279.4mm)</option>
-              <option value="Shein" selected>Shein (70x60mm)</option>
-              <option value="custom">自定义</option>
-            </select>
+            <div class="custom-select-wrapper">
+              <select id="sheinOutputPageSize" style="display:none;">
+                <option value="A4">A4 (210x297mm)</option>
+                <option value="Letter">Letter (215.9x279.4mm)</option>
+                <option value="Shein" selected>Shein (70x60mm)</option>
+                <option value="custom">自定义</option>
+              </select>
+              <div class="custom-select-container" id="customSheinOutputPageSizeSelect">
+                <div class="custom-select-trigger"><span>Shein (70x60mm)</span><div class="arrow"></div></div>
+                <div class="custom-select-options">
+                  {/* Options will be populated by JS */}
+                </div>
+              </div>
+            </div>
             <div id="sheinOutputCustomDimensions" class="dimension-inputs-container" style="display: none;">
               <div class="field-wrapper">
                 <div class="input-group">
@@ -1629,6 +1645,83 @@
     }
     // --- End Shein Label Feature ---
 
+    // --- Custom Select Dropdown Logic ---
+    function initializeCustomSelect(originalSelectElement) {
+      if (!originalSelectElement) return;
+
+      const customSelectContainer = originalSelectElement.parentElement.querySelector('.custom-select-container');
+      if (!customSelectContainer) return;
+
+      const trigger = customSelectContainer.querySelector('.custom-select-trigger');
+      const optionsContainer = customSelectContainer.querySelector('.custom-select-options');
+      const triggerSpan = trigger.querySelector('span');
+
+      // Clear existing custom options
+      optionsContainer.innerHTML = '';
+
+      // Populate custom options from original select
+      Array.from(originalSelectElement.options).forEach(option => {
+        const customOption = document.createElement('div');
+        customOption.classList.add('custom-select-option');
+        customOption.textContent = option.textContent;
+        customOption.dataset.value = option.value;
+        if (option.selected) {
+          triggerSpan.textContent = option.textContent;
+          customOption.classList.add('selected');
+        }
+        
+        customOption.addEventListener('click', () => {
+          // Update trigger text
+          triggerSpan.textContent = customOption.textContent;
+          
+          // Update original select value
+          originalSelectElement.value = customOption.dataset.value;
+          
+          // Remove 'selected' from previously selected custom option
+          const currentlySelected = optionsContainer.querySelector('.custom-select-option.selected');
+          if (currentlySelected) {
+            currentlySelected.classList.remove('selected');
+          }
+          // Add 'selected' to current custom option
+          customOption.classList.add('selected');
+          
+          // Close options
+          optionsContainer.style.display = 'none';
+          customSelectContainer.classList.remove('open');
+          
+          // Dispatch change event on original select
+          const changeEvent = new Event('change', { bubbles: true });
+          originalSelectElement.dispatchEvent(changeEvent);
+        });
+        optionsContainer.appendChild(customOption);
+      });
+
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent click from bubbling to document listener immediately
+        const isOpen = optionsContainer.style.display === 'block';
+        closeAllCustomSelects(customSelectContainer); // Close others before opening/closing current
+        if (!isOpen) {
+          optionsContainer.style.display = 'block';
+          customSelectContainer.classList.add('open');
+        } else {
+          // Already handled by closeAllCustomSelects if it was this one
+        }
+      });
+    }
+
+    function closeAllCustomSelects(exceptThisOne = null) {
+      document.querySelectorAll('.custom-select-container').forEach(container => {
+        if (container !== exceptThisOne) {
+          container.querySelector('.custom-select-options').style.display = 'none';
+          container.classList.remove('open');
+        }
+      });
+    }
+
+    document.addEventListener('click', () => {
+      closeAllCustomSelects();
+    });
+
     // --- Load All Settings and Initialize UI ---
     async function loadAndApplySettings() {
       appSettings = await window.electronAPI.getSettings();
@@ -1739,6 +1832,42 @@
           });
         }
       });
+
+      // Initialize custom selects after settings are loaded and original selects are populated
+      const pageSizeSelectEl = document.getElementById('pageSize');
+      const sheinOutputPageSizeSelectEl = document.getElementById('sheinOutputPageSize');
+      
+      if (pageSizeSelectEl) initializeCustomSelect(pageSizeSelectEl);
+      if (sheinOutputPageSizeSelectEl) initializeCustomSelect(sheinOutputPageSizeSelectEl);
+
+      // Ensure custom select trigger text is updated if settings load changes the original select's value
+      // This is important if the default selected option in HTML differs from the loaded setting.
+      if (pageSizeSelectEl && appSettings.pageSize) {
+          const customTriggerSpan = pageSizeSelectEl.parentElement.querySelector('.custom-select-trigger span');
+          const selectedOption = Array.from(pageSizeSelectEl.options).find(opt => opt.value === appSettings.pageSize);
+          if (customTriggerSpan && selectedOption) {
+              customTriggerSpan.textContent = selectedOption.textContent;
+              // Also mark the correct custom option as selected
+              const customOptionsContainer = pageSizeSelectEl.parentElement.querySelector('.custom-select-options');
+              const currentCustomSelected = customOptionsContainer.querySelector('.custom-select-option.selected');
+              if(currentCustomSelected) currentCustomSelected.classList.remove('selected');
+              const newCustomSelected = customOptionsContainer.querySelector(`.custom-select-option[data-value="${appSettings.pageSize}"]`);
+              if(newCustomSelected) newCustomSelected.classList.add('selected');
+          }
+      }
+      if (sheinOutputPageSizeSelectEl && appSettings.sheinOutputPageSize) {
+          const customTriggerSpan = sheinOutputPageSizeSelectEl.parentElement.querySelector('.custom-select-trigger span');
+          const selectedOption = Array.from(sheinOutputPageSizeSelectEl.options).find(opt => opt.value === appSettings.sheinOutputPageSize);
+          if (customTriggerSpan && selectedOption) {
+              customTriggerSpan.textContent = selectedOption.textContent;
+              const customOptionsContainer = sheinOutputPageSizeSelectEl.parentElement.querySelector('.custom-select-options');
+              const currentCustomSelected = customOptionsContainer.querySelector('.custom-select-option.selected');
+              if(currentCustomSelected) currentCustomSelected.classList.remove('selected');
+              const newCustomSelected = customOptionsContainer.querySelector(`.custom-select-option[data-value="${appSettings.sheinOutputPageSize}"]`);
+              if(newCustomSelected) newCustomSelected.classList.add('selected');
+          }
+      }
+
     }
 
     loadAndApplySettings(); // Call the main function to load settings
