@@ -46,23 +46,27 @@
       <div class="view-container" id="pdfResizeView" style="display: none;">
         <!-- Existing content will be wrapped by its own .container if needed, or styled directly -->
         <div class="container"> <!-- This is the original .container -->
-          <h2>PDF 尺寸调整</h2>
+          <div class="title-with-description">
+            <h2>PDF 尺寸调整</h2>
+            <span class="feature-description">调整所选 PDF 文件的页面尺寸，支持预设尺寸和自定义尺寸。</span>
+          </div>
           
           <div class="section">
             <div class="field-wrapper"> <!-- Added wrapper for layout with error message -->
               <button id="openFile" class="btn-primary">选择 PDF 文件</button>
               <span id="selectedFile" class="file-select-status-span"></span>
+              <span class="field-hint">待调整尺寸的PDF</span>
               <small class="error-message" id="selectedFileError"></small> <!-- New error message placeholder -->
             </div>
           </div>
       
           <div class="section">
-            <label for="pdfResizeOutputName">文件名称</label>
+            <label for="pdfResizeOutputName">文件名称 <span class="field-hint">输出文件名,不含扩展名</span></label>
             <input type="text" id="pdfResizeOutputName" placeholder="例如: resized_document">
           </div>
       
           <div class="section">
-            <label for="pageSize">页面尺寸</label>
+            <label for="pageSize">页面尺寸 <span class="field-hint">选择预设或自定义</span></label>
             <div class="custom-select-wrapper">
               <select id="pageSize" style="display:none;">
                 <option value="A4">A4 (210x297mm)</option>
@@ -83,6 +87,7 @@
                   <input type="number" id="customWidth" placeholder="宽度">
                   <span class="unit">mm</span>
                 </div>
+                <span class="field-hint">自定义宽度,毫米</span>
                 <small class="error-message" id="customWidthError"></small>
               </div>
               <div class="field-wrapper">
@@ -90,6 +95,7 @@
                   <input type="number" id="customHeight" placeholder="高度">
                   <span class="unit">mm</span>
                 </div>
+                <span class="field-hint">自定义高度,毫米</span>
                 <small class="error-message" id="customHeightError"></small>
               </div>
             </div>
@@ -110,12 +116,16 @@
 
       <div class="view-container" id="sheinLabelView" style="display: block;">
         <div class="container"> <!-- Each view can have its own container for consistency -->
-          <h2>Shein Label 生成</h2>
+          <div class="title-with-description">
+            <h2>Shein Label 生成</h2>
+            <span class="feature-description">合并欧代和条码 PDF，生成符合 Shein 要求的标签。</span>
+          </div>
           
           <div class="section">
             <div class="field-wrapper"> <!-- Added wrapper -->
               <button id="sheinOpenFile1Btn" class="btn-primary">选择欧代文件</button>
               <span id="sheinSelectedFile1" class="file-select-status-span">未选择文件</span>
+              <span class="field-hint">EC Rep PDF文件</span>
               <small class="error-message" id="sheinSelectedFile1Error"></small> <!-- New error message placeholder -->
             </div>
           </div>
@@ -124,17 +134,18 @@
             <div class="field-wrapper"> <!-- Added wrapper -->
               <button id="sheinOpenFile2Btn" class="btn-primary">选择条码文件</button>
               <span id="sheinSelectedFile2" class="file-select-status-span">未选择文件</span>
+              <span class="field-hint">条形码PDF文件</span>
               <small class="error-message" id="sheinSelectedFile2Error"></small> <!-- New error message placeholder -->
             </div>
           </div>
 
           <div class="section">
-            <label for="sheinOutputName">文件名称</label>
+            <label for="sheinOutputName">文件名称 <span class="field-hint">Shein标签输出文件名</span></label>
             <input type="text" id="sheinOutputName" placeholder="例如: shein_label_output">
           </div>
 
           <div class="section">
-            <label for="sheinOutputPageSize">页面尺寸</label>
+            <label for="sheinOutputPageSize">页面尺寸 <span class="field-hint">Shein标签输出尺寸</span></label>
             <div class="custom-select-wrapper">
               <select id="sheinOutputPageSize" style="display:none;">
                 <option value="A4">A4 (210x297mm)</option>
@@ -155,6 +166,7 @@
                   <input type="number" id="sheinOutputWidth" placeholder="宽度" value="70">
                   <span class="unit">mm</span>
                 </div>
+                <span class="field-hint">标签宽度,毫米</span>
                 <small class="error-message" id="sheinOutputWidthError"></small>
               </div>
               <div class="field-wrapper">
@@ -162,6 +174,7 @@
                   <input type="number" id="sheinOutputHeight" placeholder="高度" value="60">
                   <span class="unit">mm</span>
                 </div>
+                <span class="field-hint">标签高度,毫米</span>
                 <small class="error-message" id="sheinOutputHeightError"></small>
               </div>
             </div>

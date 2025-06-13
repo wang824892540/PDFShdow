@@ -235,6 +235,34 @@ body.dark-mode {
   /* display: flex; and align-items: center; no longer needed for emoji */
 }
 
+/* Styles for title with description */
+.title-with-description {
+  display: flex;
+  align-items: baseline; /* Align baseline of h2 and span */
+  justify-content: space-between; /* Push description to the right if space allows, or wrap */
+  flex-wrap: wrap; /* Allow description to wrap on smaller screens */
+  border-bottom: 1px solid var(--border-color-soft);
+  padding-bottom: 10px; /* Reduced */
+  margin-bottom: 20px; /* Reduced */
+}
+
+.title-with-description h2 {
+  margin-bottom: 0; /* Remove bottom margin from h2 as padding is on parent */
+  padding-bottom: 0; /* Remove bottom padding from h2 */
+  border-bottom: none; /* Remove border from h2 as it's on parent */
+  flex-shrink: 0; /* Prevent h2 from shrinking */
+}
+
+.feature-description {
+  font-size: 0.78em; /* Smaller font size */
+  color: var(--text-color-muted);
+  margin-left: 15px; /* Space between title and description */
+  font-weight: 400;
+  line-height: 1.5;
+  flex-shrink: 1; /* Allow description to shrink and wrap */
+  text-align: right; /* Align text to the right if it wraps on its own line */
+}
+
 /* Removed .container > h2 svg.heroicon styles */
 
 /* Sections within views */
@@ -254,7 +282,9 @@ body.dark-mode {
 
 /* Labels */
 label {
-  display: block;
+  display: flex; /* Changed to flex to align hint to the right */
+  justify-content: space-between; /* Pushes hint to the right */
+  align-items: baseline; /* Align text baselines */
   margin-bottom: 4px; /* Reduced */
   font-weight: 500;
   color: var(--text-color-muted); /* Muted color for labels */
@@ -381,6 +411,56 @@ select:focus {
   font-size: 0.8em; /* Increased */
   color: var(--error-text-color) !important;
 }
+
+.field-hint {
+  font-size: 0.75em; /* Smaller than error message */
+  color: var(--text-color-muted);
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block; /* To allow text-overflow to work */
+  max-width: 180px; /* Adjust as needed, can be a bit wider now */
+  text-align: right; /* Ensure text within the hint is right-aligned if it wraps (though it shouldn't) */
+  margin-left: auto; /* Pushes the hint to the right in a flex container */
+}
+
+/* Specific adjustments for hints inside labels to align better */
+label > .field-hint {
+  font-weight: normal; /* Hints shouldn't be bold like labels */
+  /* margin-left: auto; will be inherited or can be re-stated if needed */
+}
+
+/* Adjustments for hints next to file selection status or input groups */
+/* Ensure .field-wrapper is also a flex container if hints are direct children and need right alignment */
+.field-wrapper {
+  display: flex;
+  flex-wrap: wrap; /* Allow items to wrap */
+  align-items: center; /* Align items vertically */
+  gap: 8px; /* Consistent gap */
+}
+
+.field-wrapper > .file-select-status-span + .field-hint {
+  /* This targets hints immediately following a file selection span */
+  margin-left: auto; /* Push to the right */
+  flex-shrink: 0; /* Prevent hint from shrinking too much if file name is long */
+}
+
+.dimension-inputs-container .field-wrapper {
+    /* field-wrapper within dimension-inputs-container is already flex-column */
+    /* so margin-left: auto on the hint should work if the hint is a direct child */
+    /* If hint is after input-group, then input-group needs to not take full width, or parent needs to be row flex */
+     align-items: stretch; /* Override previous align-items: center for dimension inputs */
+}
+
+.dimension-inputs-container .field-wrapper .field-hint {
+    text-align: right;
+    width: 100%; /* Allow hint to take full width to align text right */
+    margin-left: 0; /* Reset margin-left if it's taking full width */
+    margin-top: 3px; /* Small space above the hint */
+    max-width: none; /* Override max-width for this specific case */
+}
+
 
 .dimension-inputs-container {
   margin-top: 12px; /* Reduced */
