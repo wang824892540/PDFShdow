@@ -316,21 +316,25 @@
       return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 
-    function updateFileSelectionUI(filePath, spanElementId, pageCount = null, fileSize = null) {
+    function updateFileSelectionUI(filePath, spanElementId, pageCount = null, fileSize = null, isLoadingMetadata = false) {
       const spanElement = document.getElementById(spanElementId);
       if (!spanElement) return;
 
       if (filePath && typeof filePath === 'string' && filePath.trim() !== '') {
         let displayText = getBasenameFrontend(filePath);
-        let details = [];
-        if (pageCount !== null && pageCount !== undefined) {
-          details.push(`页数: ${pageCount}`);
-        }
-        if (fileSize !== null && fileSize !== undefined) {
-          details.push(`大小: ${formatBytes(fileSize)}`);
-        }
-        if (details.length > 0) {
-          displayText += ` (${details.join(', ')})`;
+        if (isLoadingMetadata) {
+          displayText += ' (正在获取信息...)';
+        } else {
+          let details = [];
+          if (pageCount !== null && pageCount !== undefined) {
+            details.push(`页数: ${pageCount}`);
+          }
+          if (fileSize !== null && fileSize !== undefined) {
+            details.push(`大小: ${formatBytes(fileSize)}`);
+          }
+          if (details.length > 0) {
+            displayText += ` (${details.join(', ')})`;
+          }
         }
         spanElement.textContent = displayText;
         spanElement.classList.add('file-selected-badge');
@@ -582,10 +586,14 @@
       } else {
         selectedFilePath = newPath;
         appSettings.pdfResizeSelectedPath = selectedFilePath;
+        // Immediately update UI to show filename and loading state
+        updateFileSelectionUI(selectedFilePath, 'selectedFile', null, null, true);
+
         try {
           const metadata = await window.electronAPI.getPdfMetadata(selectedFilePath);
+          // Now update with full metadata
           if (metadata.success) {
-            updateFileSelectionUI(selectedFilePath, 'selectedFile', metadata.pageCount, metadata.size);
+            updateFileSelectionUI(selectedFilePath, 'selectedFile', metadata.pageCount, metadata.size, false);
             if (openFileButton) openFileButton.classList.remove('input-error');
             if (selectedFileErrorEl) {
                 selectedFileErrorEl.textContent = '';
@@ -593,11 +601,11 @@
             }
           } else {
             showToast(`无法读取文件元数据: ${metadata.error || '未知错误'}`, 'error');
-            updateFileSelectionUI(selectedFilePath, 'selectedFile'); // Show filename at least
+            updateFileSelectionUI(selectedFilePath, 'selectedFile', null, null, false); // Show filename at least, remove loading
           }
         } catch (err) {
           showToast(`获取文件元数据时出错: ${err.message}`, 'error');
-          updateFileSelectionUI(selectedFilePath, 'selectedFile'); // Show filename at least
+          updateFileSelectionUI(selectedFilePath, 'selectedFile', null, null, false); // Show filename at least, remove loading
         }
 
         // Auto-fill output name for PDF Resize
@@ -1271,10 +1279,14 @@
         } else {
           selectedSheinPdf1Path = newPath;
           appSettings.sheinEcRepPdfPath = selectedSheinPdf1Path;
+          // Immediately update UI to show filename and loading state
+          updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', null, null, true);
+
           try {
             const metadata = await window.electronAPI.getPdfMetadata(selectedSheinPdf1Path);
+            // Now update with full metadata
             if (metadata.success) {
-              updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', metadata.pageCount, metadata.size);
+              updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', metadata.pageCount, metadata.size, false);
               if (sheinOpenFile1Button) sheinOpenFile1Button.classList.remove('input-error');
               // No need to clear general error here, as it's for file selection, not page count.
               // The specific page count warning is handled below.
@@ -1290,11 +1302,11 @@
               }
             } else {
               showToast(`无法读取欧代文件元数据: ${metadata.error || '未知错误'}`, 'error');
-              updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1'); // Show filename at least
+              updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', null, null, false); // Show filename at least, remove loading
             }
           } catch (err) {
             showToast(`获取欧代文件元数据时出错: ${err.message}`, 'error');
-            updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
+            updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', null, null, false); // Show filename at least, remove loading
           }
           const saveResult = await window.electronAPI.saveSettings(appSettings);
           if (!saveResult || !saveResult.success) {
@@ -1317,21 +1329,25 @@
         } else {
           selectedSheinPdf2Path = newPath;
           appSettings.sheinBarcodePdfPath = selectedSheinPdf2Path;
+          // Immediately update UI to show filename and loading state
+          updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null, true);
+
           try {
             const metadata = await window.electronAPI.getPdfMetadata(selectedSheinPdf2Path);
+            // Now update with full metadata
             if (metadata.success) {
-              updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', metadata.pageCount, metadata.size);
+              updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', metadata.pageCount, metadata.size, false);
               if (sheinOpenFile2Button) sheinOpenFile2Button.classList.remove('input-error');
               if (sheinSelectedFile2ErrorEl) {
                   clearInlineFileError('sheinSelectedFile2Error'); // Clear general file selection error
               }
             } else {
               showToast(`无法读取条码文件元数据: ${metadata.error || '未知错误'}`, 'error');
-              updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
+              updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null, false); // Show filename at least, remove loading
             }
           } catch (err) {
             showToast(`获取条码文件元数据时出错: ${err.message}`, 'error');
-            updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
+            updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null, false); // Show filename at least, remove loading
           }
   
           // Auto-fill output name for Shein Label (based on barcode file)
@@ -1835,19 +1851,22 @@
       // Load selected file paths and their metadata
       selectedFilePath = appSettings.pdfResizeSelectedPath || '';
       if (selectedFilePath) {
+        // On load, show loading state first, then fetch metadata
+        updateFileSelectionUI(selectedFilePath, 'selectedFile', null, null, true);
         try {
           const metadata = await window.electronAPI.getPdfMetadata(selectedFilePath);
-          updateFileSelectionUI(selectedFilePath, 'selectedFile', metadata.pageCount, metadata.size);
-        } catch (e) { updateFileSelectionUI(selectedFilePath, 'selectedFile'); /* Show filename at least */ }
+          updateFileSelectionUI(selectedFilePath, 'selectedFile', metadata.pageCount, metadata.size, false);
+        } catch (e) { updateFileSelectionUI(selectedFilePath, 'selectedFile', null, null, false); /* Show filename at least, remove loading */ }
       } else {
         updateFileSelectionUI(null, 'selectedFile');
       }
 
       selectedSheinPdf1Path = appSettings.sheinEcRepPdfPath || '';
       if (selectedSheinPdf1Path) {
+        updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', null, null, true);
         try {
           const metadata = await window.electronAPI.getPdfMetadata(selectedSheinPdf1Path);
-          updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', metadata.pageCount, metadata.size);
+          updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', metadata.pageCount, metadata.size, false);
            // Also re-check EC Rep page count warning on load
           const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
           if (sheinSelectedFile1ErrorEl) clearInlineFileError('sheinSelectedFile1Error'); // Clear previous before check
@@ -1860,7 +1879,7 @@
               sheinSelectedFile1ErrorEl.classList.add('warning-text');
             }
           }
-        } catch (e) { updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1'); }
+        } catch (e) { updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', null, null, false); }
       } else {
         updateFileSelectionUI(null, 'sheinSelectedFile1');
         clearInlineFileError('sheinSelectedFile1Error');
@@ -1868,10 +1887,11 @@
 
       selectedSheinPdf2Path = appSettings.sheinBarcodePdfPath || '';
       if (selectedSheinPdf2Path) {
+        updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null, true);
         try {
           const metadata = await window.electronAPI.getPdfMetadata(selectedSheinPdf2Path);
-          updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', metadata.pageCount, metadata.size);
-        } catch (e) { updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2'); }
+          updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', metadata.pageCount, metadata.size, false);
+        } catch (e) { updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null, false); }
       } else {
         updateFileSelectionUI(null, 'sheinSelectedFile2');
       }
