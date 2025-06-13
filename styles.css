@@ -805,18 +805,114 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
   margin-bottom: 8px; /* Reduced space from the bottom of the sidebar */
 }
 
-#themeToggleBtn:hover {
-  background-color: var(--nav-link-hover-bg, #e9ecef); /* Use a subtle hover */
-  border-color: var(--border-color-soft, #dee2e6);
+/* New Theme Toggle Switch Styles */
+.theme-switch-wrapper {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-top: auto; /* Push to the bottom */
+  align-self: center; /* Center horizontally */
+  margin-bottom: 12px; /* Space from bottom */
+  border-radius: 20px; /* Rounded wrapper */
+  background-color: var(--input-bg); /* Use input background for contrast */
+  border: 1px solid var(--border-color-soft);
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-body.dark-mode #themeToggleBtn {
-  color: var(--text-color); /* Use reverted dark mode text color */
+.theme-switch-track {
+  width: 56px; /* Width of the track */
+  height: 28px; /* Height of the track */
+  background-color: var(--border-color-soft); /* Light grey track */
+  border-radius: 14px; /* Fully rounded track */
+  position: relative;
+  transition: background-color 0.3s ease;
+  display: flex; /* To align thumb */
+  align-items: center; /* Vertically center thumb */
 }
 
-body.dark-mode #themeToggleBtn:hover {
-  background-color: var(--nav-link-hover-bg); /* Use reverted dark mode nav link hover bg */
-  border-color: var(--border-color-soft); /* Use reverted dark mode soft border */
+.theme-switch-thumb {
+  width: 24px; /* Diameter of the thumb */
+  height: 24px; /* Diameter of the thumb */
+  background-color: #ffffff; /* White thumb */
+  border-radius: 50%; /* Circular thumb */
+  position: absolute;
+  left: 2px; /* Initial position (for light mode) */
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), background-color 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Hide the icon that's not active */
+}
+
+
+.theme-switch-thumb .sun-icon,
+.theme-switch-thumb .moon-icon {
+  position: absolute; /* Position icons on top of each other */
+  font-size: 16px; /* Adjust Emoji size */
+  line-height: 1; /* Ensure proper vertical alignment */
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  /* Color will be inherited or can be set specifically if needed */
+}
+
+.sun-icon {
+  opacity: 1; /* Visible in light mode */
+  transform: scale(1) rotate(0deg);
+  color: #f39c12; /* Sunny yellow */
+}
+
+.moon-icon {
+  opacity: 0; /* Hidden in light mode */
+  transform: scale(0.8) rotate(-15deg);
+  color: #f1c40f; /* Moon yellow, slightly different for active state */
+}
+/* Active state (Dark Mode) */
+.theme-switch-wrapper.active .theme-switch-track {
+  background-color: var(--button-secondary-bg); /* Dark mode: Even darker grey for track, was --nav-link-hover-bg */
+}
+
+.theme-switch-wrapper.active .theme-switch-thumb {
+  transform: translateX(28px); /* Move thumb to the right (56px track width - 24px thumb width - 2px left offset - 2px right offset) */
+  background-color: var(--nav-link-hover-bg); /* Dark mode: Dark grey for thumb, was --input-bg. Moon icon is white. */
+}
+
+.theme-switch-wrapper.active .sun-icon {
+  opacity: 0;
+  transform: scale(0.8) rotate(15deg);
+}
+
+.theme-switch-wrapper.active .moon-icon {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+  color: var(--text-on-primary-color); /* White moon on dark active thumb */
+}
+
+/* Dark mode specific adjustments for the wrapper itself if needed */
+body.dark-mode .theme-switch-wrapper {
+  background-color: var(--input-bg); /* Ensure it uses dark mode input bg */
+  border-color: var(--border-color-soft);
+}
+
+body.dark-mode .theme-switch-thumb {
+   /* Thumb is white by default, if active it uses primary-color-hover */
+}
+
+/* Explicit dark mode overrides for active switch to ensure grey tones */
+body.dark-mode .theme-switch-wrapper.active .theme-switch-track {
+  background-color: var(--button-secondary-bg); /* Consistent darker grey for track in dark mode */
+}
+
+body.dark-mode .theme-switch-wrapper.active .theme-switch-thumb {
+  background-color: var(--nav-link-hover-bg); /* Consistent dark grey for thumb in dark mode */
+}
+
+body.dark-mode .sun-icon {
+  /* color: #f39c12; /* Sun color remains same even in dark mode if it's the 'off' state */
+}
+
+body.dark-mode .theme-switch-wrapper.active .moon-icon {
+   /* color is already var(--text-on-primary-color) which is good for dark active thumb */
 }
 
 /* Custom Scrollbar Styles */

@@ -32,7 +32,14 @@
           <li><a href="#" class="nav-link" data-view="pdfResizeView">PDF 尺寸调整</a></li>
         </ul>
       </nav>
-      <button id="themeToggleBtn" title="切换主题"></button>
+      <div id="themeToggleSwitch" class="theme-switch-wrapper" title="切换主题">
+        <div class="theme-switch-track">
+          <div class="theme-switch-thumb">
+            <span class="sun-icon">☀️</span>
+            <span class="moon-icon">🌙</span>
+          </div>
+        </div>
+      </div>
     </aside>
 
     <main class="main-content">
@@ -417,26 +424,20 @@
     }
     // End Custom Title Bar Logic
 
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    // Theme persistence will also use appSettings
-    const sunIcon = '☀️';
-    const moonIcon = '🌙';
+    const themeToggleSwitch = document.getElementById('themeToggleSwitch');
 
     async function setTheme(theme, save = true) { // Added save parameter
-      if (theme === 'dark') {
-        document.body.classList.add('dark-mode');
-        themeToggleBtn.textContent = sunIcon;
-      } else { // Default to light
-        document.body.classList.remove('dark-mode');
-        themeToggleBtn.textContent = moonIcon;
-      }
+      const isDark = theme === 'dark';
+      document.body.classList.toggle('dark-mode', isDark);
+      themeToggleSwitch.classList.toggle('active', isDark);
+
       if (save) {
         appSettings.theme = theme;
         await window.electronAPI.saveSettings(appSettings);
       }
     }
 
-    themeToggleBtn.addEventListener('click', async () => {
+    themeToggleSwitch.addEventListener('click', async () => {
       const newTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
       await setTheme(newTheme);
     });
