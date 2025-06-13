@@ -316,6 +316,9 @@ button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled sepa
   min-width: 140px;
   background-size: 40px 40px; /* Size of the repeating stripes */
   animation: progress-bar-stripes 1s linear infinite;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @keyframes progress-bar-stripes {
@@ -521,6 +524,17 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
 #sheinPostProcessActions button {
   flex-grow: 1;
   min-width: 110px; /* Reduced */
+  background-color: var(--button-secondary-bg);
+  color: var(--button-secondary-text);
+  border: 1px solid var(--button-secondary-border);
+  font-weight: 500; /* Ensure consistent weight with action-button */
+}
+
+#pdfResizePostProcessActions button:hover,
+#sheinPostProcessActions button:hover {
+  background-color: var(--button-secondary-hover-bg);
+  border-color: color-mix(in srgb, var(--button-secondary-border) 80%, var(--text-color)); /* Match .action-button hover */
+  /* General button hover transform and shadow will still apply */
 }
 
 

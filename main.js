@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron') // Added shell and clipboard
+const { app, BrowserWindow, ipcMain, dialog, shell, clipboard, screen } = require('electron') // Added shell and clipboard, screen
 const path = require('path')
 const fs = require('fs').promises; // For asynchronous file operations
 const { PDFDocument } = require('pdf-lib') // PDFDocument will be used by worker, but main might not need it directly for this handler anymore. Keep for now.
@@ -17,10 +17,13 @@ function getSettingsFilePath() {
 }
 
 function createWindow() {
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
+
   mainWindow = new BrowserWindow({
-    width: 700, // Default width if not maximized
-    height: 750, // Default height if not maximized
-    show: false, // Don't show the window until it's ready and maximized
+    width: Math.round(screenWidth * 0.5),
+    height: Math.round(screenHeight * 0.9), // Changed from 0.8 to 0.9
+    show: false, // Don't show the window until it's ready
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true
@@ -30,13 +33,13 @@ function createWindow() {
   mainWindow.loadFile('index.html')
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow.maximize()
+    // mainWindow.maximize() // Removed maximize
     mainWindow.show()
   })
 }
 
 ipcMain.handle('open-file', async () => {
-  const { canceled, filePaths } = await dialog.showOpenDialog({
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
     properties: ['openFile'],
     filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
   });
