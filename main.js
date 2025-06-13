@@ -4,7 +4,39 @@ const fs = require('fs').promises; // For asynchronous file operations
 const { PDFDocument } = require('pdf-lib') // PDFDocument will be used by worker, but main might not need it directly for this handler anymore. Keep for now.
 const { Worker } = require('worker_threads') // Added Worker
 
-let mainWindow
+// Early setup for unhandled exception toaster
+let mainWindow // mainWindow will be assigned later in createWindow
+
+// Helper function to send toast messages to the renderer process
+// Defined early so it can be used by uncaughtException handler if needed,
+// though mainWindow might not be ready yet in very early exceptions.
+function sendToastToRenderer(message, type = 'info', duration = 3500) {
+  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('show-toast', message, type, duration);
+  } else {
+    // Log to main process console if window is not available or destroyed
+    console.log(`[Main Process Toast - ${type}]: ${message} (mainWindow not available or destroyed)`);
+  }
+}
+
+process.on('uncaughtException', (error) => {
+  console.error('Unhandled Main Process Exception:', error);
+  // Attempt to send a toast, but window might not be ready or might be the cause of the error
+  sendToastToRenderer(`主进程发生严重错误: ${error.message}`, 'error', 10000);
+  // Consider logging to a file or a more robust error reporting mechanism for critical errors
+  // For now, we'll let Electron's default behavior (dialog and quit) proceed after logging/toasting.
+});
+
+// Helper function to send toast messages to the renderer process
+function sendToastToRenderer(message, type = 'info', duration = 3500) {
+  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('show-toast', message, type, duration);
+  } else {
+    // Log to main process console if window is not available or destroyed
+    console.log(`[Main Process Toast - ${type}]: ${message} (mainWindow not available or destroyed)`);
+  }
+}
+
 const SETTINGS_FILE_NAME = 'user-settings.json';
 let settingsFilePath = ''; // Will be initialized in app.whenReady
 
@@ -205,10 +237,12 @@ ipcMain.handle('get-settings', async () => {
   } catch (error) {
     if (error.code === 'ENOENT') {
       // File doesn't exist, return default settings (empty object)
+      sendToastToRenderer('未找到设置文件，将使用默认设置。', 'info');
       return {};
     }
     // Other error (e.g., corrupted JSON, permissions)
     console.error(`Error reading settings file ${filePath}:`, error);
+    sendToastToRenderer(`读取设置失败: ${error.message || '未知错误'}`, 'warning');
     return {}; // Return default on other errors as well to prevent app crash
   }
 });
@@ -218,9 +252,11 @@ ipcMain.handle('save-settings', async (event, settings) => {
   const filePath = getSettingsFilePath();
   try {
     await fs.writeFile(filePath, JSON.stringify(settings, null, 2), 'utf8');
+    // sendToastToRenderer('设置已成功保存！', 'success');
     return { success: true };
   } catch (error) {
     console.error(`Error writing settings file ${filePath}:`, error);
+    sendToastToRenderer(`保存设置失败: ${error.message || '未知错误'}`, 'error');
     return { success: false, error: error.message || 'Failed to save settings.' };
   }
 });
@@ -228,6 +264,10 @@ ipcMain.handle('save-settings', async (event, settings) => {
 app.whenReady().then(() => {
   getSettingsFilePath(); // Initialize settings path
   createWindow();
+  // Send startup toast after a short delay to allow renderer to initialize
+  setTimeout(() => {
+    // sendToastToRenderer('应用程序已成功启动！', 'success', 2500);
+  }, 1500); // Increased delay slightly
 })
 
 app.on('window-all-closed', () => {

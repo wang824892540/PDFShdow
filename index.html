@@ -324,6 +324,16 @@
     }
     // --- End Standardized Error Handling ---
 
+    // --- Listener for Toasts from Main Process ---
+    if (window.electronAPI && typeof window.electronAPI.onShowToast === 'function') {
+      window.electronAPI.onShowToast((message, type, duration) => {
+        showToast(message, type, duration);
+      });
+    } else {
+      console.error('Error: window.electronAPI.onShowToast is not available. Toasts from main process will not be shown.');
+    }
+    // --- End Listener for Toasts from Main Process ---
+
     // For PDF Resize View Post-Process Actions
     const pdfResizePostProcessActionsDiv = document.getElementById('pdfResizePostProcessActions');
     const pdfResizeOpenGeneratedFileBtn = document.getElementById('pdfResizeOpenGeneratedFileBtn');
@@ -348,9 +358,22 @@
 
     document.getElementById('openFile').addEventListener('click', async () => {
       const newPath = await window.electronAPI.openFile();
-      selectedFilePath = newPath || ''; // Update global var, ensure string
+      if (!newPath) {
+        showToast('操作已取消，未选择任何文件。', 'info');
+        // selectedFilePath remains unchanged or empty
+        // No need to save settings if no file was selected or selection was cancelled
+      } else {
+        selectedFilePath = newPath; // Update global var
+        appSettings.pdfResizeSelectedPath = selectedFilePath; // Update settings object
+        const saveResult = await window.electronAPI.saveSettings(appSettings);
+        if (!saveResult || !saveResult.success) {
+          console.error('Failed to save settings after PDF Resize file selection:', saveResult ? saveResult.error : 'Unknown error');
+          showToast('警告：无法保存文件选择设置。', 'warning');
+        }
+      }
       
-      appSettings.pdfResizeSelectedPath = selectedFilePath; // Update settings object
+      // This UI update should happen regardless of whether a new path was selected or not,
+      // to correctly reflect the state of selectedFilePath (which might be empty if cancelled)
       const saveResult = await window.electronAPI.saveSettings(appSettings);
       if (!saveResult || !saveResult.success) {
         console.error('Failed to save settings after PDF Resize file selection:', saveResult ? saveResult.error : 'Unknown error');
@@ -359,10 +382,11 @@
 
       updateFileSelectionUI(selectedFilePath, 'selectedFile');
 
-      // Clear error state for file selection if a file was actually chosen
-      if (selectedFilePath) {
-        const openFileButton = document.getElementById('openFile');
-        const selectedFileErrorEl = document.getElementById('selectedFileError');
+      // Clear error state for file selection if a file was actually chosen,
+      // or ensure it's cleared if selection was cancelled and previously there was an error.
+      const openFileButton = document.getElementById('openFile');
+      const selectedFileErrorEl = document.getElementById('selectedFileError');
+      if (selectedFilePath) { // A file was selected
         if (openFileButton) {
             openFileButton.classList.remove('input-error');
         }
@@ -370,6 +394,14 @@
             selectedFileErrorEl.textContent = '';
             selectedFileErrorEl.style.display = 'none';
         }
+      } else { // No file selected or selection cancelled
+        // If there was an error previously shown for file selection,
+        // and now the user cancels, the error should ideally be cleared
+        // or the state reset. However, the current logic for showing errors
+        // is typically on "process" if no file is selected.
+        // For now, just ensuring the UI updates correctly.
+        // If `openFileButton` had `input-error`, it should remain if `selectedFilePath` is still empty.
+        // The `updateFileSelectionUI` will set "未选择文件".
       }
     })
 
@@ -439,18 +471,15 @@
             // Optionally focus the button, though it might be disruptive
             // openFileButton.focus();
         }
+        const errorMessage = '请先选择一个 PDF 文件。';
+        showToast(errorMessage, 'error'); // Added toast notification
         if (selectedFileErrorEl) {
-            selectedFileErrorEl.textContent = '请先选择一个 PDF 文件。';
+            selectedFileErrorEl.textContent = errorMessage;
             selectedFileErrorEl.style.display = 'block';
         } else {
             // Fallback if the error element itself is somehow missing
             console.error("PDF Resize Error: selectedFileError element not found in DOM!");
-            const resultDiv = document.getElementById('result'); // Fallback to global error
-            if (resultDiv) {
-                resultDiv.innerHTML = `<p>请先选择PDF文件 (UI Error: msg element missing)</p>`;
-                resultDiv.className = 'error';
-                resultDiv.style.display = 'block';
-            }
+            // Toast already shown, so no need for resultDiv fallback for this specific message
         }
         return;
       }
@@ -549,9 +578,11 @@
                     console.log(`After styling widthInput. New background: ${widthInput.style.backgroundColor}, New classes: ${widthInput.className}`);
                     widthInput.focus();
                 }
+                const widthErrorMessage = '宽度必须是有效的正数。';
+                showToast(widthErrorMessage, 'error');
                 if (customWidthErrorEl) {
                     console.log(`Attempting to show customWidthErrorEl (ID: ${customWidthErrorEl.id}). Current display: ${customWidthErrorEl.style.display}`);
-                    customWidthErrorEl.textContent = '宽度必须是有效的正数。';
+                    customWidthErrorEl.textContent = widthErrorMessage;
                     customWidthErrorEl.style.display = 'block';
                     console.log(`After showing customWidthErrorEl. New display: ${customWidthErrorEl.style.display}, Text: ${customWidthErrorEl.textContent}`);
                 } else {
@@ -583,9 +614,11 @@
 
 
                 }
+                const heightErrorMessage = '高度必须是有效的正数。';
+                showToast(heightErrorMessage, 'error');
                 if (customHeightErrorEl) {
                     console.log(`Attempting to show customHeightErrorEl (ID: ${customHeightErrorEl.id}). Current display: ${customHeightErrorEl.style.display}`);
-                    customHeightErrorEl.textContent = '高度必须是有效的正数。';
+                    customHeightErrorEl.textContent = heightErrorMessage;
                     customHeightErrorEl.style.display = 'block';
                     console.log(`After showing customHeightErrorEl. New display: ${customHeightErrorEl.style.display}, Text: ${customHeightErrorEl.textContent}`);
                 } else {
@@ -874,9 +907,21 @@
     if (sheinOpenFile1Btn) {
       sheinOpenFile1Btn.addEventListener('click', async () => {
         const newPath = await window.electronAPI.openFile();
-        selectedSheinPdf1Path = newPath || ''; // Update global var
+        if (!newPath) {
+          showToast('操作已取消，未选择任何文件。', 'info');
+        } else {
+          selectedSheinPdf1Path = newPath; // Update global var
+          appSettings.sheinEcRepPdfPath = selectedSheinPdf1Path; // Update settings object
+          const saveResult = await window.electronAPI.saveSettings(appSettings);
+          if (!saveResult || !saveResult.success) {
+            console.error('Failed to save settings after Shein File 1 selection:', saveResult ? saveResult.error : 'Unknown error');
+            showToast('警告：无法保存文件选择设置。', 'warning');
+          }
+        }
+        
+        updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
 
-        appSettings.sheinEcRepPdfPath = selectedSheinPdf1Path; // Update settings object
+        // Clear error state for Shein file 1 selection if a file was actually chosen
         const saveResult = await window.electronAPI.saveSettings(appSettings);
         if (!saveResult || !saveResult.success) {
           console.error('Failed to save settings after Shein File 1 selection:', saveResult ? saveResult.error : 'Unknown error');
@@ -885,10 +930,9 @@
 
         updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1');
 
-        // Clear error state for Shein file 1 selection if a file was actually chosen
-        if (selectedSheinPdf1Path) {
-          const sheinOpenFile1Button = document.getElementById('sheinOpenFile1Btn');
-          const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
+        const sheinOpenFile1Button = document.getElementById('sheinOpenFile1Btn');
+        const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
+        if (selectedSheinPdf1Path) { // A file was selected
           if (sheinOpenFile1Button) {
               sheinOpenFile1Button.classList.remove('input-error');
           }
@@ -897,15 +941,30 @@
               sheinSelectedFile1ErrorEl.style.display = 'none';
           }
         }
+        // If newPath is null, selectedSheinPdf1Path would be '', and the error state logic
+        // for the button (if any was previously set) would remain or be cleared by other logic.
+        // updateFileSelectionUI handles displaying "未选择文件".
       });
     }
 
     if (sheinOpenFile2Btn) {
       sheinOpenFile2Btn.addEventListener('click', async () => {
         const newPath = await window.electronAPI.openFile();
-        selectedSheinPdf2Path = newPath || ''; // Update global var
+        if (!newPath) {
+          showToast('操作已取消，未选择任何文件。', 'info');
+        } else {
+          selectedSheinPdf2Path = newPath; // Update global var
+          appSettings.sheinBarcodePdfPath = selectedSheinPdf2Path; // Update settings object
+          const saveResult = await window.electronAPI.saveSettings(appSettings);
+          if (!saveResult || !saveResult.success) {
+            console.error('Failed to save settings after Shein File 2 selection:', saveResult ? saveResult.error : 'Unknown error');
+            showToast('警告：无法保存文件选择设置。', 'warning');
+          }
+        }
+        
+        updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
 
-        appSettings.sheinBarcodePdfPath = selectedSheinPdf2Path; // Update settings object
+        // Clear error state for Shein file 2 selection if a file was actually chosen
         const saveResult = await window.electronAPI.saveSettings(appSettings);
         if (!saveResult || !saveResult.success) {
           console.error('Failed to save settings after Shein File 2 selection:', saveResult ? saveResult.error : 'Unknown error');
@@ -914,10 +973,9 @@
 
         updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
 
-        // Clear error state for Shein file 2 selection if a file was actually chosen
-        if (selectedSheinPdf2Path) {
-          const sheinOpenFile2Button = document.getElementById('sheinOpenFile2Btn');
-          const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
+        const sheinOpenFile2Button = document.getElementById('sheinOpenFile2Btn');
+        const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
+        if (selectedSheinPdf2Path) { // A file was selected
           if (sheinOpenFile2Button) {
               sheinOpenFile2Button.classList.remove('input-error');
           }
@@ -926,6 +984,7 @@
               sheinSelectedFile2ErrorEl.style.display = 'none';
           }
         }
+        // Similar to other file selections, if newPath is null, UI updates accordingly.
       });
     }
 
@@ -1029,11 +1088,13 @@
         if (!selectedSheinPdf1Path) {
           const sheinOpenFile1Button = document.getElementById('sheinOpenFile1Btn');
           const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
+          const errorMessage1 = '请选择欧代文件。';
+          showToast(errorMessage1, 'error');
           if (sheinOpenFile1Button) {
               sheinOpenFile1Button.classList.add('input-error');
           }
           if (sheinSelectedFile1ErrorEl) {
-              sheinSelectedFile1ErrorEl.textContent = '请选择欧代文件。';
+              sheinSelectedFile1ErrorEl.textContent = errorMessage1;
               sheinSelectedFile1ErrorEl.style.display = 'block';
           } else {
               console.error("Shein Label Error: sheinSelectedFile1Error element not found in DOM!");
@@ -1050,11 +1111,13 @@
         if (!selectedSheinPdf2Path) {
           const sheinOpenFile2Button = document.getElementById('sheinOpenFile2Btn');
           const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
+          const errorMessage2 = '请选择条码文件。';
+          showToast(errorMessage2, 'error');
           if (sheinOpenFile2Button) {
               sheinOpenFile2Button.classList.add('input-error');
           }
           if (sheinSelectedFile2ErrorEl) {
-              sheinSelectedFile2ErrorEl.textContent = '请选择条码文件。';
+              sheinSelectedFile2ErrorEl.textContent = errorMessage2;
               sheinSelectedFile2ErrorEl.style.display = 'block';
           } else {
               console.error("Shein Label Error: sheinSelectedFile2Error element not found in DOM!");
@@ -1076,18 +1139,22 @@
 
         if (sheinPageSizeSelectedValue === 'custom') {
             if (isNaN(outputWidth) || outputWidth <= 0) {
+                const sheinWidthErrorMessage = '宽度必须是有效的正数。';
+                showToast(sheinWidthErrorMessage, 'error');
                 if (sheinOutputWidthInput) sheinOutputWidthInput.classList.add('input-error');
                 if (sheinOutputWidthErrorEl) {
-                    sheinOutputWidthErrorEl.textContent = '宽度必须是有效的正数。';
+                    sheinOutputWidthErrorEl.textContent = sheinWidthErrorMessage;
                     sheinOutputWidthErrorEl.style.display = 'block';
                 }
                 if (sheinValidationPassed && sheinOutputWidthInput) sheinOutputWidthInput.focus(); // Focus if it's the first error
                 sheinValidationPassed = false;
             }
             if (isNaN(outputHeight) || outputHeight <= 0) {
+                const sheinHeightErrorMessage = '高度必须是有效的正数。';
+                showToast(sheinHeightErrorMessage, 'error');
                 if (sheinOutputHeightInput) sheinOutputHeightInput.classList.add('input-error');
                 if (sheinOutputHeightErrorEl) {
-                    sheinOutputHeightErrorEl.textContent = '高度必须是有效的正数。';
+                    sheinOutputHeightErrorEl.textContent = sheinHeightErrorMessage;
                     sheinOutputHeightErrorEl.style.display = 'block';
                 }
                 // Focus height only if width was valid or width input was missing, and height is now the error
