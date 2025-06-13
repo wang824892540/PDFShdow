@@ -248,17 +248,17 @@ ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputNam
       if (resolved) return;
       resolved = true;
       console.error('[Main Process - generate-shein-label] Worker encountered an error:', error);
-      resolve({ success: false, error: error.message || 'Shein Label处理工作线程发生错误。' });
+      resolve({ success: false, error: error.message || 'Shein 标签处理工作线程发生错误。' });
     });
 
     worker.on('exit', (code) => {
       if (resolved) return;
       if (code !== 0) {
         console.error(`[Main Process - generate-shein-label] Worker stopped with exit code ${code} without sending a result.`);
-        resolve({ success: false, error: `Shein Label处理工作线程意外终止，退出码: ${code}。` });
+        resolve({ success: false, error: `Shein 标签处理工作线程意外终止，退出码: ${code}。` });
       } else if (!resolved) { // Exited cleanly but no message
         console.warn('[Main Process - generate-shein-label] Worker exited cleanly (code 0) but did not send a result.');
-        resolve({ success: false, error: 'Shein Label处理工作线程已退出但未返回结果。' });
+        resolve({ success: false, error: 'Shein 标签处理工作线程已退出但未返回结果。' });
       }
     });
   });

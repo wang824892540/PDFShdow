@@ -17,7 +17,7 @@ function streamToBuffer(stream) {
 async function performSheinLabelGeneration({ pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM }) {
   try {
     if (!pdf1Path || !pdf2Path || !outputName || !outputWidthMM || !outputHeightMM) {
-      throw new Error('Missing required parameters in Shein Label worker.');
+      throw new Error('Missing required parameters in Shein 标签 worker.');
     }
 
     const MM_TO_PT = 2.83465; // 1 mm = 2.834645669291339 points
@@ -100,8 +100,8 @@ async function performSheinLabelGeneration({ pdf1Path, pdf2Path, outputName, out
     
     return { success: true, path: savePath };
   } catch (err) {
-    console.error('Error in Shein Label processing worker:', err.toString());
-    return { success: false, error: err.message || 'An unknown error occurred in the Shein Label worker.' };
+    console.error('Error in Shein 标签 processing worker:', err.toString());
+    return { success: false, error: err.message || 'An unknown error occurred in the Shein 标签 worker.' };
   }
 }
 
@@ -110,6 +110,6 @@ performSheinLabelGeneration(workerData)
     parentPort.postMessage(result);
   })
   .catch(err => {
-    console.error('Unhandled promise rejection in Shein Label worker:', err.toString());
-    parentPort.postMessage({ success: false, error: err.message || 'Unknown unhandled error in Shein Label worker' });
+    console.error('Unhandled promise rejection in Shein 标签 worker:', err.toString());
+    parentPort.postMessage({ success: false, error: err.message || 'Unknown unhandled error in Shein 标签 worker' });
   });

@@ -28,7 +28,7 @@
       </div>
       <nav>
         <ul>
-          <li><a href="#" class="nav-link active" data-view="sheinLabelView">Shein Label 生成</a></li>
+          <li><a href="#" class="nav-link active" data-view="sheinLabelView">Shein 标签 生成</a></li>
           <li><a href="#" class="nav-link" data-view="pdfResizeView">PDF 尺寸调整</a></li>
         </ul>
       </nav>
@@ -117,7 +117,7 @@
       <div class="view-container" id="sheinLabelView" style="display: block;">
         <div class="container"> <!-- Each view can have its own container for consistency -->
           <div class="title-with-description">
-            <h2>Shein Label 生成</h2>
+            <h2>Shein 标签 生成</h2>
             <span class="feature-description">合并欧代和条码 PDF，生成符合 Shein 要求的标签。</span>
           </div>
           
@@ -181,7 +181,7 @@
           </div>
 
           <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
-            <button id="generateSheinLabelBtn" class="btn-primary">生成 Shein Label</button> <!-- Removed flex-grow: 1 -->
+            <button id="generateSheinLabelBtn" class="btn-primary">生成 Shein 标签</button> <!-- Removed flex-grow: 1 -->
             <button id="clearSheinLabelFormBtn" class="btn-secondary" style="margin-left: 10px;">清空</button>
           </div>
           <div id="sheinResult"></div>
@@ -1195,7 +1195,7 @@
     // if (pdfResizeShowGeneratedFileInFolderBtn) { ... }
     // if (pdfResizeCopyFileBtn) { ... }
 
-    // --- Shein Label Feature ---
+    // --- Shein 标签 Feature ---
     let selectedSheinPdf1Path = '';
     let selectedSheinPdf2Path = '';
 
@@ -1238,10 +1238,10 @@
       // This logic will be handled by the general form loading logic later
     }
 
-    // Old default dimension setting for Shein Label (lines 443-448) is now removed
+    // Old default dimension setting for Shein 标签 (lines 443-448) is now removed
     // as it's handled by the select logic and HTML value attributes.
 
-    // Add event listeners to custom dimension inputs for Shein Label to clear errors on valid input
+    // Add event listeners to custom dimension inputs for Shein 标签 to clear errors on valid input
     const sheinOutputWidthErrorEl = document.getElementById('sheinOutputWidthError'); // Already got this for validation
     const sheinOutputHeightErrorEl = document.getElementById('sheinOutputHeightError'); // Already got this for validation
 
@@ -1376,7 +1376,7 @@
             updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null, false); // Show filename at least, remove loading
           }
   
-          // Auto-fill output name for Shein Label (based on barcode file)
+          // Auto-fill output name for Shein 标签 (based on barcode file)
           const sheinOutputNameInput = document.getElementById('sheinOutputName');
           if (sheinOutputNameInput) {
             const baseNameNoExt = getFilenameWithoutExtension(selectedSheinPdf2Path);
@@ -1403,8 +1403,8 @@
       //     try {
       //       await window.electronAPI.openPath(currentGeneratedSheinLabelPath);
       //     } catch (err) {
-      //       console.error("Error opening file (Shein Label):", err);
-      //       const openFileErrorMsgShein = `无法打开生成的 Shein Label 文件。请检查文件是否存在或是否有权限访问。 (错误: ${err.message})`;
+      //       console.error("Error opening file (Shein 标签):", err);
+      //       const openFileErrorMsgShein = `无法打开生成的 Shein 标签 文件。请检查文件是否存在或是否有权限访问。 (错误: ${err.message})`;
       //       showToast(openFileErrorMsgShein, 'error');
       //     }
       //   }
@@ -1415,8 +1415,8 @@
       //     try {
       //       await window.electronAPI.showItemInFolder(currentGeneratedSheinLabelPath);
       //     } catch (err) {
-      //       console.error("Error showing item in folder (Shein Label):", err);
-      //       const showInFolderErrorMsgShein = `无法在文件夹中显示该 Shein Label 文件。请检查路径是否有效。 (错误: ${err.message})`;
+      //       console.error("Error showing item in folder (Shein 标签):", err);
+      //       const showInFolderErrorMsgShein = `无法在文件夹中显示该 Shein 标签 文件。请检查路径是否有效。 (错误: ${err.message})`;
       //       showToast(showInFolderErrorMsgShein, 'error');
       //     }
       //   }
@@ -1434,16 +1434,16 @@
       //           } else {
       //             showToast('文件已复制到剪贴板！', 'success');
       //           }
-      //           console.log('Copy action result (Shein Label):', copyResult);
+      //           console.log('Copy action result (Shein 标签):', copyResult);
       //         } else {
       //           const defaultCopyErrorShein = '请检查文件是否存在或剪贴板权限。';
       //           const errorMessage = `复制文件失败: ${(copyResult && copyResult.error) ? copyResult.error : defaultCopyErrorShein}`;
-      //           console.error("Failed to copy file to clipboard (Shein Label):", errorMessage);
+      //           console.error("Failed to copy file to clipboard (Shein 标签):", errorMessage);
       //           showToast(errorMessage, 'error');
       //         }
       //       } catch (err) {
-      //         console.error("Error during copy file operation (Shein Label):", err);
-      //         const exceptionCopyErrorMsgShein = `复制 Shein Label 文件时发生意外错误。 (错误: ${err.message})`;
+      //         console.error("Error during copy file operation (Shein 标签):", err);
+      //         const exceptionCopyErrorMsgShein = `复制 Shein 标签 文件时发生意外错误。 (错误: ${err.message})`;
       //         showToast(exceptionCopyErrorMsgShein, 'error');
       //       }
       //     }
@@ -1514,7 +1514,7 @@
               sheinSelectedFile1ErrorEl.textContent = errorMessage1;
               sheinSelectedFile1ErrorEl.style.display = 'block';
           } else {
-              console.error("Shein Label Error: sheinSelectedFile1Error element not found in DOM!");
+              console.error("Shein 标签 Error: sheinSelectedFile1Error element not found in DOM!");
               // if (sheinResultDiv) { // Removed to prevent clearing history
               //     sheinResultDiv.innerHTML = '<p>请选择欧代文件 (UI Error: msg element missing)</p>';
               //     sheinResultDiv.className = 'error';
@@ -1536,7 +1536,7 @@
               sheinSelectedFile2ErrorEl.textContent = errorMessage2;
               sheinSelectedFile2ErrorEl.style.display = 'block';
           } else {
-              console.error("Shein Label Error: sheinSelectedFile2Error element not found in DOM!");
+              console.error("Shein 标签 Error: sheinSelectedFile2Error element not found in DOM!");
               // if (sheinResultDiv) { // Fallback - Removed to prevent clearing history
               //     sheinResultDiv.innerHTML = '<p>请选择条码文件 (UI Error: msg element missing)</p>';
               //     sheinResultDiv.className = 'error';
@@ -1586,7 +1586,7 @@
                 outputWidth = presetSize.width;
                 outputHeight = presetSize.height;
             } else {
-                console.error("Shein Label: Selected preset size not found in map. Using defaults.");
+                console.error("Shein 标签: Selected preset size not found in map. Using defaults.");
                 outputWidth = 70;
                 outputHeight = 60;
             }
@@ -1656,7 +1656,7 @@
 
           if (result && result.success && generatedPath) {
             // currentGeneratedSheinLabelPath = generatedPath; // This global var is less important now
-            showToast('Shein Label 生成成功！', 'success');
+            showToast('Shein 标签 生成成功！', 'success');
             entryDiv.classList.add('success-entry'); // Use new specific success class
             entryHtml = `<p><strong>处理成功</strong></p><p>保存路径：${generatedPath}</p>`;
             if (result.outputFileSize !== null && result.outputFileSize !== undefined) {
@@ -1674,7 +1674,7 @@
           } else { // API error or processing failure from electronAPI.generateSheinLabel
             entryDiv.classList.add('error-entry'); // Use new specific error class
             const errorMessage = (result && result.error) ? result.error : '未知处理错误。';
-            showToast(`Shein Label 生成失败：${errorMessage}`, 'error');
+            showToast(`Shein 标签 生成失败：${errorMessage}`, 'error');
             entryHtml = `<p class="error-message-text"><strong>处理失败：</strong>${errorMessage}</p>`; // Add class to error message paragraph
           }
 
@@ -1767,7 +1767,7 @@
             sheinResultContainerForError.prepend(errorEntryDiv);
             sheinResultContainerForError.style.display = 'block';
           }
-          showToast(`Shein Label 生成出错：${error.message || '发生意外错误。'}`, 'error');
+          showToast(`Shein 标签 生成出错：${error.message || '发生意外错误。'}`, 'error');
         } finally {
           if (timerInterval) clearInterval(timerInterval);
             generateSheinLabelBtn.disabled = false;
@@ -1777,7 +1777,7 @@
           }
       });
 
-    // Shein Label View - Clear Form Button
+    // Shein 标签 View - Clear Form Button
     const clearSheinLabelFormBtn = document.getElementById('clearSheinLabelFormBtn');
     if (clearSheinLabelFormBtn) {
       clearSheinLabelFormBtn.addEventListener('click', async () => {
@@ -1846,11 +1846,11 @@
         // currentGeneratedSheinLabelPath = ''; // This global var is no longer the primary source for path
 
         await window.electronAPI.saveSettings(appSettings);
-        showToast('Shein Label 生成表单已清空', 'info');
+        showToast('Shein 标签 生成表单已清空', 'info');
       });
     }
     }
-    // --- End Shein Label Feature ---
+    // --- End Shein 标签 Feature ---
 
     // --- Custom Select Dropdown Logic ---
     function initializeCustomSelect(originalSelectElement) {
