@@ -107,9 +107,9 @@
           </div>
           <div id="result"></div>
           <div id="pdfResizePostProcessActions" style="margin-top: 10px; display: none;">
-            <button id="pdfResizeOpenGeneratedFileBtn" class="action-button">打开文件</button>
+            <!-- <button id="pdfResizeOpenGeneratedFileBtn" class="action-button">打开文件</button>
             <button id="pdfResizeShowGeneratedFileInFolderBtn" class="action-button">打开文件夹</button>
-            <button id="pdfResizeCopyFileBtn" class="action-button" title="尝试复制文件到剪贴板 (若失败则复制路径)">复制文件</button>
+            <button id="pdfResizeCopyFileBtn" class="action-button" title="尝试复制文件到剪贴板 (若失败则复制路径)">复制文件</button> -->
           </div>
         </div>
       </div>
@@ -186,9 +186,9 @@
           </div>
           <div id="sheinResult"></div>
           <div id="sheinPostProcessActions" style="margin-top: 10px; display: none;">
-            <button id="openGeneratedFileBtn" class="action-button">打开文件</button>
+            <!-- <button id="openGeneratedFileBtn" class="action-button">打开文件</button>
             <button id="showGeneratedFileInFolderBtn" class="action-button">打开文件夹</button>
-            <button id="sheinCopyFileBtn" class="action-button" title="尝试复制文件到剪贴板 (若失败则复制路径)">复制文件</button>
+            <button id="sheinCopyFileBtn" class="action-button" title="尝试复制文件到剪贴板 (若失败则复制路径)">复制文件</button> -->
           </div>
         </div>
       </div>
@@ -770,16 +770,17 @@
       const pdfResizeOutputNameInput = document.getElementById('pdfResizeOutputName');
 
       // Reset/hide post-process actions for pdfResizeView at the start of processing
-      if (pdfResizePostProcessActionsDiv) {
-          pdfResizePostProcessActionsDiv.style.display = 'none';
-      }
-      currentGeneratedPdfResizePath = '';
+      // if (pdfResizePostProcessActionsDiv) { // No longer using the static postProcessActionsDiv
+      //     pdfResizePostProcessActionsDiv.style.display = 'none';
+      // }
+      // currentGeneratedPdfResizePath = ''; // Path will be local to each result entry
       const resultDivForReset = document.getElementById('result'); // Global result div
-      if (resultDivForReset) {
-          resultDivForReset.innerHTML = '';
-          resultDivForReset.className = '';
-          resultDivForReset.style.display = 'none'; // Hide global result div when resetting
-      }
+      // We don't clear the entire resultDiv anymore. New results are prepended.
+      // if (resultDivForReset) {
+      //     resultDivForReset.innerHTML = '';
+      //     resultDivForReset.className = '';
+      //     resultDivForReset.style.display = 'none';
+      // }
       // Also reset custom dimension inline errors here if they were shown from a previous attempt
       const widthInputForReset = document.getElementById('customWidth');
       const heightInputForReset = document.getElementById('customHeight');
@@ -983,56 +984,125 @@
 
       const endTime = Date.now();
       const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
+      const resultDiv = document.getElementById('result');
+      const generatedPath = (apiResult && apiResult.success) ? apiResult.path : null;
 
-      const resultDiv = document.getElementById('result'); // Ensure it's defined before use
-      if (apiResult && apiResult.success && apiResult.path) {
+      const entryDiv = document.createElement('div');
+      entryDiv.className = 'result-entry'; // Base class
+      let entryHtml = '';
+
+      if (apiResult && apiResult.success && generatedPath) {
         showToast('处理成功！', 'success');
-        if (resultDiv) {
-            resultDiv.style.display = 'block';
-            let resultHtml = `<p>保存路径：${apiResult.path}</p>`;
-            if (apiResult.outputFileSize !== null && apiResult.outputFileSize !== undefined) {
-              resultHtml += `<p>文件大小：${formatBytes(apiResult.outputFileSize)}`;
-              if (apiResult.outputPageCount !== null && apiResult.outputPageCount !== undefined) {
-                resultHtml += `，页数：${apiResult.outputPageCount}`;
-              }
-              resultHtml += `</p>`;
-            } else if (apiResult.outputPageCount !== null && apiResult.outputPageCount !== undefined) {
-              resultHtml += `<p>页数：${apiResult.outputPageCount}</p>`;
-            }
-            if(apiResult.metadataError){
-                resultHtml += `<p style="color: orange;">输出文件元数据警告: ${apiResult.metadataError}</p>`;
-            }
-            const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-            resultHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
-            resultHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
-            resultDiv.innerHTML = resultHtml;
-            resultDiv.className = 'success';
+        entryDiv.classList.add('success-entry'); // Use new specific success class
+        entryHtml = `<p><strong>处理成功</strong></p><p>保存路径：${generatedPath}</p>`;
+        if (apiResult.outputFileSize !== null && apiResult.outputFileSize !== undefined) {
+          entryHtml += `<p>文件大小：${formatBytes(apiResult.outputFileSize)}`;
+          if (apiResult.outputPageCount !== null && apiResult.outputPageCount !== undefined) {
+            entryHtml += `，页数：${apiResult.outputPageCount}`;
+          }
+          entryHtml += `</p>`;
+        } else if (apiResult.outputPageCount !== null && apiResult.outputPageCount !== undefined) {
+          entryHtml += `<p>页数：${apiResult.outputPageCount}</p>`;
         }
-        currentGeneratedPdfResizePath = apiResult.path;
-        if (pdfResizePostProcessActionsDiv) {
-            pdfResizePostProcessActionsDiv.style.display = 'block';
+        if(apiResult.metadataError){
+            entryHtml += `<p style="color: orange;">输出文件元数据警告: ${apiResult.metadataError}</p>`;
         }
       } else {
-        handleAndShowApiError(apiResult, 'PDF尺寸调整', undefined, resultDiv, pdfResizePostProcessActionsDiv);
-        if (resultDiv) { // Also show total time on error
-            const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-            resultDiv.innerHTML += `<p>处理开始时间：${startTimeFormatted}</p>`;
-            resultDiv.innerHTML += `<p>总耗时：${totalTimeSeconds}秒</p>`;
-            if (!resultDiv.classList.contains('error')) { // Ensure error class if not already set
-                resultDiv.className = 'error';
-                resultDiv.style.display = 'block';
-            }
-        }
+        entryDiv.classList.add('error-entry'); // Use new specific error class
+        const errorMessage = (apiResult && apiResult.error) ? apiResult.error : '未知处理错误。';
+        showToast(`PDF尺寸调整失败：${errorMessage}`, 'error');
+        entryHtml = `<p class="error-message-text"><strong>处理失败：</strong>${errorMessage}</p>`; // Add class to error message paragraph
       }
+
+      const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      entryHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
+      entryHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+      entryDiv.innerHTML = entryHtml;
+
+      // Create and append action buttons for this entry
+      const actionsDiv = document.createElement('div');
+      actionsDiv.className = 'action-buttons-container'; // Use new class for button container
+
+      const openBtn = document.createElement('button');
+      openBtn.textContent = '打开文件';
+      openBtn.className = 'action-button';
+      if (!generatedPath) openBtn.disabled = true;
+      openBtn.addEventListener('click', async () => {
+        if (generatedPath) {
+          try { await window.electronAPI.openPath(generatedPath); }
+          catch (err) { showToast(`无法打开文件: ${err.message}`, 'error'); }
+        }
+      });
+      actionsDiv.appendChild(openBtn);
+
+      const showInFolderBtn = document.createElement('button');
+      showInFolderBtn.textContent = '打开文件夹';
+      showInFolderBtn.className = 'action-button';
+      if (!generatedPath) showInFolderBtn.disabled = true;
+      showInFolderBtn.addEventListener('click', async () => {
+        if (generatedPath) {
+          try { await window.electronAPI.showItemInFolder(generatedPath); }
+          catch (err) { showToast(`无法在文件夹中显示: ${err.message}`, 'error'); }
+        }
+      });
+      actionsDiv.appendChild(showInFolderBtn);
+
+      const copyBtn = document.createElement('button');
+      copyBtn.textContent = '复制文件';
+      copyBtn.className = 'action-button';
+      copyBtn.title = '尝试复制文件到剪贴板 (若失败则复制路径)';
+      if (!generatedPath) copyBtn.disabled = true;
+      copyBtn.addEventListener('click', async () => {
+        if (generatedPath) {
+          try {
+            const copyResult = await window.electronAPI.copyFileToClipboard(generatedPath);
+            if (copyResult && copyResult.success) {
+              showToast(copyResult.action === 'path_copied_unexpected_fallback' ? (copyResult.message || '未能复制文件本身，已改为复制文件路径至剪贴板。') : '文件已复制到剪贴板！', copyResult.action === 'path_copied_unexpected_fallback' ? 'warning' : 'success');
+            } else {
+              showToast(`复制文件失败: ${(copyResult && copyResult.error) ? copyResult.error : '未知错误'}`, 'error');
+            }
+          } catch (err) { showToast(`复制操作出错: ${err.message}`, 'error'); }
+        }
+      });
+      actionsDiv.appendChild(copyBtn);
+      entryDiv.appendChild(actionsDiv);
+
+      if (resultDiv) {
+        resultDiv.prepend(entryDiv);
+        resultDiv.style.display = 'block';
+      }
+
     } catch (error) {
       console.error('[PDF Resize] Error in processBtn click handler:', error);
-      const endTime = Date.now();
-      const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
-      const errorResultDiv = document.getElementById('result');
-      handleAndShowClientError(error, 'PDF尺寸调整', undefined, errorResultDiv, pdfResizePostProcessActionsDiv);
-      if (errorResultDiv) { // Also show total time on client error
-        errorResultDiv.innerHTML += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+      const endTime = Date.now(); // Recalculate endTime for catch block
+      const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2); // Recalculate totalTimeSeconds
+      
+      const errorEntryDiv = document.createElement('div');
+      errorEntryDiv.className = 'result-entry error-entry'; // Add new specific error class
+      let errorHtml = `<p class="error-message-text"><strong>客户端错误：</strong>${error.message || '发生意外错误。'}</p>`; // Add class to error message paragraph
+      const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      errorHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
+      errorHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+      errorEntryDiv.innerHTML = errorHtml;
+      
+      // Add disabled action buttons for client errors as well for consistency
+      const errorActionsDiv = document.createElement('div');
+      errorActionsDiv.className = 'action-buttons-container'; // Use new class for button container
+      ['打开文件', '打开文件夹', '复制文件'].forEach(text => {
+          const btn = document.createElement('button');
+          btn.textContent = text;
+          btn.className = 'action-button';
+          btn.disabled = true;
+          errorActionsDiv.appendChild(btn);
+      });
+      errorEntryDiv.appendChild(errorActionsDiv);
+
+      const resultDivForError = document.getElementById('result');
+      if (resultDivForError) {
+        resultDivForError.prepend(errorEntryDiv);
+        resultDivForError.style.display = 'block';
       }
+      showToast(`PDF尺寸调整出错：${error.message || '发生意外错误。'}`, 'error');
     } finally {
       // --- Reset Processing State ---
       if (timerInterval) clearInterval(timerInterval);
@@ -1104,78 +1174,25 @@
         // Clear result and post-process actions
         const resultDiv = document.getElementById('result');
         if (resultDiv) {
-          resultDiv.innerHTML = '';
+          resultDiv.innerHTML = ''; // Clear all dynamically added entries
           resultDiv.className = '';
           resultDiv.style.display = 'none';
         }
-        if (pdfResizePostProcessActionsDiv) {
-          pdfResizePostProcessActionsDiv.style.display = 'none';
-        }
-        currentGeneratedPdfResizePath = '';
+        // if (pdfResizePostProcessActionsDiv) { // No longer used
+        //   pdfResizePostProcessActionsDiv.style.display = 'none';
+        // }
+        // currentGeneratedPdfResizePath = ''; // No longer used
 
         await window.electronAPI.saveSettings(appSettings);
         showToast('PDF 尺寸调整表单已清空', 'info');
       });
     }
 
-    // Event listeners for PDF Resize Post-Process Actions
-    if (pdfResizeOpenGeneratedFileBtn) {
-        pdfResizeOpenGeneratedFileBtn.addEventListener('click', async () => {
-            if (currentGeneratedPdfResizePath) {
-                try {
-                    await window.electronAPI.openPath(currentGeneratedPdfResizePath);
-                } catch (err) {
-                    console.error("Error opening file (PDF Resize):", err);
-                    const openFileErrorMsg = `无法打开生成的 PDF 文件。请检查文件是否存在或是否有权限访问。 (错误: ${err.message})`;
-                    showToast(openFileErrorMsg, 'error');
-                }
-            }
-        });
-    }
-
-    if (pdfResizeShowGeneratedFileInFolderBtn) {
-        pdfResizeShowGeneratedFileInFolderBtn.addEventListener('click', async () => {
-            if (currentGeneratedPdfResizePath) {
-                try {
-                    await window.electronAPI.showItemInFolder(currentGeneratedPdfResizePath);
-                } catch (err) {
-                    console.error("Error showing item in folder (PDF Resize):", err);
-                    const showInFolderErrorMsg = `无法在文件夹中显示该文件。请检查路径是否有效。 (错误: ${err.message})`;
-                    showToast(showInFolderErrorMsg, 'error');
-                }
-            }
-        });
-    }
-
-    if (pdfResizeCopyFileBtn) {
-        pdfResizeCopyFileBtn.addEventListener('click', async () => {
-            if (currentGeneratedPdfResizePath) {
-                try {
-                    // Assuming window.electronAPI.copyFileToClipboard will be implemented
-                    // and will return an object like { success: true } or { success: false, error: 'message' }
-                    const copyResult = await window.electronAPI.copyFileToClipboard(currentGeneratedPdfResizePath);
-                    
-                    if (copyResult && copyResult.success) {
-                        if (copyResult.action === 'path_copied_unexpected_fallback') {
-                            showToast(copyResult.message || '未能复制文件本身，已改为复制文件路径至剪贴板。', 'warning', 5000);
-                        } else {
-                            showToast('文件已复制到剪贴板！', 'success');
-                        }
-                        console.log('Copy action result (PDF Resize):', copyResult);
-                    } else {
-                        const defaultCopyError = '请检查文件是否存在或剪贴板权限。';
-                        const errorMessage = `复制文件失败: ${(copyResult && copyResult.error) ? copyResult.error : defaultCopyError}`;
-                        console.error("Failed to copy file to clipboard (PDF Resize):", errorMessage);
-                        showToast(errorMessage, 'error');
-                    }
-                } catch (err) {
-                    console.error("Error during copy file operation (PDF Resize):", err);
-                    const exceptionCopyErrorMsg = `复制文件时发生意外错误。 (错误: ${err.message})`;
-                    showToast(exceptionCopyErrorMsg, 'error');
-                }
-            }
-        });
-    }
+    // Event listeners for PDF Resize Post-Process Actions are now created dynamically per entry
+    // So, the static listeners below are no longer needed for pdfResizePostProcessActionsDiv
+    // if (pdfResizeOpenGeneratedFileBtn) { ... }
+    // if (pdfResizeShowGeneratedFileInFolderBtn) { ... }
+    // if (pdfResizeCopyFileBtn) { ... }
 
     // --- Shein Label Feature ---
     let selectedSheinPdf1Path = '';
@@ -1380,57 +1397,57 @@
 
     if (generateSheinLabelBtn) {
       // Event listeners for open/show buttons, defined once
-      openGeneratedFileBtn.addEventListener('click', async () => {
-        if (currentGeneratedSheinLabelPath) {
-          try {
-            await window.electronAPI.openPath(currentGeneratedSheinLabelPath);
-          } catch (err) {
-            console.error("Error opening file (Shein Label):", err);
-            const openFileErrorMsgShein = `无法打开生成的 Shein Label 文件。请检查文件是否存在或是否有权限访问。 (错误: ${err.message})`;
-            showToast(openFileErrorMsgShein, 'error');
-          }
-        }
-      });
+      // openGeneratedFileBtn.addEventListener('click', async () => {
+      //   if (currentGeneratedSheinLabelPath) {
+      //     try {
+      //       await window.electronAPI.openPath(currentGeneratedSheinLabelPath);
+      //     } catch (err) {
+      //       console.error("Error opening file (Shein Label):", err);
+      //       const openFileErrorMsgShein = `无法打开生成的 Shein Label 文件。请检查文件是否存在或是否有权限访问。 (错误: ${err.message})`;
+      //       showToast(openFileErrorMsgShein, 'error');
+      //     }
+      //   }
+      // });
 
-      showGeneratedFileInFolderBtn.addEventListener('click', async () => {
-        if (currentGeneratedSheinLabelPath) {
-          try {
-            await window.electronAPI.showItemInFolder(currentGeneratedSheinLabelPath);
-          } catch (err) {
-            console.error("Error showing item in folder (Shein Label):", err);
-            const showInFolderErrorMsgShein = `无法在文件夹中显示该 Shein Label 文件。请检查路径是否有效。 (错误: ${err.message})`;
-            showToast(showInFolderErrorMsgShein, 'error');
-          }
-        }
-      });
+      // showGeneratedFileInFolderBtn.addEventListener('click', async () => {
+      //   if (currentGeneratedSheinLabelPath) {
+      //     try {
+      //       await window.electronAPI.showItemInFolder(currentGeneratedSheinLabelPath);
+      //     } catch (err) {
+      //       console.error("Error showing item in folder (Shein Label):", err);
+      //       const showInFolderErrorMsgShein = `无法在文件夹中显示该 Shein Label 文件。请检查路径是否有效。 (错误: ${err.message})`;
+      //       showToast(showInFolderErrorMsgShein, 'error');
+      //     }
+      //   }
+      // });
 
-      if (sheinCopyFileBtn) {
-        sheinCopyFileBtn.addEventListener('click', async () => {
-          if (currentGeneratedSheinLabelPath) {
-            try {
-              const copyResult = await window.electronAPI.copyFileToClipboard(currentGeneratedSheinLabelPath);
+      // if (sheinCopyFileBtn) {
+      //   sheinCopyFileBtn.addEventListener('click', async () => {
+      //     if (currentGeneratedSheinLabelPath) {
+      //       try {
+      //         const copyResult = await window.electronAPI.copyFileToClipboard(currentGeneratedSheinLabelPath);
 
-              if (copyResult && copyResult.success) {
-                if (copyResult.action === 'path_copied_unexpected_fallback') {
-                  showToast(copyResult.message || '未能复制文件本身，已改为复制文件路径至剪贴板。', 'warning', 5000);
-                } else {
-                  showToast('文件已复制到剪贴板！', 'success');
-                }
-                console.log('Copy action result (Shein Label):', copyResult);
-              } else {
-                const defaultCopyErrorShein = '请检查文件是否存在或剪贴板权限。';
-                const errorMessage = `复制文件失败: ${(copyResult && copyResult.error) ? copyResult.error : defaultCopyErrorShein}`;
-                console.error("Failed to copy file to clipboard (Shein Label):", errorMessage);
-                showToast(errorMessage, 'error');
-              }
-            } catch (err) {
-              console.error("Error during copy file operation (Shein Label):", err);
-              const exceptionCopyErrorMsgShein = `复制 Shein Label 文件时发生意外错误。 (错误: ${err.message})`;
-              showToast(exceptionCopyErrorMsgShein, 'error');
-            }
-          }
-        });
-      }
+      //         if (copyResult && copyResult.success) {
+      //           if (copyResult.action === 'path_copied_unexpected_fallback') {
+      //             showToast(copyResult.message || '未能复制文件本身，已改为复制文件路径至剪贴板。', 'warning', 5000);
+      //           } else {
+      //             showToast('文件已复制到剪贴板！', 'success');
+      //           }
+      //           console.log('Copy action result (Shein Label):', copyResult);
+      //         } else {
+      //           const defaultCopyErrorShein = '请检查文件是否存在或剪贴板权限。';
+      //           const errorMessage = `复制文件失败: ${(copyResult && copyResult.error) ? copyResult.error : defaultCopyErrorShein}`;
+      //           console.error("Failed to copy file to clipboard (Shein Label):", errorMessage);
+      //           showToast(errorMessage, 'error');
+      //         }
+      //       } catch (err) {
+      //         console.error("Error during copy file operation (Shein Label):", err);
+      //         const exceptionCopyErrorMsgShein = `复制 Shein Label 文件时发生意外错误。 (错误: ${err.message})`;
+      //         showToast(exceptionCopyErrorMsgShein, 'error');
+      //       }
+      //     }
+      //   });
+      // }
 
       generateSheinLabelBtn.addEventListener('click', async () => {
         const originalButtonText = generateSheinLabelBtn.textContent; // Store original button text
@@ -1446,9 +1463,9 @@
         generateSheinLabelBtn.textContent = `正在处理中... (${secondsElapsed}秒)`;
         // generateSheinLabelBtn.classList.add('processing'); // Will be added after validation
 
-        sheinResultDiv.innerHTML = ''; // Clear previous results
+        // sheinResultDiv.innerHTML = ''; // Clear previous results - Removed to preserve history
         sheinResultDiv.className = '';
-        sheinResultDiv.style.display = 'none'; // Hide when resetting
+        // sheinResultDiv.style.display = 'none'; // Hide when resetting - Removed to prevent hiding history on validation fail
         sheinPostProcessActionsDiv.style.display = 'none'; // Hide actions at the start
         currentGeneratedSheinLabelPath = ''; // Reset path
 
@@ -1497,11 +1514,11 @@
               sheinSelectedFile1ErrorEl.style.display = 'block';
           } else {
               console.error("Shein Label Error: sheinSelectedFile1Error element not found in DOM!");
-              if (sheinResultDiv) {
-                  sheinResultDiv.innerHTML = '<p>请选择欧代文件 (UI Error: msg element missing)</p>';
-                  sheinResultDiv.className = 'error';
-                  sheinResultDiv.style.display = 'block';
-              }
+              // if (sheinResultDiv) { // Removed to prevent clearing history
+              //     sheinResultDiv.innerHTML = '<p>请选择欧代文件 (UI Error: msg element missing)</p>';
+              //     sheinResultDiv.className = 'error';
+              //     sheinResultDiv.style.display = 'block';
+              // }
           }
           sheinValidationPassed = false;
         }
@@ -1519,11 +1536,11 @@
               sheinSelectedFile2ErrorEl.style.display = 'block';
           } else {
               console.error("Shein Label Error: sheinSelectedFile2Error element not found in DOM!");
-              if (sheinResultDiv) { // Fallback
-                  sheinResultDiv.innerHTML = '<p>请选择条码文件 (UI Error: msg element missing)</p>';
-                  sheinResultDiv.className = 'error';
-                  sheinResultDiv.style.display = 'block';
-              }
+              // if (sheinResultDiv) { // Fallback - Removed to prevent clearing history
+              //     sheinResultDiv.innerHTML = '<p>请选择条码文件 (UI Error: msg element missing)</p>';
+              //     sheinResultDiv.className = 'error';
+              //     sheinResultDiv.style.display = 'block';
+              // }
           }
           sheinValidationPassed = false;
         }
@@ -1629,51 +1646,126 @@
           const result = await window.electronAPI.generateSheinLabel(params);
           const endTime = Date.now();
           const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
+          const sheinResultContainer = document.getElementById('sheinResult'); // Renamed for clarity
+          const generatedPath = (result && result.success) ? result.path : null;
 
-          if (result.success && result.path) {
-            currentGeneratedSheinLabelPath = result.path;
+          const entryDiv = document.createElement('div');
+          entryDiv.className = 'result-entry'; // Base class
+          let entryHtml = '';
+
+          if (result && result.success && generatedPath) {
+            // currentGeneratedSheinLabelPath = generatedPath; // This global var is less important now
             showToast('Shein Label 生成成功！', 'success');
-            sheinResultDiv.style.display = 'block';
-            let resultHtmlShein = `<p>保存路径：${result.path}</p>`;
+            entryDiv.classList.add('success-entry'); // Use new specific success class
+            entryHtml = `<p><strong>处理成功</strong></p><p>保存路径：${generatedPath}</p>`;
             if (result.outputFileSize !== null && result.outputFileSize !== undefined) {
-              resultHtmlShein += `<p>文件大小：${formatBytes(result.outputFileSize)}`;
+              entryHtml += `<p>文件大小：${formatBytes(result.outputFileSize)}`;
               if (result.outputPageCount !== null && result.outputPageCount !== undefined) {
-                resultHtmlShein += `，页数：${result.outputPageCount}`;
+                entryHtml += `，页数：${result.outputPageCount}`;
               }
-              resultHtmlShein += `</p>`;
+              entryHtml += `</p>`;
             } else if (result.outputPageCount !== null && result.outputPageCount !== undefined) {
-               resultHtmlShein += `<p>页数：${result.outputPageCount}</p>`;
+               entryHtml += `<p>页数：${result.outputPageCount}</p>`;
             }
             if(result.metadataError){
-                resultHtmlShein += `<p style="color: orange;">输出文件元数据警告: ${result.metadataError}</p>`;
+                entryHtml += `<p style="color: orange;">输出文件元数据警告: ${result.metadataError}</p>`;
             }
-            const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-            resultHtmlShein += `<p>处理开始时间：${startTimeFormatted}</p>`;
-            resultHtmlShein += `<p>总耗时：${totalTimeSeconds}秒</p>`;
-            sheinResultDiv.innerHTML = resultHtmlShein;
-            sheinResultDiv.className = 'success';
-            sheinPostProcessActionsDiv.style.display = 'block';
-          } else {
-            handleAndShowApiError(result, 'Shein Label 生成', undefined, sheinResultDiv, sheinPostProcessActionsDiv);
-            if (sheinResultDiv) {
-                const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-                sheinResultDiv.innerHTML += `<p>处理开始时间：${startTimeFormatted}</p>`;
-                sheinResultDiv.innerHTML += `<p>总耗时：${totalTimeSeconds}秒</p>`;
-                 if (!sheinResultDiv.classList.contains('error')) {
-                    sheinResultDiv.className = 'error';
-                    sheinResultDiv.style.display = 'block';
+          } else { // API error or processing failure from electronAPI.generateSheinLabel
+            entryDiv.classList.add('error-entry'); // Use new specific error class
+            const errorMessage = (result && result.error) ? result.error : '未知处理错误。';
+            showToast(`Shein Label 生成失败：${errorMessage}`, 'error');
+            entryHtml = `<p class="error-message-text"><strong>处理失败：</strong>${errorMessage}</p>`; // Add class to error message paragraph
+          }
+
+          const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+          entryHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
+          entryHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+          entryDiv.innerHTML = entryHtml;
+
+          // Create and append action buttons for this entry
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'action-buttons-container'; // Use new class for button container
+
+          const openBtnShein = document.createElement('button');
+          openBtnShein.textContent = '打开文件';
+          openBtnShein.className = 'action-button';
+          if (!generatedPath) openBtnShein.disabled = true;
+          openBtnShein.addEventListener('click', async () => {
+            if (generatedPath) {
+              try { await window.electronAPI.openPath(generatedPath); }
+              catch (err) { showToast(`无法打开文件: ${err.message}`, 'error'); }
+            }
+          });
+          actionsDiv.appendChild(openBtnShein);
+
+          const showInFolderBtnShein = document.createElement('button');
+          showInFolderBtnShein.textContent = '打开文件夹';
+          showInFolderBtnShein.className = 'action-button';
+          if (!generatedPath) showInFolderBtnShein.disabled = true;
+          showInFolderBtnShein.addEventListener('click', async () => {
+            if (generatedPath) {
+              try { await window.electronAPI.showItemInFolder(generatedPath); }
+              catch (err) { showToast(`无法在文件夹中显示: ${err.message}`, 'error'); }
+            }
+          });
+          actionsDiv.appendChild(showInFolderBtnShein);
+
+          const copyBtnShein = document.createElement('button');
+          copyBtnShein.textContent = '复制文件';
+          copyBtnShein.className = 'action-button';
+          copyBtnShein.title = '尝试复制文件到剪贴板 (若失败则复制路径)';
+          if (!generatedPath) copyBtnShein.disabled = true;
+          copyBtnShein.addEventListener('click', async () => {
+            if (generatedPath) {
+              try {
+                const copyResult = await window.electronAPI.copyFileToClipboard(generatedPath);
+                if (copyResult && copyResult.success) {
+                  showToast(copyResult.action === 'path_copied_unexpected_fallback' ? (copyResult.message || '未能复制文件本身，已改为复制文件路径至剪贴板。') : '文件已复制到剪贴板！', copyResult.action === 'path_copied_unexpected_fallback' ? 'warning' : 'success');
+                } else {
+                  showToast(`复制文件失败: ${(copyResult && copyResult.error) ? copyResult.error : '未知错误'}`, 'error');
                 }
+              } catch (err) { showToast(`复制操作出错: ${err.message}`, 'error'); }
             }
+          });
+          actionsDiv.appendChild(copyBtnShein);
+          entryDiv.appendChild(actionsDiv);
+
+          if (sheinResultContainer) {
+            sheinResultContainer.prepend(entryDiv);
+            sheinResultContainer.style.display = 'block';
           }
         } catch (error) {
           console.error('Error calling generateSheinLabel:', error);
           const endTime = Date.now();
           const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
-          const errorSheinResultDiv = sheinResultDiv; // Use existing sheinResultDiv
-          handleAndShowClientError(error, 'Shein Label 生成', undefined, errorSheinResultDiv, sheinPostProcessActionsDiv);
-          if (errorSheinResultDiv) {
-            errorSheinResultDiv.innerHTML += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+          const sheinResultContainerForError = document.getElementById('sheinResult'); // Target container
+
+          const errorEntryDiv = document.createElement('div');
+          errorEntryDiv.className = 'result-entry error-entry'; // Add new specific error class
+          let errorHtml = `<p class="error-message-text"><strong>客户端错误：</strong>${error.message || '发生意外错误。'}</p>`; // Add class to error message paragraph
+          
+          const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+          errorHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
+          errorHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+          errorEntryDiv.innerHTML = errorHtml;
+
+          // Add disabled action buttons for client errors as well for consistency
+          const errorActionsDiv = document.createElement('div');
+          errorActionsDiv.className = 'action-buttons-container'; // Use new class for button container
+          ['打开文件', '打开文件夹', '复制文件'].forEach(text => {
+              const btn = document.createElement('button');
+              btn.textContent = text;
+              btn.className = 'action-button';
+              btn.disabled = true;
+              errorActionsDiv.appendChild(btn);
+          });
+          errorEntryDiv.appendChild(errorActionsDiv);
+
+          if (sheinResultContainerForError) {
+            sheinResultContainerForError.prepend(errorEntryDiv);
+            sheinResultContainerForError.style.display = 'block';
           }
+          showToast(`Shein Label 生成出错：${error.message || '发生意外错误。'}`, 'error');
         } finally {
           if (timerInterval) clearInterval(timerInterval);
             generateSheinLabelBtn.disabled = false;
@@ -1742,14 +1834,14 @@
 
         // Clear result and post-process actions
         if (sheinResultDiv) {
-          sheinResultDiv.innerHTML = '';
+          sheinResultDiv.innerHTML = ''; // Clear all dynamically added entries
           sheinResultDiv.className = '';
           sheinResultDiv.style.display = 'none';
         }
-        if (sheinPostProcessActionsDiv) {
-          sheinPostProcessActionsDiv.style.display = 'none';
-        }
-        currentGeneratedSheinLabelPath = '';
+        // if (sheinPostProcessActionsDiv) { // This div is no longer used for dynamic entries
+        //   sheinPostProcessActionsDiv.style.display = 'none';
+        // }
+        // currentGeneratedSheinLabelPath = ''; // This global var is no longer the primary source for path
 
         await window.electronAPI.saveSettings(appSettings);
         showToast('Shein Label 生成表单已清空', 'info');

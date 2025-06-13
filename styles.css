@@ -618,7 +618,6 @@ body.dark-mode .file-select-status-span.file-selected-badge {
   font-size: 0.9em; /* Increased */
   line-height: 1.7;
   border-width: 1px;
-  border-style: solid;
   box-shadow: var(--shadow-sm);
 }
 
@@ -1106,6 +1105,60 @@ body.dark-mode .view-container {
   scrollbar-color: var(--border-color-soft) transparent; /* Use reverted dark mode soft border */
 }
 
+/* Styles for dynamically generated result entries */
+.result-entry {
+  padding: 12px;
+  border: 1px solid var(--border-color-soft);
+  border-radius: var(--border-radius-md);
+  margin-bottom: 10px; /* Space between entries */
+  background-color: var(--container-bg-color-original);
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.3s ease, border-color 0.3s ease; /* Added transition */
+}
+
+.result-entry:last-child {
+  margin-bottom: 0;
+}
+
+.result-entry p {
+  margin-bottom: 6px;
+  line-height: 1.5;
+  word-break: break-all; /* Ensure long paths or messages wrap */
+}
+.result-entry p:last-of-type { /* Usually the paragraph before buttons or last info */
+  margin-bottom: 8px;
+}
+
+.result-entry .action-buttons-container {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+  gap: 8px; /* Spacing between buttons */
+}
+
+/* Individual action buttons within the entry already styled by .action-button */
+
+.result-entry.success-entry {
+  border-left: 4px solid var(--success-color, #28a745);
+}
+body.dark-mode .result-entry.success-entry {
+    border-left-color: var(--success-color); /* Ensure dark mode success color is used */
+}
+
+.result-entry.error-entry {
+  border-left: 4px solid var(--error-border-color, #dc3545);
+}
+body.dark-mode .result-entry.error-entry {
+    border-left-color: var(--error-border-color); /* Ensure dark mode error color is used */
+}
+
+/* Text color within entries should generally be var(--text-color) */
+/* Specific error text color for error messages within an error entry */
+.result-entry.error-entry p.error-message-text { /* Add a specific class if needed for the error text itself */
+    color: var(--error-text-color);
+}
+/* The general paragraph color var(--text-color) should be fine for success entries */
+/* and for non-error-message paragraphs in error entries. */
 /* Toast Notification Styles */
 .toast-container {
   position: fixed;
