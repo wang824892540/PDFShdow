@@ -10,5 +10,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
   onShowToast: (callback) => ipcRenderer.on('show-toast', (_event, ...args) => callback(...args)),
-  getPdfMetadata: (filePath) => ipcRenderer.invoke('get-pdf-metadata', filePath)
+  getPdfMetadata: (filePath) => ipcRenderer.invoke('get-pdf-metadata', filePath),
+
+  // Window control functions
+  minimizeWindow: () => ipcRenderer.send('minimize-window'),
+  maximizeRestoreWindow: () => ipcRenderer.send('maximize-restore-window'),
+  closeWindow: () => ipcRenderer.send('close-window'),
+
+  // Listeners for window state changes from main process
+  onWindowMaximized: (callback) => ipcRenderer.on('window-maximized', callback),
+  onWindowUnmaximized: (callback) => ipcRenderer.on('window-unmaximized', callback)
 })

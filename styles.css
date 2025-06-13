@@ -1070,3 +1070,138 @@ body.dark-mode .custom-select-options::-webkit-scrollbar-thumb {
 body.dark-mode .custom-select-options { /* Firefox scrollbar dark mode */
   scrollbar-color: var(--border-color-strong) transparent;
 }
+
+/* Custom Title Bar Styles */
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px; /* Standard title bar height */
+  background-color: var(--container-bg-color-original); /* Use a theme variable for background */
+  color: var(--text-color);
+  padding: 0 8px; /* Padding on the sides */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000; /* High z-index to stay on top */
+  border-bottom: 1px solid var(--border-color-soft);
+  user-select: none;
+}
+
+.title-bar-drag-region {
+  flex-grow: 1;
+  height: 100%;
+  -webkit-app-region: drag; /* Makes the region draggable */
+  /* This div is purely for dragging, ensure it doesn't visually obstruct */
+}
+
+.title-bar-text {
+  position: absolute; /* Position absolutely to center it regardless of controls */
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 600;
+  font-size: 0.9em;
+  -webkit-app-region: drag; /* Allow dragging on text too */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 160px); /* Max width to prevent overlap with controls */
+}
+
+.title-bar-controls {
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag; /* Buttons are not draggable */
+  position: relative; /* Keep controls normally flowed to the right */
+  z-index: 1; /* Ensure controls are above drag region if overlapping */
+}
+
+.title-bar-button {
+  background: none;
+  border: none;
+  padding: 0;
+  width: 40px;
+  height: 32px; /* Match title bar height */
+  margin-left: 0px; /* No margin, rely on padding of parent or button itself */
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  -webkit-app-region: no-drag;
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.title-bar-button svg {
+  fill: currentColor;
+  width: 10px;
+  height: 10px;
+}
+
+.title-bar-button:hover {
+  background-color: var(--nav-link-hover-bg);
+}
+
+.title-bar-button:active {
+  background-color: color-mix(in srgb, var(--nav-link-hover-bg) 85%, var(--text-color) 15%); /* Darken hover for active */
+}
+
+#close-btn:hover {
+  background-color: #e81123;
+  color: white;
+}
+#close-btn:active {
+  background-color: #c40a1c;
+  color: white;
+}
+
+/* Dark mode for title bar buttons (if specific overrides needed beyond CSS variables) */
+body.dark-mode .title-bar-button:hover {
+    background-color: var(--nav-link-hover-bg); /* Ensure dark mode variable is used */
+}
+
+body.dark-mode .title-bar-button:active {
+    background-color: color-mix(in srgb, var(--nav-link-hover-bg) 85%, var(--text-color) 15%);
+}
+
+body.dark-mode #close-btn:hover {
+  background-color: #e81123;
+  color: white;
+}
+body.dark-mode #close-btn:active {
+  background-color: #c40a1c;
+  color: white;
+}
+
+/* Adjust body and app-layout for frameless window */
+body {
+  padding: 0; /* Remove body padding */
+  /* height: 100vh; /* Body takes full viewport height */
+  /* overflow: hidden; /* Prevent body scrollbars */
+}
+
+.app-layout {
+  padding-top: 32px; /* Match title bar height, push content down */
+  height: 100vh; /* app-layout itself takes full viewport height */
+  /* Existing overflow: hidden on .app-layout is good */
+  /* Existing border-radius, border, box-shadow on .app-layout are fine */
+}
+
+/* Sidebar and main-content height adjustment if they were previously based on a padded body */
+/* If .sidebar and .main-content are direct children of .app-layout and use flex properties
+   to fill its height, they should adjust automatically.
+   Their current height: calc(100vh - 48px) might need to be changed to just 100%
+   if .app-layout is now the full 100vh (minus its own padding-top).
+   Let's assume they are flex children and will adapt.
+   If not, they might need: height: calc(100% - 32px); if .app-layout is 100vh.
+   Or more simply, if .app-layout is display:flex and they are flex-children,
+   they should fill the space correctly.
+   Current .sidebar and .main-content have overflow-y: auto, which is good.
+   .app-layout has height: calc(100vh - 48px) and padding-top: 32px.
+   The `height: calc(100vh - 48px)` on `.app-layout` was based on the old `body { padding: 20px; }`
+   (20px top + 20px bottom + 8px for something else? or 24px top/bottom).
+   Now that body has `padding: 0`, `.app-layout` should be `height: 100vh;` and its `padding-top: 32px;`
+   will correctly position its content below the title bar.
+*/

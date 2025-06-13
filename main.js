@@ -103,11 +103,27 @@ function createWindow() {
     width: Math.round(screenWidth * 0.5),
     height: Math.round(screenHeight * 0.9), // Changed from 0.8 to 0.9
     show: false, // Don't show the window until it's ready
+    frame: false, // Create a frameless window
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true
+      contextIsolation: true,
+      nodeIntegration: false, // Ensure Node.js integration is off in renderer for security
+      devTools: !app.isPackaged // Enable DevTools only in development
     }
   })
+
+  // Event listeners for window state changes to notify renderer
+  mainWindow.on('maximize', () => {
+    if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('window-maximized');
+    }
+  });
+
+  mainWindow.on('unmaximize', () => {
+    if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('window-unmaximized');
+    }
+  });
 
   mainWindow.loadFile('index.html')
 
@@ -332,6 +348,30 @@ ipcMain.handle('save-settings', async (event, settings) => {
     return { success: false, error: error.message || 'Failed to save settings.' };
   }
 });
+
+// IPC Handlers for custom window controls
+ipcMain.on('minimize-window', () => {
+  if (mainWindow) {
+    mainWindow.minimize();
+  }
+});
+
+ipcMain.on('maximize-restore-window', () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow.maximize();
+    }
+  }
+});
+
+ipcMain.on('close-window', () => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+});
+// End IPC Handlers for custom window controls
 
 app.whenReady().then(() => {
   getSettingsFilePath(); // Initialize settings path
