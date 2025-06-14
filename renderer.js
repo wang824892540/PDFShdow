@@ -1,5 +1,5 @@
 // 自动更新下载进度弹窗实现
-// 通过预加载脚本暴露的 electronAPI 访问 IPC 功能
+const { ipcRenderer } = require('electron');
 
 // 创建下载进度弹窗元素
 function createDownloadProgressModal() {
@@ -30,25 +30,25 @@ function createDownloadProgressModal() {
   // 最小化按钮事件
   document.getElementById('minimizeDownloadBtn').addEventListener('click', () => {
     modal.style.display = 'none';
-    window.electronAPI.send('minimize-download-window');
+    ipcRenderer.send('minimize-download-window');
   });
 }
 
 // 初始化下载进度监听
 function initDownloadProgressListener() {
   // 监听主进程发送的下载进度
-  window.electronAPI.on('download-progress', (progress) => {
+  ipcRenderer.on('download-progress', (event, progress) => {
     updateDownloadProgress(progress);
   });
 
   // 监听下载完成事件
-  window.electronAPI.on('download-complete', () => {
+  ipcRenderer.on('download-complete', () => {
     const modal = document.getElementById('downloadProgressModal');
     if (modal) modal.remove();
   });
 
   // 监听下载错误事件
-  window.electronAPI.on('download-error', (error) => {
+  ipcRenderer.on('download-error', (event, error) => {
     showToast(`下载失败: ${error}`, 'error');
     const modal = document.getElementById('downloadProgressModal');
     if (modal) modal.remove();
@@ -95,13 +95,13 @@ function initUpdateCheckButton() {
   const updateCheckBtn = document.getElementById('updateCheckBtn');
   if (updateCheckBtn) {
     updateCheckBtn.addEventListener('click', () => {
-      window.electronAPI.send('check-for-updates');
+      ipcRenderer.send('check-for-updates');
     });
   }
 }
 
 // 监听主进程的下载开始事件
-window.electronAPI.on('download-started', () => {
+ipcRenderer.on('download-started', () => {
   showDownloadProgressModal();
 });
 

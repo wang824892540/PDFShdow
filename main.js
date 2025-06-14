@@ -219,37 +219,6 @@ ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName }) =>
   });
 })
 
-// Download window control IPC handlers
-ipcMain.on('minimize-download-window', () => {
-  if (mainWindow) {
-    mainWindow.minimize();
-  }
-});
-
-ipcMain.on('download-started', () => {
-  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('download-started');
-  }
-});
-
-ipcMain.on('download-progress', (event, progress) => {
-  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('download-progress', progress);
-  }
-});
-
-ipcMain.on('download-complete', () => {
-  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('download-complete');
-  }
-});
-
-ipcMain.on('download-error', (event, error) => {
-  if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('download-error', error);
-  }
-});
-
 ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM }) => {
   return new Promise((resolve, reject) => {
     // Basic validation in main thread before starting worker
