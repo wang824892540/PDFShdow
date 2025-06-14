@@ -1482,12 +1482,8 @@
 
       generateSheinLabelBtn.addEventListener('click', async () => {
         const originalButtonText = generateSheinLabelBtn.textContent; // Store original button text
-        const clearSheinLabelFormBtn = document.getElementById('clearSheinLabelFormBtn'); // Get clear button
         let startTime = 0;
         let timerInterval;
-
-        if (clearSheinLabelFormBtn) clearSheinLabelFormBtn.disabled = true; // Disable clear button
-
         generateSheinLabelBtn.disabled = true;
         startTime = Date.now();
         let secondsElapsed = 0;
@@ -1629,7 +1625,10 @@
           if(timerInterval) clearInterval(timerInterval); // Clear interval if validation fails after it started (though unlikely here)
           return;
         }
-        
+
+        const clearSheinLabelFormBtn = document.getElementById('clearSheinLabelFormBtn'); // Get clear button
+        if (clearSheinLabelFormBtn) clearSheinLabelFormBtn.disabled = true; // Disable clear button
+
         // If validation passed, now add processing class and start timer
         generateSheinLabelBtn.classList.add('processing');
         timerInterval = setInterval(() => {
