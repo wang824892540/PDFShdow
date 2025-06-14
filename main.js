@@ -114,7 +114,7 @@ function createWindow() {
     show: false, // Don't show the window until it's ready
     frame: false, // Create a frameless window
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'renderer.js'),
       contextIsolation: true,
       nodeIntegration: false, // Ensure Node.js integration is off in renderer for security
       devTools: !app.isPackaged // Enable DevTools only in development
@@ -521,4 +521,16 @@ ipcMain.on('quit-and-install-update', () => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
+})
+
+// 添加处理官方网站链接的IPC处理器
+ipcMain.handle('open-official-website', async () => {
+  try {
+    const websiteUrl = 'http://115.190.92.23' // 替换为实际官网URL
+    await shell.openExternal(websiteUrl)
+    return { success: true }
+  } catch (error) {
+    console.error('打开官方网站失败:', error)
+    return { success: false, error: `打开官方网站失败: ${error.message}` }
+  }
 })

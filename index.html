@@ -13,9 +13,9 @@
       <button id="devToolsBtn" class="title-bar-button" aria-label="开发者工具" title="开发者工具">
         <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 5,0 5,2 7,2 7,4 5,4 5,6 3,6 3,4 1,4 1,2 3,2 3,0 Z M 1,7 1,9 3,9 3,7 Z M 5,7 5,9 7,9 7,7 Z" /></svg>
       </button>
-      <button id="websit" class="title-bar-button" onclick="window.open('http\://115.190.92.23', '_blank')" aria-label="官方网站" title="官方网站">
-        官方网站
-      </button>
+      <button id="websit" class="title-bar-button" onclick="electronAPI.openOfficialWebsite().catch(err => console.error(err))" aria-label="官方网站" title="官方网站">
+            官方网站
+          </button>
       <button id="updateCheckBtn" class="title-bar-button" aria-label="检查更新" title="检查更新">
         检查更新
       </button>
