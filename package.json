@@ -1,6 +1,6 @@
 {
   "name": "pdf-shdow",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A PDF processing utility",
   "author": "hxw <82489254@qq.com>",
   "main": "main.js",
@@ -28,10 +28,11 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "http://115.190.92.23:8516/updates/"
+        "url": "http://115.190.92.23/updates/"
       }
     ],
     "win": {
+      "artifactName": "PDFShdow_${version}.${ext}",
       "target": [
         {
           "target": "nsis",
