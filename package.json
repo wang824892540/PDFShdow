@@ -1,6 +1,6 @@
 {
   "name": "pdf-tool",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "A PDF processing utility",
   "author": "hxw <82489254@qq.com>",
   "main": "main.js",
