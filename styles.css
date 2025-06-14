@@ -286,7 +286,7 @@ label {
   justify-content: space-between; /* Pushes hint to the right */
   align-items: baseline; /* Align text baselines */
   margin-bottom: 4px; /* Reduced */
-  font-weight: 500;
+  font-weight: bold;
   color: var(--text-color-muted); /* Muted color for labels */
   font-size: 0.85em; /* Increased */
 }
