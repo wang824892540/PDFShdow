@@ -1096,6 +1096,20 @@ body.dark-mode .theme-switch-wrapper.active .moon-icon {
    /* color is already var(--text-on-primary-color) which is good for dark active thumb */
 }
 
+/* Theme Notice Text */
+.theme-notice {
+  font-size: 0.75em;
+  color: var(--text-color-muted);
+  text-align: center;
+  margin-top: 4px;
+  transition: color 0.3s ease;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .theme-notice {
+  color: var(--text-color-muted);
+}
+
 /* Custom Scrollbar Styles */
 /* For WebKit browsers (Chrome, Safari, Edge) */
 .sidebar::-webkit-scrollbar,
