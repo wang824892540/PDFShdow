@@ -1435,23 +1435,26 @@ body.dark-mode .custom-select-options { /* Firefox scrollbar dark mode */
 }
 
 .title-bar-drag-region {
-  flex-grow: 1;
+  flex-grow: 0;
+  width: 0px; /* Reduce width to allow text to align left */
   height: 100%;
   -webkit-app-region: drag; /* Makes the region draggable */
-  /* This div is purely for dragging, ensure it doesn't visually obstruct */
 }
 
 .title-bar-text {
-  position: absolute; /* Position absolutely to center it regardless of controls */
-  left: 50%;
-  transform: translateX(-50%);
+  position: relative; /* Change to relative positioning */
+  left: auto;
+  transform: none;
   font-weight: 600;
   font-size: 0.9em;
   -webkit-app-region: drag; /* Allow dragging on text too */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: calc(100% - 160px); /* Max width to prevent overlap with controls */
+  padding-left: 8px; /* Add some left padding */
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
 }
 
 .title-bar-controls {
