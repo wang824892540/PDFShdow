@@ -41,7 +41,7 @@
           ]
         }
       ],
-      "icon": "build/icon.ico"
+      "icon": "static/pdfShdow.ico"
     }
   }
 }
