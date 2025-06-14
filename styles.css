@@ -140,7 +140,7 @@ body.dark-mode {
 .sidebar {
   width: 220px; /* Reduced */
   flex-shrink: 0;
-  background-color: var(--sidebar-bg-color);
+  /* background-color: var(--sidebar-bg-color); */
   padding: 20px 16px; /* Reduced */
   border-right: 1px solid var(--border-color-soft);
   overflow-y: auto;
