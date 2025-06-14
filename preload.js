@@ -18,15 +18,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeWindow: () => ipcRenderer.send('close-window'),
   toggleDevTools: () => ipcRenderer.send('toggle-dev-tools'),
   checkForUpdates: () => ipcRenderer.send('check-for-updates'),
-  minimizeDownloadWindow: () => ipcRenderer.send('minimize-download-window'),
 
   // Listeners for window state changes from main process
   onWindowMaximized: (callback) => ipcRenderer.on('window-maximized', callback),
-  onWindowUnmaximized: (callback) => ipcRenderer.on('window-unmaximized', callback),
-  
-  // Download progress listeners
-  onDownloadProgress: (callback) => ipcRenderer.on('download-progress', (_event, progress) => callback(progress)),
-  onDownloadComplete: (callback) => ipcRenderer.on('download-complete', callback),
-  onDownloadError: (callback) => ipcRenderer.on('download-error', (_event, error) => callback(error)),
-  onDownloadStarted: (callback) => ipcRenderer.on('download-started', callback)
+  onWindowUnmaximized: (callback) => ipcRenderer.on('window-unmaximized', callback)
 })
