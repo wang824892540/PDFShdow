@@ -1246,19 +1246,20 @@ body.dark-mode .result-entry.error-entry {
 
 /* Add a class for fade-out, to be triggered by JS before removal */
 .toast.fade-out {
-  animation: toast-fade-out 0.5s cubic-bezier(0.755, 0.05, 0.855, 0.06) forwards; /* Apple-like toast fade out */
+  animation: toast-fade-out 0.4s cubic-bezier(0.33, 0, 0.67, 0.33) forwards; /* Smoother fade out */
   /* Ensure it stays faded out if JS removal is delayed */
   opacity: 0;
-  transform: translateY(15px); /* Match final state of fade-out animation */
+  transform: translateY(10px) scale(0.95); /* Slight move and scale down */
 }
 
 @keyframes toast-fade-out {
   from {
     opacity: 1;
+    transform: translateY(0) scale(1);
   }
   to {
     opacity: 0;
-    transform: translateY(10px); /* Optional: slight move on fade out */
+    transform: translateY(10px) scale(0.95); /* Combined move and scale */
   }
 }
 
