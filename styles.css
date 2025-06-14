@@ -1452,7 +1452,8 @@ body.dark-mode .custom-select-options { /* Firefox scrollbar dark mode */
   background: none;
   border: none;
   padding: 0;
-  width: 40px;
+  min-width: 40px;
+  padding: 5px;
   height: 32px; /* Match title bar height */
   margin-left: 0px; /* No margin, rely on padding of parent or button itself */
   cursor: pointer;

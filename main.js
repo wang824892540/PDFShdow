@@ -471,7 +471,7 @@ autoUpdater.on('download-progress', (progressObj) => {
   log_message = log_message + ' - Downloaded ' + progressObj.percent.toFixed(2) + '%';
   log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
   log.info(log_message);
-  // sendToastToRenderer(`正在下载更新: ${progressObj.percent.toFixed(2)}%`, 'info', 1500); // Can be too spammy
+  sendToastToRenderer(`正在下载更新: ${progressObj.percent.toFixed(2)}%`, 'info', 1500); // Can be too spammy
   if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-status', {
         status: 'downloading',
