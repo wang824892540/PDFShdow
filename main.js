@@ -400,7 +400,7 @@ app.whenReady().then(() => {
   // Configure update provider
   autoUpdater.setFeedURL({
     provider: 'generic',
-    url: 'http://115.190.92.23:8516/updates/', // Replace with your actual update server URL
+    url: 'http://115.190.92.23/updates/', // Replace with your actual update server URL
     // channel: 'latest', // Optional: specify channel if you use channels
   });
 
