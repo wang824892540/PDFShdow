@@ -140,9 +140,9 @@ body.dark-mode {
 .sidebar {
   width: 220px; /* Reduced */
   flex-shrink: 0;
-  background-color: var(--sidebar-bg-color);
+  /* background-color: var(--sidebar-bg-color); */
   padding: 20px 16px; /* Reduced */
-  border-right: 1px solid var(--border-color-soft);
+  /* border-right: 1px solid var(--border-color-soft); */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -199,8 +199,11 @@ body.dark-mode {
 
 
 .main-content {
+  border: 1px solid var(--sidebar-bg-color);
+  border-radius: inherit;
   flex-grow: 1;
   padding: 20px; /* Reduced */
+  margin: 0 10px 10px 0;
   overflow-y: auto;
   background-color: var(--sidebar-bg-color);
   /* background-color: var(--main-content-bg-color); */
@@ -1424,7 +1427,8 @@ body.dark-mode .custom-select-options { /* Firefox scrollbar dark mode */
   align-items: center;
   justify-content: space-between;
   height: 50px; /* Standard title bar height */
-  background-color: var(--container-bg-color-original); /* Use a theme variable for background */
+  /* background-color: var(--container-bg-color-original);  */
+  /* Use a theme variable for background */
   color: var(--text-color);
   padding: 0 8px; /* Padding on the sides */
   position: fixed;
@@ -1432,7 +1436,7 @@ body.dark-mode .custom-select-options { /* Firefox scrollbar dark mode */
   left: 0;
   right: 0;
   z-index: 10000; /* High z-index to stay on top */
-  border-bottom: 1px solid var(--border-color-soft);
+  /* border-bottom: 1px solid var(--border-color-soft); */
   user-select: none;
 }
 
