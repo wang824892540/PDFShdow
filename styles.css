@@ -132,7 +132,7 @@ body.dark-mode {
   height: calc(100vh - 48px); /* Adjusted for new body padding */
   background-color: var(--app-bg);
   border-radius: var(--border-radius-xl);
-  border: 1px solid var(--border-color-soft); /* Softer border for app layout */
+  border: 0.1px solid var(--border-color-soft); /* Softer border for app layout */
   box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
@@ -142,7 +142,7 @@ body.dark-mode {
   flex-shrink: 0;
   /* background-color: var(--sidebar-bg-color); */
   padding: 20px 16px; /* Reduced */
-  /* border-right: 1px solid var(--border-color-soft); */
+  /* border-right: 0.1px solid var(--border-color-soft); */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -152,7 +152,7 @@ body.dark-mode {
 .sidebar-header {
   margin-bottom: 20px; /* Reduced */
   padding-bottom: 10px; /* Reduced */
-  border-bottom: 1px solid var(--border-color-soft); /* Softer border */
+  border-bottom: 0.1px solid var(--border-color-soft); /* Softer border */
 }
 
 .sidebar-header h2 {
@@ -199,11 +199,11 @@ body.dark-mode {
 
 
 .main-content {
-  border: 1px solid var(--sidebar-bg-color);
-  border-radius: inherit;
+  border: 0.1px solid var(--sidebar-bg-color);
+  border-radius: 10px 0 0 0;
   flex-grow: 1;
   padding: 20px; /* Reduced */
-  margin: 0 10px 10px 0;
+  /* margin: 0 10px 10px 0; */
   overflow-y: auto;
   background-color: var(--sidebar-bg-color);
   /* background-color: var(--main-content-bg-color); */
@@ -234,7 +234,7 @@ body.dark-mode {
   color: var(--text-color);
   margin-bottom: 20px; /* Reduced */
   padding-bottom: 10px; /* Reduced */
-  border-bottom: 1px solid var(--border-color-soft);
+  border-bottom: 0.1px solid var(--border-color-soft);
   line-height: 1.3;
   /* display: flex; and align-items: center; no longer needed for emoji */
 }
@@ -245,7 +245,7 @@ body.dark-mode {
   align-items: baseline; /* Align baseline of h2 and span */
   justify-content: space-between; /* Push description to the right if space allows, or wrap */
   flex-wrap: wrap; /* Allow description to wrap on smaller screens */
-  border-bottom: 1px solid var(--border-color-soft);
+  border-bottom: 0.1px solid var(--border-color-soft);
   padding-bottom: 10px; /* Reduced */
   margin-bottom: 20px; /* Reduced */
 }
@@ -274,7 +274,7 @@ body.dark-mode {
   margin-bottom: 14px; /* Reduced */
   padding: 14px;       /* Reduced */
   background-color: var(--container-bg-color-original);
-  border: 1px solid var(--border-color-soft); 
+  border: 0.1px solid var(--border-color-soft); 
   /* Softer border */
   border-radius: var(--border-radius-lg); /* Kept large radius for cards */
   box-shadow: var(--shadow-sm); /* Softer shadow for sections */
@@ -298,7 +298,7 @@ label {
 /* Buttons */
 button, #themeToggleBtn { /* General button reset and base style */
   padding: 8px 16px; /* Reduced */
-  border: 1px solid transparent;
+  border: 0.1px solid transparent;
   border-radius: var(--border-radius-md);
   cursor: pointer;
   font-size: 0.9em; /* Increased */
@@ -323,7 +323,7 @@ button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled sepa
 .btn-secondary {
   background-color: var(--button-secondary-bg);
   color: var(--button-secondary-text);
-  border: 1px solid var(--button-secondary-border);
+  border: 0.1px solid var(--button-secondary-border);
   font-weight: 500; /* Consistent with general button */
 }
 
@@ -387,7 +387,7 @@ button:active, #themeToggleBtn:active { /* themeToggleBtn active is handled sepa
 .action-button {
   background-color: var(--button-secondary-bg);
   color: var(--button-secondary-text);
-  border: 1px solid var(--button-secondary-border); /* Ensure border is explicitly set */
+  border: 0.1px solid var(--button-secondary-border); /* Ensure border is explicitly set */
   font-weight: 500;
 }
 .action-button:hover {
@@ -485,7 +485,7 @@ input[type="number"],
 select {
 padding: 6px 10px; /* Reduced */
 margin-bottom: 8px; /* Reduced */
-border: 1px solid var(--border-color-soft); /* Softer border for light mode */
+border: 0.1px solid var(--border-color-soft); /* Softer border for light mode */
 border-radius: var(--border-radius-sm); /* Sharper corners */
 box-sizing: border-box;
 font-size: 0.9em; /* Increased */
@@ -626,7 +626,7 @@ label > .field-hint {
   color: #495057; /* Original text color for badge */
   padding: 6px 10px; /* Reduced */
   border-radius: 6px; /* Original border-radius */
-  border: 1px solid #dee2e6; /* Original border */
+  border: 0.1px solid #dee2e6; /* Original border */
   font-weight: normal; /* Original font-weight */
   white-space: nowrap;
   overflow: hidden;
@@ -708,7 +708,7 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
   flex-grow: 1;
   background-color: var(--button-secondary-bg);
   color: var(--button-secondary-text);
-  border: 1px solid var(--button-secondary-border);
+  border: 0.1px solid var(--button-secondary-border);
   font-weight: 500; /* Ensure consistent weight with action-button */
 }
 
@@ -724,7 +724,7 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
 #themeToggleBtn {
   background-color: transparent;
   color: var(--text-color-muted); /* Icon color will inherit this */
-  border: 1px solid transparent;
+  border: 0.1px solid transparent;
   padding: 0;
   border-radius: 50%;
   /* font-size is not needed as SVG has its own size */
@@ -766,7 +766,7 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
 #themeToggleBtn {
   background-color: transparent;
   color: var(--text-color-muted);
-  border: 1px solid transparent;
+  border: 0.1px solid transparent;
   padding: 0;
   border-radius: 50%;
   font-size: 1.6em; // This was for icon, might need adjustment for emoji if too big
@@ -809,7 +809,7 @@ This should be fine for emojis.
   background-color: var(--border-color-soft); /* Original scrollbar thumb color */
   border-radius: 10px;
   border: 2px solid transparent; /* Creates padding effect */
-  border: 1px solid #ced4da; /* Standard border color */
+  border: 0.1px solid #ced4da; /* Standard border color */
   border-radius: 8px; /* More rounded inputs */
   box-sizing: border-box;
   font-size: 0.9em; /* Increased */
@@ -938,7 +938,7 @@ body.dark-mode .dimension-inputs-container .input-group .unit { /* Replaced #cus
 
 #result.success, #sheinResult.success {
   background-color: #d1e7dd; /* Softer green */
-  border: 1px solid #a3cfbb; /* Matching border */
+  border: 0.1px solid #a3cfbb; /* Matching border */
   color: #0a3622; /* Darker green text */
 }
 body.dark-mode #result.success, body.dark-mode #sheinResult.success {
@@ -949,7 +949,7 @@ body.dark-mode #result.success, body.dark-mode #sheinResult.success {
 
 #result.error, #sheinResult.error {
   background-color: #f8d7da; /* Softer red */
-  border: 1px solid #f1aeB5; /* Matching border */
+  border: 0.1px solid #f1aeB5; /* Matching border */
   color: #58151c; /* Darker red text */
 }
 body.dark-mode #result.error, body.dark-mode #sheinResult.error {
@@ -965,7 +965,7 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
   /* right: 25px; Removed */
   background-color: transparent;
   color: var(--text-color); /* Use text color for the icon */
-  border: 1px solid transparent; /* Transparent border initially */
+  border: 0.1px solid transparent; /* Transparent border initially */
   padding: 0; /* Remove padding if using explicit width/height for centering */
   border-radius: 50%; /* Make it circular */
   cursor: pointer;
@@ -1000,7 +1000,7 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
   margin-bottom: 12px; /* Space from bottom */
   border-radius: 20px; /* Rounded wrapper */
   background-color: var(--input-bg); /* Use input background for contrast */
-  border: 1px solid var(--border-color-soft);
+  border: 0.1px solid var(--border-color-soft);
   box-shadow: var(--shadow-sm);
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
@@ -1165,7 +1165,7 @@ body.dark-mode .view-container {
 /* Styles for dynamically generated result entries */
 .result-entry {
   padding: 12px;
-  border: 1px solid var(--border-color-soft);
+  border: 0.1px solid var(--border-color-soft);
   border-radius: var(--border-radius-md);
   margin-bottom: 10px; /* Space between entries */
   background-color: var(--container-bg-color-original);
@@ -1317,7 +1317,7 @@ body.dark-mode {
 .custom-select-container {
   position: relative;
   background-color: var(--input-bg);
-  border: 1px solid var(--border-color-soft);
+  border: 0.1px solid var(--border-color-soft);
   border-radius: var(--border-radius-sm);
   color: var(--text-color);
   font-size: 0.9em;
@@ -1363,7 +1363,7 @@ body.dark-mode {
   left: 0;
   right: 0;
   background-color: var(--input-bg);
-  border: 1px solid var(--border-color-strong); /* Slightly stronger border for dropdown */
+  border: 0.1px solid var(--border-color-strong); /* Slightly stronger border for dropdown */
   border-top: none; /* Avoid double border with trigger */
   border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
   z-index: 10; /* Ensure it's above other elements */
@@ -1436,7 +1436,7 @@ body.dark-mode .custom-select-options { /* Firefox scrollbar dark mode */
   left: 0;
   right: 0;
   z-index: 10000; /* High z-index to stay on top */
-  /* border-bottom: 1px solid var(--border-color-soft); */
+  /* border-bottom: 0.1px solid var(--border-color-soft); */
   user-select: none;
 }
 
