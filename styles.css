@@ -38,10 +38,10 @@ body {
   --font-size-xxs: 0.78rem; /* ~11px */
 
   /* Original color variables from before "flashy" theme */
-  --app-bg: #ffffff; /* Main application frame background */
-  --sidebar-bg-color: #f0f2f5; /* Sidebar and main content area background */
-  --main-content-bg-color: #ffffff; /* (Legacy) Main content background */
-  --container-bg-color-original: #f0f2f5; /* Background for individual content boxes/sections */
+  --app-bg: #f0f2f5; /* Lighter app background for contrast */
+  --sidebar-bg-color: #ffffff; /* Keep sidebar white for now, or make slightly off-white */
+  --main-content-bg-color: #f0f2f5; /* Lighter main content background */
+  --container-bg-color-original: #ffffff; /* Keep content boxes white */
   
   --primary-color: #0077cc; /* Slightly adjusted primary blue */
   --primary-color-hover: #0066bb;
