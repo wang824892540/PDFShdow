@@ -902,6 +902,7 @@ body.dark-mode .dimension-inputs-container .input-group .unit { /* Replaced #cus
 
 /* Process Button */
 #processBtn {
+  min-width: 160px;
   display: block;
   /* background-color, color, font-weight, text-transform, letter-spacing are now handled by .btn-primary or general button style */
   /* Retain specific font-weight or text-transform if desired, or let .btn-primary define it */
@@ -914,6 +915,7 @@ body.dark-mode .dimension-inputs-container .input-group .unit { /* Replaced #cus
 /* body.dark-mode #processBtn:hover - handled by .btn-primary:hover */
 
 #generateSheinLabelBtn {
+  min-width: 160px;
   display: block;
   /* Inherits .btn-primary styles for color, padding, etc. */
   font-weight: 700; /* Match #processBtn */
