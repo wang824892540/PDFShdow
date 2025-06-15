@@ -1021,7 +1021,8 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
 .theme-switch-track {
   width: 56px; /* Width of the track */
   height: 28px; /* Height of the track */
-  background-color: var(--border-color-soft); /* Light grey track */
+  /* background-color: var(--border-color-soft); */
+   /* Light grey track */
   border-radius: 14px; /* Fully rounded track */
   position: relative;
   transition: background-color 0.3s ease;
@@ -1032,12 +1033,13 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
 .theme-switch-thumb {
   width: 24px; /* Diameter of the thumb */
   height: 24px; /* Diameter of the thumb */
-  background-color: #ffffff; /* White thumb */
+  /* background-color: #ffffff; */
+   /* White thumb */
   border-radius: 50%; /* Circular thumb */
   position: absolute;
   left: 2px; /* Initial position (for light mode) */
   transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), background-color 0.3s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  /* box-shadow: 0 1px 3px rgba(0,0,0,0.2); */
   display: flex;
   align-items: center;
   justify-content: center;
