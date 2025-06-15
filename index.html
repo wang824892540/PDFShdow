@@ -682,7 +682,6 @@
         notification.innerHTML = `
           <div class="update-notification-header">
             <h4>${title}</h4>
-            <button class="update-notification-close-btn" title="关闭">&times;</button>
           </div>
           <div class="update-notification-body">
             <p>${message}</p>
@@ -693,11 +692,6 @@
             </div>
           ` : ''}
         `;
-
-        const closeBtn = notification.querySelector('.update-notification-close-btn');
-        if (closeBtn) {
-          closeBtn.onclick = () => closeNotification(notification);
-        }
         
         if (data.status === 'error') {
           setTimeout(() => closeNotification(notification), 8000);
