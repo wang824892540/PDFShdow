@@ -22,5 +22,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Listeners for window state changes from main process
   onWindowMaximized: (callback) => ipcRenderer.on('window-maximized', callback),
-  onWindowUnmaximized: (callback) => ipcRenderer.on('window-unmaximized', callback)
+  onWindowUnmaximized: (callback) => ipcRenderer.on('window-unmaximized', callback),
+  onUpdateStatus: (callback) => ipcRenderer.on('update-status', (_event, ...args) => callback(...args))
 })

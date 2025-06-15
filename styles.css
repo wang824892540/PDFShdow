@@ -1532,6 +1532,16 @@ body.dark-mode #close-btn:active {
   color: white;
 }
 
+#downloadStatusBtn.active {
+  background-color: var(--primary-color-active);
+  color: var(--text-on-primary-color);
+}
+
+#downloadStatusBtn.active svg {
+  fill: var(--text-on-primary-color);
+}
+
+
 /* Adjust body and app-layout for frameless window */
 body {
   padding: 0; /* Remove body padding */
@@ -1562,3 +1572,106 @@ body {
    Now that body has `padding: 0`, `.app-layout` should be `height: 100vh;` and its `padding-top: 32px;`
    will correctly position its content below the title bar.
 */
+
+/* Update Notification Styles */
+.update-notification-container {
+  position: fixed;
+  top: 60px; /* Position below the custom title bar */
+  right: 16px;
+  z-index: 1050; /* High z-index to be on top of most UI elements */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* Align notifications to the right */
+  gap: 10px;
+}
+
+.update-notification {
+  background-color: rgba(0, 0, 0, 0.75); /* Semi-transparent black */
+  backdrop-filter: blur(5px); /* Frosted glass effect */
+  -webkit-backdrop-filter: blur(5px); /* For Safari */
+  color: #ffffff;
+  border-radius: var(--border-radius-lg, 10px);
+  padding: 14px;
+  width: 320px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transform: translateX(100%);
+  animation: slideInFromRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.update-notification.fade-out {
+  animation: slideOutToRight 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+
+@keyframes slideInFromRight {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.update-notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.update-notification-header h4 {
+  margin: 0;
+  font-size: 0.95em;
+  font-weight: 600;
+}
+
+.update-notification-close-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 1.2em;
+  line-height: 1;
+  padding: 2px;
+  transition: color 0.2s ease;
+}
+
+.update-notification-close-btn:hover {
+  color: #fff;
+}
+
+.update-notification-body p {
+  margin: 0;
+  font-size: 0.85em;
+  color: #f0f0f0;
+  line-height: 1.5;
+}
+
+.update-progress-container {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.update-progress-bar {
+  width: 0%; /* Initially 0, updated by JS */
+  height: 100%;
+  background-color: var(--primary-color, #0077cc);
+  border-radius: 4px;
+  transition: width 0.3s ease-in-out;
+}

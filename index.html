@@ -19,6 +19,12 @@
       <button id="updateCheckBtn" class="title-bar-button" aria-label="检查更新" title="检查更新">
         检查更新
       </button>
+      <button id="downloadStatusBtn" class="title-bar-button" aria-label="下载状态" title="下载状态" style="display: none;">
+       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+         <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+       </svg>
+      </button>
       <button id="minimize-btn" class="title-bar-button" aria-label="最小化">
         <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 0,5 10,5 10,6 0,6 Z" /></svg>
       </button>
@@ -579,6 +585,132 @@
       console.error('Error: window.electronAPI.onShowToast is not available. Toasts from main process will not be shown.');
     }
     // --- End Listener for Toasts from Main Process ---
+
+    // --- Update Notification Logic ---
+    if (window.electronAPI && typeof window.electronAPI.onUpdateStatus === 'function') {
+      const updateNotificationContainer = document.getElementById('updateNotificationContainer');
+      const downloadStatusBtn = document.getElementById('downloadStatusBtn');
+      let activeNotifications = {}; // Use an object to manage the notification
+
+      const closeNotification = (notificationElement) => {
+        if (notificationElement) {
+          notificationElement.classList.add('fade-out');
+          setTimeout(() => {
+            if (notificationElement.parentNode) {
+              notificationElement.parentNode.removeChild(notificationElement);
+            }
+            if (activeNotifications.update) {
+                delete activeNotifications.update;
+            }
+            if (downloadStatusBtn) {
+              downloadStatusBtn.style.display = 'none';
+              downloadStatusBtn.classList.remove('active');
+            }
+          }, 500); // Match CSS animation duration
+        }
+      };
+
+      if (downloadStatusBtn) {
+        downloadStatusBtn.addEventListener('click', () => {
+          const notification = activeNotifications.update;
+          if (notification) {
+            const isHidden = notification.style.display === 'none';
+            notification.style.display = isHidden ? 'flex' : 'none';
+            downloadStatusBtn.classList.toggle('active', isHidden);
+          }
+        });
+      }
+
+      const createOrUpdateNotification = (data) => {
+        let notification = activeNotifications.update;
+
+        // Do not create a notification for statuses that are handled by toasts or dialogs.
+        if (!notification && ['download-started', 'downloading', 'downloaded', 'error'].includes(data.status)) {
+          notification = document.createElement('div');
+          notification.className = 'update-notification';
+          activeNotifications.update = notification;
+          updateNotificationContainer.appendChild(notification);
+          
+          if (downloadStatusBtn) {
+            downloadStatusBtn.style.display = 'flex'; // Show the button
+            downloadStatusBtn.classList.add('active'); // Mark as active
+          }
+        } else if (!notification) {
+          return; // Don't create for other statuses if no notification exists
+        }
+
+        let title = '软件更新';
+        let message = '';
+        let showProgressBar = false;
+        let progressPercent = 0;
+
+        switch (data.status) {
+          case 'checking':
+          case 'available':
+          case 'not-available':
+            // These are handled by dialogs or toasts, not this persistent notification.
+            return;
+          case 'download-started':
+            title = `发现新版本 v${data.version}`;
+            message = '正在准备下载...';
+            showProgressBar = true;
+            progressPercent = 0;
+            break;
+          case 'downloading':
+            title = `正在下载最新版本`;
+            message = `下载速度: ${data.progress.bytesPerSecond ? formatBytes(data.progress.bytesPerSecond) + '/s' : '...'} <br> 已下载: ${data.progress.transferred ? formatBytes(data.progress.transferred) : '...'} / ${data.progress.total ? formatBytes(data.progress.total) : '...'}`;
+            showProgressBar = true;
+            progressPercent = data.progress.percent || 0;
+            break;
+          case 'downloaded':
+            title = `新版本 v${data.version} 已就绪`;
+            message = '下载完成。重启应用即可完成安装。';
+            showProgressBar = false;
+            // Don't auto-close, wait for user to restart. The button remains.
+            break;
+          case 'error':
+            title = '更新失败';
+            message = `更新过程中发生错误: ${data.error || '未知错误'}`;
+            showProgressBar = false;
+            break;
+          default:
+            // Don't show notification for unknown status, and close existing one if any.
+            closeNotification(notification);
+            return;
+        }
+
+        notification.innerHTML = `
+          <div class="update-notification-header">
+            <h4>${title}</h4>
+            <button class="update-notification-close-btn" title="关闭">&times;</button>
+          </div>
+          <div class="update-notification-body">
+            <p>${message}</p>
+          </div>
+          ${showProgressBar ? `
+            <div class="update-progress-container">
+              <div class="update-progress-bar" style="width: ${progressPercent.toFixed(2)}%;"></div>
+            </div>
+          ` : ''}
+        `;
+
+        const closeBtn = notification.querySelector('.update-notification-close-btn');
+        if (closeBtn) {
+          closeBtn.onclick = () => closeNotification(notification);
+        }
+        
+        if (data.status === 'error') {
+          setTimeout(() => closeNotification(notification), 8000);
+        }
+      };
+
+      window.electronAPI.onUpdateStatus((data) => {
+        console.log('Update status received in renderer:', data);
+        createOrUpdateNotification(data);
+      });
+    } else {
+      console.error('Error: window.electronAPI.onUpdateStatus is not available.');
+    }
 
     // For PDF Resize View Post-Process Actions
     const pdfResizePostProcessActionsDiv = document.getElementById('pdfResizePostProcessActions');
@@ -2119,6 +2251,11 @@
 <!-- Toast Notification Container -->
 <div id="toastContainer" class="toast-container">
   <!-- Toasts will be dynamically added here by JavaScript -->
+</div>
+
+<!-- Update Notification Container -->
+<div id="updateNotificationContainer" class="update-notification-container">
+    <!-- Update notifications will be dynamically added here -->
 </div>
 </body>
 </html>
