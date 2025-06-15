@@ -15,6 +15,7 @@ autoUpdater.autoDownload = false; // We will handle download manually or prompt 
 
 // Early setup for unhandled exception toaster
 let mainWindow // mainWindow will be assigned later in createWindow
+let isDownloadingUpdate = false; // Flag to track if an update download is in progress
 
 // Helper function to send toast messages to the renderer process
 // Defined early so it can be used by uncaughtException handler if needed,
@@ -439,16 +440,20 @@ autoUpdater.on('update-available', (info) => {
     type: 'info',
     title: '发现新版本',
     message: `发现新版本 ${info.version}。是否现在下载？`,
-    buttons: ['是', '否']
+    buttons: ['是', '否'],
+    defaultId: 0,
+    cancelId: 1
   }).then(result => {
     if (result.response === 0) { // '是' button
       log.info('User agreed to download update. Starting download...');
       if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('update-status', { status: 'download-started', version: info.version });
       }
+      isDownloadingUpdate = true; // Set flag to true when download starts
       autoUpdater.downloadUpdate();
     } else {
       log.info('User declined to download update.');
+      isDownloadingUpdate = false; // Reset flag if user declines
     }
   });
 })
@@ -467,6 +472,7 @@ autoUpdater.on('error', (err) => {
   if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-status', { status: 'error', error: err.message || String(err) });
   }
+  isDownloadingUpdate = false; // Reset flag on error
 })
 
 autoUpdater.on('download-progress', (progressObj) => {
@@ -489,6 +495,7 @@ autoUpdater.on('download-progress', (progressObj) => {
 })
 
 autoUpdater.on('update-downloaded', (info) => {
+  isDownloadingUpdate = false; // Reset flag when download is complete
   log.info('Update downloaded; will install now or on next restart.', info);
   sendToastToRenderer(`新版本 ${info.version} 已下载。重启应用以安装。`, 'success', 10000);
   if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
@@ -512,8 +519,13 @@ autoUpdater.on('update-downloaded', (info) => {
 
 // IPC handler for renderer to manually check for updates
 ipcMain.on('check-for-updates', () => {
-  log.info('Renderer requested update check.');
-  autoUpdater.checkForUpdates();
+  if (isDownloadingUpdate) {
+    log.info('Renderer requested update check, but a download is already in progress.');
+    sendToastToRenderer('更新正在下载中，请稍后...', 'info');
+  } else {
+    log.info('Renderer requested update check.');
+    autoUpdater.checkForUpdates();
+  }
 });
 
 // IPC handler for renderer to quit and install (if update is downloaded)
