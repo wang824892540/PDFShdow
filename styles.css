@@ -16,6 +16,7 @@ html {
 
 body {
   font-family: 'Microsoft YaHei', sans-serif; /* Changed to Microsoft YaHei */
+  font-size: 1rem; /* Set body font size to the root size */
   line-height: 1.6; /* Adjusted for new font and increased size */
   background-color: var(--page-bg);
   color: var(--text-color);
@@ -27,6 +28,15 @@ body {
 
 /* CSS Variables - New Theme */
 :root {
+  /* Font Size Variables */
+  --font-size-base: 1rem; /* 14px */
+  --font-size-lg: 1.14rem; /* ~16px */
+  --font-size-xl: 1.28rem; /* ~18px */
+  --font-size-xxl: 1.5rem; /* ~21px */
+  --font-size-sm: 0.93rem; /* ~13px */
+  --font-size-xs: 0.86rem; /* ~12px */
+  --font-size-xxs: 0.78rem; /* ~11px */
+
   /* Original color variables from before "flashy" theme */
   --app-bg: #ffffff; /* Main application frame background */
   --sidebar-bg-color: #f0f2f5; /* Sidebar and main content area background */
@@ -157,7 +167,7 @@ body.dark-mode {
 
 .sidebar-header h2 {
   margin: 0;
-  font-size: 1.15em; /* Increased */
+  font-size: var(--font-size-lg); /* Was 1.15em */
   font-weight: 600;
   color: var(--text-color);
   /* display: flex; and align-items: center; no longer needed for emoji */
@@ -177,6 +187,7 @@ body.dark-mode {
   border-radius: var(--border-radius-md);
   margin-bottom: 4px; /* Reduced */
   font-weight: 500;
+  font-size: var(--font-size-base); /* Ensure nav links are base size */
   transition: background-color 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), color 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
@@ -229,7 +240,7 @@ body.dark-mode {
 }
 
 .container > h2 { /* View Titles */
-  font-size: 1.5em; /* Increased */
+  font-size: var(--font-size-xxl); /* Was 1.5em */
   font-weight: 600;
   color: var(--text-color);
   margin-bottom: 20px; /* Reduced */
@@ -258,7 +269,7 @@ body.dark-mode {
 }
 
 .feature-description {
-  font-size: 0.78em; /* Smaller font size */
+  font-size: var(--font-size-xxs); /* Was 0.78em */
   color: var(--text-color-muted);
   margin-left: 15px; /* Space between title and description */
   font-weight: 400;
@@ -292,7 +303,7 @@ label {
   margin-bottom: 4px; /* Reduced */
   font-weight: bold;
   color: var(--text-color-muted); /* Muted color for labels */
-  font-size: 0.85em; /* Increased */
+  font-size: var(--font-size-xs); /* Was 0.85em */
 }
 
 /* Buttons */
@@ -301,7 +312,7 @@ button, #themeToggleBtn { /* General button reset and base style */
   border: 0.1px solid transparent;
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  font-size: 0.9em; /* Increased */
+  font-size: var(--font-size-sm); /* Was 0.9em */
   font-weight: 500; /* Less bold for general buttons */
   transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
   letter-spacing: 0.2px; /* Less spacing */
@@ -488,7 +499,7 @@ margin-bottom: 8px; /* Reduced */
 border: 0.1px solid var(--border-color-soft); /* Softer border for light mode */
 border-radius: var(--border-radius-sm); /* Sharper corners */
 box-sizing: border-box;
-font-size: 0.9em; /* Increased */
+font-size: var(--font-size-sm); /* Was 0.9em */
 background-color: var(--input-bg);
 color: var(--text-color);
 transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -516,12 +527,12 @@ select:focus {
 .error-message {
   display: none; /* Hidden by default, JS will override with display: block */
   margin-top: 5px; /* Space from the input above */
-  font-size: 0.8em; /* Increased */
+  font-size: var(--font-size-xs); /* Was 0.8em */
   color: var(--error-text-color) !important;
 }
 
 .field-hint {
-  font-size: 0.75em; /* Smaller than error message */
+  font-size: var(--font-size-xxs); /* Was 0.75em */
   color: var(--text-color-muted);
   opacity: 0.85;
   white-space: nowrap;
@@ -594,7 +605,7 @@ label > .field-hint {
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 0.85em; /* Increased */
+  font-size: var(--font-size-xs); /* Was 0.85em */
   color: var(--text-color-muted);
   pointer-events: none;
 }
@@ -610,7 +621,7 @@ label > .field-hint {
 .file-select-status-span {
   font-style: normal;
   color: var(--text-color-muted);
-  font-size: 0.85em; /* Increased */
+  font-size: var(--font-size-xs); /* Was 0.85em */
   /* margin-left is now handled by gap in the parent .field-wrapper */
   transition: color 0.3s ease;
   line-height: normal; /* Use normal line-height for better default vertical alignment with button in flex container */
@@ -649,7 +660,7 @@ body.dark-mode .file-select-status-span.file-selected-badge {
 #generateSheinLabelBtn {
   display: block;
   padding: 10px 18px; /* Reduced */
-  font-size: 0.95em; /* Increased */
+  font-size: var(--font-size-base); /* Was 0.95em */
   font-weight: 600; /* Less heavy */
   text-transform: none; /* No uppercase for modern简约 */
   letter-spacing: 0.3px; /* Less spacing */
@@ -659,7 +670,7 @@ body.dark-mode .file-select-status-span.file-selected-badge {
 #result, #sheinResult {
   margin-top: 20px; /* Reduced */
   border-radius: var(--border-radius-md);
-  font-size: 0.9em; /* Increased */
+  font-size: var(--font-size-sm); /* Was 0.9em */
   line-height: 1.7;
   border-width: 1px;
   box-shadow: var(--shadow-sm);
@@ -812,7 +823,7 @@ This should be fine for emojis.
   border: 0.1px solid #ced4da; /* Standard border color */
   border-radius: 8px; /* More rounded inputs */
   box-sizing: border-box;
-  font-size: 0.9em; /* Increased */
+  font-size: var(--font-size-sm); /* Was 0.9em */
   background-color: #ffffff;
   color: #495057;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.4s ease, color 0.4s ease;
@@ -880,7 +891,7 @@ body.dark-mode select:focus {
   right: 12px; /* Adjusted position */
   top: 50%;
   transform: translateY(-50%);
-  font-size: 0.8em; /* Increased */
+  font-size: var(--font-size-xs); /* Was 0.8em */
   color: var(--text-color-muted);
   pointer-events: none;
 }
@@ -928,7 +939,7 @@ body.dark-mode .dimension-inputs-container .input-group .unit { /* Replaced #cus
   display: none; /* Hide by default */
   margin-top: 24px; /* Reduced */
   border-radius: 8px;
-  font-size: 0.9em; /* Increased */
+  font-size: var(--font-size-sm); /* Was 0.9em */
   transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
   line-height: 1.7; /* Better readability for results */
   box-shadow: 0 4px 8px rgba(0,0,0,0.04);
@@ -971,7 +982,7 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
   padding: 0; /* Remove padding if using explicit width/height for centering */
   border-radius: 50%; /* Make it circular */
   cursor: pointer;
-  font-size: 1.4em; /* Increased */
+  font-size: var(--font-size-xl); /* Was 1.4em */
   line-height: 1; /* Ensure icon is centered in the button */
   /* z-index: 1000; Removed, may not be needed or adjust if necessary */
   width: 40px; /* Reduced */
@@ -1037,7 +1048,7 @@ body.dark-mode #result.error, body.dark-mode #sheinResult.error {
 .theme-switch-thumb .sun-icon,
 .theme-switch-thumb .moon-icon {
   position: absolute; /* Position icons on top of each other */
-  font-size: 16px; /* Adjust Emoji size */
+  font-size: 1.14rem; /* ~16px */
   line-height: 1; /* Ensure proper vertical alignment */
   transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
   /* Color will be inherited or can be set specifically if needed */
@@ -1104,7 +1115,7 @@ body.dark-mode .theme-switch-wrapper.active .moon-icon {
 
 /* Theme Notice Text */
 .theme-notice {
-  font-size: 0.75em;
+  font-size: var(--font-size-xxs); /* Was 0.75em */
   color: var(--text-color-muted);
   text-align: center;
   margin-top: 4px;
@@ -1233,7 +1244,7 @@ body.dark-mode .result-entry.error-entry {
   padding: 10px 16px; /* Reduced */
   border-radius: var(--border-radius-medium, 6px);
   color: var(--text-color-light, #fff); /* Default to light text, adjust per type */
-  font-size: 0.85em; /* Increased */
+  font-size: var(--font-size-xs); /* Was 0.85em */
   box-shadow: var(--shadow-md); /* Use consistent shadow from theme */
   opacity: 0; /* Start hidden, animation will make it visible */
   transform: translateY(15px); /* Start slightly lower for slide-in effect */
@@ -1322,7 +1333,7 @@ body.dark-mode {
   border: 0.1px solid var(--border-color-soft);
   border-radius: var(--border-radius-sm);
   color: var(--text-color);
-  font-size: 0.9em;
+  font-size: var(--font-size-sm); /* Was 0.9em */
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
@@ -1454,7 +1465,7 @@ body.dark-mode .custom-select-options { /* Firefox scrollbar dark mode */
   left: auto;
   transform: none;
   font-weight: 600;
-  font-size: 0.9em;
+  font-size: var(--font-size-sm); /* Was 0.9em */
   -webkit-app-region: drag; /* Allow dragging on text too */
   white-space: nowrap;
   overflow: hidden;
@@ -1633,7 +1644,7 @@ body {
 
 .update-notification-header h4 {
   margin: 0;
-  font-size: 0.95em;
+  font-size: var(--font-size-base); /* Was 0.95em */
   font-weight: 600;
 }
 
@@ -1642,7 +1653,7 @@ body {
   border: none;
   color: #ccc;
   cursor: pointer;
-  font-size: 1.2em;
+  font-size: var(--font-size-lg); /* Was 1.2em */
   line-height: 1;
   padding: 2px;
   transition: color 0.2s ease;
@@ -1654,7 +1665,7 @@ body {
 
 .update-notification-body p {
   margin: 0;
-  font-size: 0.85em;
+  font-size: var(--font-size-xs); /* Was 0.85em */
   color: #f0f0f0;
   line-height: 1.5;
 }
