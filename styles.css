@@ -1513,8 +1513,8 @@ body.dark-mode .custom-select-options { /* Firefox scrollbar dark mode */
 
 .title-bar-button svg {
   fill: currentColor;
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
 }
 
 .title-bar-button:hover {
