@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, clipboard, screen } = require('electron') // Added shell and clipboard, screen
+const { app, BrowserWindow, ipcMain, dialog, shell, clipboard, screen, Notification } = require('electron') // Added Notification
 const path = require('path')
 const fs = require('fs').promises; // For asynchronous file operations
 const { PDFDocument } = require('pdf-lib') // PDFDocument will be used by worker, but main might not need it directly for this handler anymore. Keep for now.
@@ -6,6 +6,7 @@ const { Worker } = require('worker_threads') // Added Worker
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 const axios = require('axios');
+const { randomUUID } = require('crypto'); // For generating client ID
 
 // Configure electron-log
 log.transports.file.level = 'info';
@@ -141,6 +142,8 @@ function createWindow() {
   mainWindow.once('ready-to-show', () => {
     // mainWindow.maximize() // Removed maximize
     mainWindow.show()
+    // 应用准备好后，开始轮询检查回复
+   startReplyPolling();
   })
 }
 
@@ -580,8 +583,19 @@ ipcMain.handle('open-official-website', async () => {
 
 // IPC handler for submitting feedback
 ipcMain.handle('submit-feedback', async (event, feedbackData) => {
+ const settings = await getSettings();
+ const clientId = settings.clientId;
+ if (!clientId) {
+   return { success: false, error: '未能获取客户端ID，无法提交反馈。' };
+ }
+
+ const payload = {
+   ...feedbackData,
+   clientId: clientId
+ };
+
  try {
-   const response = await axios.post('http://115.190.92.23/feedback', feedbackData, {
+   const response = await axios.post('http://115.190.92.23/feedback', payload, {
      headers: { 'Content-Type': 'application/json' },
      timeout: 10000 // 10 second timeout
    });
@@ -589,19 +603,14 @@ ipcMain.handle('submit-feedback', async (event, feedbackData) => {
    return { success: true, data: response.data };
  } catch (error) {
    log.error('Failed to submit feedback:', error.message);
-   // Determine a more user-friendly error message
    let errorMessage = '网络请求失败。';
    if (error.response) {
-     // The request was made and the server responded with a status code
-     // that falls out of the range of 2xx
      log.error('Feedback API Error Response:', { status: error.response.status, data: error.response.data });
      errorMessage = `服务器错误 (状态码: ${error.response.status})。`;
    } else if (error.request) {
-     // The request was made but no response was received
      log.error('Feedback API No Response:', error.request);
      errorMessage = '无法连接到反馈服务器，请检查您的网络连接。';
    } else {
-     // Something happened in setting up the request that triggered an Error
      log.error('Feedback API Setup Error:', error.message);
      errorMessage = `请求设置错误: ${error.message}`;
    }
@@ -635,3 +644,87 @@ async function reportTask(taskData) {
    });
  }
 }
+
+// --- 回复轮询和通知 ---
+let replyPollingInterval = null;
+const POLLING_INTERVAL_MS = 5 * 60 * 1000; // 5 分钟
+
+async function getSettings() {
+const filePath = getSettingsFilePath();
+try {
+  const data = await fs.readFile(filePath, 'utf8');
+  return JSON.parse(data);
+} catch (error) {
+  return {}; // Return empty object on error
+}
+}
+
+async function saveSettings(settings) {
+  const filePath = getSettingsFilePath();
+  try {
+      await fs.writeFile(filePath, JSON.stringify(settings, null, 2), 'utf8');
+      return { success: true };
+  } catch (error) {
+      console.error(`Error writing settings file ${filePath}:`, error);
+      return { success: false, error: error.message };
+  }
+}
+
+
+async function checkForReplies() {
+const settings = await getSettings();
+const clientId = settings.clientId;
+
+if (!clientId) {
+  log.info('No client ID found, skipping reply check.');
+  return;
+}
+
+log.info(`Checking for replies for client ID: ${clientId}`);
+try {
+  const response = await axios.get(`http://115.190.92.23/api/replies/${clientId}`, { timeout: 15000 });
+  const { replies } = response.data;
+
+  if (replies && replies.length > 0) {
+    log.info(`Found ${replies.length} new replies.`);
+    replies.forEach(reply => {
+      new Notification({
+        title: '您有一条新的反馈回复',
+        body: reply.reply.content,
+        silent: false
+      }).show();
+    });
+  } else {
+    log.info('No new replies found.');
+  }
+} catch (error) {
+  log.error('Failed to check for replies:', {
+      message: error.message,
+      clientId: clientId,
+      url: `http://115.190.92.23/api/replies/${clientId}`
+  });
+}
+}
+
+function startReplyPolling() {
+// 立即执行一次检查，然后设置定时器
+checkForReplies().catch(log.error);
+
+if (replyPollingInterval) {
+  clearInterval(replyPollingInterval);
+}
+replyPollingInterval = setInterval(checkForReplies, POLLING_INTERVAL_MS);
+log.info(`Reply polling started. Interval: ${POLLING_INTERVAL_MS / 1000} seconds.`);
+}
+
+// 在应用启动时，确保有一个客户端ID
+app.whenReady().then(async () => {
+  const settings = await getSettings();
+  if (!settings.clientId) {
+      settings.clientId = randomUUID();
+      await saveSettings(settings);
+      log.info(`Generated and saved new client ID: ${settings.clientId}`);
+  } else {
+      log.info(`Existing client ID found: ${settings.clientId}`);
+  }
+});

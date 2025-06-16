@@ -1,90 +1,179 @@
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
+const crypto = require('crypto');
+const cors = require('cors');
 
 const app = express();
-const port = 3000; // 您可以根据需要更改端口
+const port = 3000;
 
-// 中间件，用于解析传入的 JSON 请求体
-app.use(express.json({ limit: '10mb' })); // 设置请求体大小限制
+// --- 中间件 ---
+app.use(cors()); // 允许所有来源的跨域请求，方便管理页面开发
+app.use(express.json({ limit: '10mb' })); // 解析JSON请求体
+app.use(express.static(__dirname)); // 托管管理页面等静态文件
 
-// 中间件，用于记录每个收到的请求
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] Received ${req.method} request for ${req.url} from ${req.ip}`);
-  next();
-});
+// --- 路径和文件设置 ---
+const DB_DIR = path.join(__dirname, 'db');
+const FEEDBACK_DB_PATH = path.join(DB_DIR, 'feedback.json');
+const TASKS_LOG_PATH = path.join(DB_DIR, 'tasks.log');
 
-// 确保日志目录存在
-const logDir = path.join(__dirname, 'logs');
-const ensureLogDir = async () => {
+// --- 辅助函数 ---
+
+// 确保目录和数据库文件存在
+const initializeDatabase = async () => {
   try {
-    await fs.mkdir(logDir, { recursive: true });
-    console.log(`Log directory ensured at: ${logDir}`);
+    await fs.mkdir(DB_DIR, { recursive: true });
+    // 检查feedback.json是否存在，如果不存在则创建一个空的JSON数组文件
+    await fs.access(FEEDBACK_DB_PATH);
   } catch (error) {
-    console.error('Fatal: Could not create log directory.', error);
-    process.exit(1); // 如果无法创建日志目录，则退出
+    if (error.code === 'ENOENT') {
+      console.log('feedback.json not found, creating a new one.');
+      await fs.writeFile(FEEDBACK_DB_PATH, '[]', 'utf8');
+    } else {
+      console.error('Fatal: Could not create or access db directory.', error);
+      process.exit(1);
+    }
   }
 };
 
-// 将数据追加到日志文件的辅助函数
-const appendToFile = async (fileName, data) => {
-  const logFilePath = path.join(logDir, fileName);
-  // 为了方便解析，每条记录都是一个独立的 JSON 对象，以换行符分隔
-  const logData = JSON.stringify(data) + '\n'; 
+// 读取反馈数据库
+const readFeedbackDb = async () => {
   try {
-    await fs.appendFile(logFilePath, logData, 'utf8');
-    console.log(`Data successfully appended to ${fileName}`);
+    const data = await fs.readFile(FEEDBACK_DB_PATH, 'utf8');
+    return JSON.parse(data);
   } catch (error) {
-    console.error(`Error appending to file ${fileName}:`, error);
+    console.error('Error reading feedback DB:', error);
+    return []; // 如果出错则返回空数组
   }
 };
 
-// 处理反馈的端点
+// 写入反馈数据库
+const writeFeedbackDb = async (data) => {
+  try {
+    await fs.writeFile(FEEDBACK_DB_PATH, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error writing to feedback DB:', error);
+  }
+};
+
+// 追加到任务日志
+const appendToTaskLog = async (data) => {
+  const logData = JSON.stringify(data) + '\n';
+  try {
+    await fs.appendFile(TASKS_LOG_PATH, logData, 'utf8');
+  } catch (error) {
+    console.error('Error appending to task log:', error);
+  }
+};
+
+
+// --- API 端点 ---
+
+// [修改] 提交新反馈
 app.post('/feedback', async (req, res) => {
-  const feedbackData = req.body;
-  console.log('Received feedback content:', feedbackData);
+  const { feedback, timestamp, clientId } = req.body;
 
-  if (!feedbackData || Object.keys(feedbackData).length === 0) {
-    return res.status(400).json({ error: 'Feedback data cannot be empty.' });
+  if (!feedback || !clientId) {
+    return res.status(400).json({ error: 'Feedback content and clientId are required.' });
   }
 
-  // 构造一个更详细的日志条目
-  const logEntry = {
+  const allFeedback = await readFeedbackDb();
+  const newFeedback = {
+    id: crypto.randomUUID(),
+    clientId,
+    feedback,
+    timestamp: timestamp || new Date().toISOString(),
+    status: 'new', // 'new' 或 'replied'
+    reply: null,
     receivedAt: new Date().toISOString(),
-    sourceIp: req.ip,
-    headers: req.headers,
-    body: feedbackData
+    sourceIp: req.ip
   };
 
-  await appendToFile('feedback.log', logEntry);
+  allFeedback.unshift(newFeedback); // 将新的反馈放在最前面
+  await writeFeedbackDb(allFeedback);
 
-  res.status(200).json({ message: 'Feedback received successfully.' });
+  res.status(201).json({ message: 'Feedback received successfully.', feedback: newFeedback });
 });
 
-// 处理任务报告的端点
+// [修改] 记录任务报告 (路径不变，逻辑微调)
 app.post('/task', async (req, res) => {
   const taskData = req.body;
-  console.log('Received task report content:', taskData);
-
   if (!taskData || Object.keys(taskData).length === 0) {
     return res.status(400).json({ error: 'Task data cannot be empty.' });
   }
-
-  // 构造一个更详细的日志条目
   const logEntry = {
     receivedAt: new Date().toISOString(),
     sourceIp: req.ip,
-    headers: req.headers,
     body: taskData
   };
-
-  await appendToFile('tasks.log', logEntry);
-
+  await appendToTaskLog(logEntry);
   res.status(200).json({ message: 'Task report received successfully.' });
 });
 
-// 启动服务器
+
+// [新增] 获取所有反馈 (供管理页面使用)
+app.get('/api/feedback', async (req, res) => {
+  const allFeedback = await readFeedbackDb();
+  res.status(200).json(allFeedback);
+});
+
+// [新增] 回复一条反馈 (供管理页面使用)
+app.post('/api/feedback/:id/reply', async (req, res) => {
+  const { id } = req.params;
+  const { reply } = req.body;
+
+  if (!reply) {
+    return res.status(400).json({ error: 'Reply content cannot be empty.' });
+  }
+
+  const allFeedback = await readFeedbackDb();
+  const feedbackIndex = allFeedback.findIndex(fb => fb.id === id);
+
+  if (feedbackIndex === -1) {
+    return res.status(404).json({ error: 'Feedback not found.' });
+  }
+
+  allFeedback[feedbackIndex].reply = {
+    content: reply,
+    repliedAt: new Date().toISOString()
+  };
+  allFeedback[feedbackIndex].status = 'replied';
+
+  await writeFeedbackDb(allFeedback);
+
+  res.status(200).json({ message: 'Reply added successfully.', feedback: allFeedback[feedbackIndex] });
+});
+
+// [新增] 检查特定用户的回复
+app.get('/api/replies/:clientId', async (req, res) => {
+    const { clientId } = req.params;
+    const allFeedback = await readFeedbackDb();
+
+    const repliesForClient = allFeedback.filter(fb => 
+        fb.clientId === clientId && 
+        fb.status === 'replied' && 
+        !fb.reply.acknowledged // 新增一个字段来标记回复是否已被客户端确认
+    );
+
+    if (repliesForClient.length > 0) {
+        // 找到回复后，立即更新它们的确认状态，以防止重复发送
+        const updatedFeedback = allFeedback.map(fb => {
+            if (fb.clientId === clientId && fb.status === 'replied' && !fb.reply.acknowledged) {
+                fb.reply.acknowledged = true; // 标记为已确认
+                fb.reply.acknowledgedAt = new Date().toISOString();
+            }
+            return fb;
+        });
+        await writeFeedbackDb(updatedFeedback);
+    }
+
+    res.status(200).json({ replies: repliesForClient });
+});
+
+
+// --- 启动服务器 ---
 app.listen(port, async () => {
-  await ensureLogDir(); // 在服务器启动前确保日志目录存在
+  await initializeDatabase();
   console.log(`Backend server listening at http://localhost:${port}`);
+  console.log(`Admin panel might be available at http://localhost:${port}/admin.html`);
 });

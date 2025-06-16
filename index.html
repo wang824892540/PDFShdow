@@ -2328,7 +2328,7 @@
           });
 
           if (result.success) {
-            showToast((currentTranslations['feedback.success'] || '反馈已成功提交，感谢！'), 'success');
+           showToast((currentTranslations['feedback.successWithReplyInfo'] || '反馈已成功提交！如有回复，您将会收到桌面通知。'), 'success', 5000); // Show for 5 seconds
             feedbackTextEl.value = '';
           } else {
             showToast(`${(currentTranslations['feedback.submitFailed'] || '提交失败:')} ${result.error}`, 'error');
