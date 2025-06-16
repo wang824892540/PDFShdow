@@ -583,7 +583,7 @@ ipcMain.handle('submit-feedback', async (event, feedbackData) => {
  try {
    const response = await axios.post('http://115.190.92.23/feedback', feedbackData, {
      headers: { 'Content-Type': 'application/json' },
-     timeout: 10000 // 10 second timeout
+     timeout: 10000
    });
    log.info('Feedback submitted successfully:', response.data);
    return { success: true, data: response.data };
@@ -624,7 +624,7 @@ async function reportTask(taskData) {
  try {
    const response = await axios.post('http://115.190.92.23/task', reportPayload, {
      headers: { 'Content-Type': 'application/json' },
-     timeout: 15000 // 15 second timeout for reporting
+     timeout: 15000
    });
    log.info(`Task reported successfully: ${taskData.taskType}`, { response: response.data });
  } catch (error) {

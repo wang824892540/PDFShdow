@@ -27,7 +27,7 @@ npm install
 node server.js
 ```
 
-您应该会看到输出 `Backend server listening at http://localhost:3000`。
+您应该会看到输出 `Backend server listening at http://115.190.92.23`。
 
 **方法二：使用 `pm2` (推荐用于生产环境)**
 
@@ -67,7 +67,7 @@ server {
 
     # 将 /feedback 的请求转发到 Node.js 后端服务
     location /feedback {
-        proxy_pass http://localhost:3000; # 转发到后端服务地址
+        proxy_pass http://115.190.92.23; # 转发到后端服务地址
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -76,7 +76,7 @@ server {
 
     # 将 /task 的请求转发到 Node.js 后端服务
     location /task {
-        proxy_pass http://localhost:3000; # 同样转发到后端服务地址
+        proxy_pass http://115.190.92.23; # 同样转发到后端服务地址
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -91,8 +91,8 @@ server {
 ```
 
 **重要提示：**
-*   请将 `server_name` 从 `localhost` 改为您的服务器公网 IP `115.190.92.23` 或您的域名。
-*   `proxy_pass http://localhost:3000;` 这一行告诉 Nginx 将匹配到的请求发送给在本机 3000 端口上运行的服务。
+*   请将 `server_name` 从 `115.190.92.23` 改为您的服务器公网 IP `115.190.92.23` 或您的域名。
+*   `proxy_pass http://115.190.92.23;` 这一行告诉 Nginx 将匹配到的请求发送给在本机 3000 端口上运行的服务。
 *   `proxy_set_header` 这些行是为了将原始的请求信息（如客户端的真实IP地址）传递给后端服务，这对于记录详细日志非常重要。
 
 ### 5. 重启 Nginx
