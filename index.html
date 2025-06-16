@@ -10,9 +10,17 @@
     <div class="title-bar-drag-region"></div>
     <div class="title-bar-text" style="display: flex; align-items: center;"><img width="30px" height="30px" src="static/pdfShdow.png" style="margin-right: 8px;">PDFShdow</div>
     <div class="title-bar-controls">
-      <button id="devToolsBtn" class="title-bar-button" aria-label="开发者工具" title="开发者工具">
+      <div id="themeToggleSwitch" class="theme-switch-wrapper" title="切换主题">
+        <div class="theme-switch-track">
+          <div class="theme-switch-thumb">
+            <span class="sun-icon">☀️</span>
+            <span class="moon-icon">🌙</span>
+          </div>
+        </div>
+      </div>
+      <!-- <button id="devToolsBtn" class="title-bar-button" aria-label="开发者工具" title="开发者工具">
         <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 5,0 5,2 7,2 7,4 5,4 5,6 3,6 3,4 1,4 1,2 3,2 3,0 Z M 1,7 1,9 3,9 3,7 Z M 5,7 5,9 7,9 7,7 Z" /></svg>
-      </button>
+      </button> -->
       <button id="websit" class="title-bar-button" onclick="electronAPI.openOfficialWebsite().catch(err => console.error(err))" aria-label="官方网站" title="官方网站">
             官方网站
           </button>
@@ -47,16 +55,10 @@
           <li><a href="#" class="nav-link" data-view="pdfResizeView">PDF 尺寸调整</a></li>
         </ul>
       </nav>
-      <div id="themeToggleSwitch" class="theme-switch-wrapper" title="切换主题">
-        <div class="theme-switch-track">
-          <div class="theme-switch-thumb">
-            <span class="sun-icon">☀️</span>
-            <span class="moon-icon">🌙</span>
-          </div>
-        </div>
+      <div class="sidebar-footer">
+        <div class="theme-notice">版本号: 0.0.1</div>
+        <div class="theme-notice">仅供学习交流使用，不可商用</div>
       </div>
-      <div class="theme-notice">版本号: 0.0.1</div>
-      <div class="theme-notice">仅供学习交流使用，不可商用</div>
     </aside>
 
     <main class="main-content">
@@ -87,7 +89,6 @@
             <div class="custom-select-wrapper">
               <select id="pageSize" style="display:none;">
                 <option value="A4">A4 (210x297mm)</option>
-                <option value="Letter">Letter (215.9x279.4mm)</option>
                 <option value="Shein" selected>Shein (70x60mm)</option>
                 <option value="custom">自定义</option>
               </select>
@@ -166,7 +167,6 @@
             <div class="custom-select-wrapper">
               <select id="sheinOutputPageSize" style="display:none;">
                 <option value="A4">A4 (210x297mm)</option>
-                <option value="Letter">Letter (215.9x279.4mm)</option>
                 <option value="Shein" selected>Shein (70x60mm)</option>
                 <option value="custom">自定义</option>
               </select>
