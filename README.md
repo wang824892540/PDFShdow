@@ -1,4 +1,4 @@
-# PDF Tool
+# PDF Shdow
 
 This is an Electron-based desktop application that provides a set of tools for processing PDF files.
 
