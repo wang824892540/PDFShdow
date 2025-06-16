@@ -11,7 +11,7 @@
   "navigation": "功能导航",
   "sheinLabelGenerator": "Shein 标签生成",
   "pdfResizer": "PDF 尺寸调整",
-  "version": "版本号: {version}",
+  "version": "版本号: 0.0.1",
   "disclaimer": "仅供学习交流使用，不可商用",
   "pdfResizerDescription": "调整所选 PDF 文件的页面尺寸，支持预设尺寸和自定义尺寸。",
   "selectPdfFile": "选择 PDF 文件",

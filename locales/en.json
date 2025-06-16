@@ -11,7 +11,7 @@
   "navigation": "Navigation",
   "sheinLabelGenerator": "Shein Label Generator",
   "pdfResizer": "PDF Resizer",
-  "version": "Version: {version}",
+  "version": "Version: 0.0.1",
   "disclaimer": "For learning and communication purposes only, not for commercial use.",
   "pdfResizerDescription": "Resize pages of selected PDF files, supporting preset and custom sizes.",
   "selectPdfFile": "Select PDF File",
