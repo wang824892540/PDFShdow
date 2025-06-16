@@ -5,6 +5,7 @@ const { PDFDocument } = require('pdf-lib') // PDFDocument will be used by worker
 const { Worker } = require('worker_threads') // Added Worker
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
+const axios = require('axios');
 
 // Configure electron-log
 log.transports.file.level = 'info';
@@ -195,6 +196,19 @@ ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName }) =>
           result.outputPageCount = null;
           result.metadataError = metadata.error; // Optionally pass this info
         }
+        // After a successful operation, report the task asynchronously
+        if (result.success) {
+         reportTask({
+           taskType: 'PDF_RESIZE',
+           status: 'success',
+           originalFilePath: filePath,
+           outputFilePath: result.path,
+           details: {
+             operations,
+             outputName
+           }
+         });
+       }
       }
       resolve(result);
     });
@@ -250,6 +264,20 @@ ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputNam
           result.outputPageCount = null;
           result.metadataError = metadata.error;
         }
+        // After a successful operation, report the task asynchronously
+        if (result.success) {
+         reportTask({
+           taskType: 'SHEIN_LABEL_GENERATION',
+           status: 'success',
+           originalFilePaths: { pdf1Path, pdf2Path },
+           outputFilePath: result.path,
+           details: {
+             outputName,
+             outputWidthMM,
+             outputHeightMM
+           }
+         });
+       }
       }
       resolve(result);
     });
@@ -549,3 +577,61 @@ ipcMain.handle('open-official-website', async () => {
     return { success: false, error: `打开官方网站失败: ${error.message}` }
   }
 })
+
+// IPC handler for submitting feedback
+ipcMain.handle('submit-feedback', async (event, feedbackData) => {
+ try {
+   const response = await axios.post('http://115.190.92.23/feedback', feedbackData, {
+     headers: { 'Content-Type': 'application/json' },
+     timeout: 10000 // 10 second timeout
+   });
+   log.info('Feedback submitted successfully:', response.data);
+   return { success: true, data: response.data };
+ } catch (error) {
+   log.error('Failed to submit feedback:', error.message);
+   // Determine a more user-friendly error message
+   let errorMessage = '网络请求失败。';
+   if (error.response) {
+     // The request was made and the server responded with a status code
+     // that falls out of the range of 2xx
+     log.error('Feedback API Error Response:', { status: error.response.status, data: error.response.data });
+     errorMessage = `服务器错误 (状态码: ${error.response.status})。`;
+   } else if (error.request) {
+     // The request was made but no response was received
+     log.error('Feedback API No Response:', error.request);
+     errorMessage = '无法连接到反馈服务器，请检查您的网络连接。';
+   } else {
+     // Something happened in setting up the request that triggered an Error
+     log.error('Feedback API Setup Error:', error.message);
+     errorMessage = `请求设置错误: ${error.message}`;
+   }
+   return { success: false, error: errorMessage };
+ }
+});
+
+// --- Task Reporting Helper ---
+/**
+* Asynchronously reports a completed task to the backend.
+* Logs success or failure, does not show toasts or block execution.
+* @param {object} taskData - The data about the task to report.
+*/
+async function reportTask(taskData) {
+ const reportPayload = {
+   ...taskData,
+   reportTimestamp: new Date().toISOString()
+ };
+
+ try {
+   const response = await axios.post('http://115.190.92.23/task', reportPayload, {
+     headers: { 'Content-Type': 'application/json' },
+     timeout: 15000 // 15 second timeout for reporting
+   });
+   log.info(`Task reported successfully: ${taskData.taskType}`, { response: response.data });
+ } catch (error) {
+   log.error(`Failed to report task: ${taskData.taskType}`, {
+     message: error.message,
+     responseData: error.response ? error.response.data : 'No response data',
+     requestPayload: reportPayload // Log the payload that failed
+   });
+ }
+}

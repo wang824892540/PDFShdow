@@ -108,5 +108,13 @@
   "errorInvalidHeight": "Height must be a valid positive number.",
   "toast.pdfResizeFormCleared": "PDF Resizer form has been cleared",
   "toast.sheinFormCleared": "Shein Label Generator form has been cleared",
-  "clientError": "Client Error: "
+  "clientError": "Client Error: ",
+ "feedback.title": "Feedback",
+ "feedback.placeholder": "Please enter your feedback here...",
+ "feedback.submit": "Submit Feedback",
+ "feedback.submitting": "Submitting...",
+ "feedback.success": "Feedback submitted successfully, thank you!",
+ "feedback.submitFailed": "Submission failed:",
+ "feedback.submitError": "Submission error:",
+ "feedback.cannotBeEmpty": "Feedback content cannot be empty."
 }

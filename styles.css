@@ -213,6 +213,46 @@ body.dark-mode {
   padding-top: 10px; /* Add some space above the footer content */
 }
 
+.feedback-section {
+ margin-top: 20px;
+ padding-top: 15px;
+ border-top: 1px solid var(--border-color-soft);
+}
+
+.feedback-section h4 {
+ font-size: var(--font-size-sm);
+ color: var(--text-color-muted);
+ margin-bottom: 8px;
+ font-weight: 600;
+}
+
+.feedback-textarea {
+ width: 100%;
+ min-height: 80px;
+ padding: 8px;
+ border-radius: var(--border-radius-sm);
+ border: 1px solid var(--border-color-soft);
+ background-color: var(--input-bg);
+ color: var(--text-color);
+ font-family: inherit;
+ font-size: var(--font-size-xs);
+ resize: vertical;
+ margin-bottom: 8px;
+ transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feedback-textarea:focus {
+ outline: none;
+ border-color: var(--primary-color);
+ box-shadow: 0 0 0 2px var(--input-focus-ring);
+}
+
+#submitFeedbackBtn {
+ width: 100%;
+ padding: 8px;
+ font-size: var(--font-size-sm);
+}
+
 .main-content {
   border: 0.1px solid var(--sidebar-bg-color);
   border-radius: 10px 0 0 0;

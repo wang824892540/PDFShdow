@@ -70,6 +70,11 @@
         </div>
         <div class="theme-notice" data-i18n="version" data-i18n-options='{"version": "0.0.1"}'>版本号: 0.0.1</div>
         <div class="theme-notice" data-i18n="disclaimer">仅供学习交流使用，不可商用</div>
+        <div class="feedback-section">
+          <h4 data-i18n="feedback.title">问题反馈</h4>
+          <textarea id="feedbackText" class="feedback-textarea" data-i18n-placeholder="feedback.placeholder" placeholder="请在此输入您的反馈..."></textarea>
+          <button id="submitFeedbackBtn" class="btn-primary" data-i18n="feedback.submit">提交反馈</button>
+        </div>
       </div>
     </aside>
 
@@ -2300,9 +2305,48 @@
 
     }
 
-    loadAndApplySettings(); // Call the main function to load settings
+    // --- Feedback Submission ---
+    const submitFeedbackBtn = document.getElementById('submitFeedbackBtn');
+    if (submitFeedbackBtn) {
+      submitFeedbackBtn.addEventListener('click', async () => {
+        const feedbackTextEl = document.getElementById('feedbackText');
+        const feedbackText = feedbackTextEl.value.trim();
+        if (!feedbackText) {
+          showToast((currentTranslations['feedback.cannotBeEmpty'] || '反馈内容不能为空。'), 'warning');
+          return;
+        }
+        
+        const originalButtonText = submitFeedbackBtn.textContent;
+        submitFeedbackBtn.disabled = true;
+        submitFeedbackBtn.textContent = (currentTranslations['feedback.submitting'] || '正在提交...');
 
-  })
+        try {
+          // We can use the electronAPI to make the request to bypass CORS issues in renderer.
+          const result = await window.electronAPI.submitFeedback({
+            feedback: feedbackText,
+            timestamp: new Date().toISOString()
+          });
+
+          if (result.success) {
+            showToast((currentTranslations['feedback.success'] || '反馈已成功提交，感谢！'), 'success');
+            feedbackTextEl.value = '';
+          } else {
+            showToast(`${(currentTranslations['feedback.submitFailed'] || '提交失败:')} ${result.error}`, 'error');
+          }
+        } catch (error) {
+          showToast(`${(currentTranslations['feedback.submitError'] || '提交出错:')} ${error.message}`, 'error');
+        } finally {
+          submitFeedbackBtn.disabled = false;
+          // We need to re-translate the button text in case the language changed while submitting.
+          const submitKey = 'feedback.submit';
+          submitFeedbackBtn.textContent = currentTranslations[submitKey] || '提交反馈';
+        }
+      });
+    }
+
+    loadAndApplySettings(); // Call the main function to load settings
+ 
+   })
 </script>
 
 <!-- Toast Notification Container -->
