@@ -3,295 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDFShadow - 管理后台</title>
+    <title>反馈管理面板</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; margin: 0; background-color: #f4f7f9; color: #333; }
-        #app { display: flex; }
-        .sidebar { width: 220px; background-color: #2c3e50; color: white; height: 100vh; padding: 20px; box-sizing: border-box; position: fixed; }
-        .sidebar h1 { font-size: 1.5em; margin: 0 0 30px; }
-        .sidebar ul { list-style: none; padding: 0; margin: 0; }
-        .sidebar li a { display: block; color: #bdc3c7; text-decoration: none; padding: 12px 15px; border-radius: 4px; margin-bottom: 8px; transition: background-color 0.3s, color 0.3s; }
-        .sidebar li a:hover, .sidebar li a.active { background-color: #3498db; color: white; }
-        .main-content { margin-left: 220px; flex-grow: 1; padding: 30px; }
-        .view { display: none; }
-        .view.active { display: block; }
-        .card { background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-        .stat-item { text-align: center; }
-        .stat-item h3 { margin: 0 0 10px; color: #7f8c8d; font-size: 1em; text-transform: uppercase; }
-        .stat-item p { margin: 0; font-size: 2.5em; font-weight: bold; color: #2c3e50; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border-bottom: 1px solid #ecf0f1; text-align: left; }
-        th { background-color: #ecf0f1; }
-        .feedback-item { border: 1px solid #e0e0e0; border-radius: 5px; margin-bottom: 15px; }
-        .feedback-header { background-color: #f9f9f9; padding: 10px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
-        .feedback-body { padding: 15px; }
-        .feedback-reply { background-color: #f1f8ff; border-top: 1px dashed #c0d9f0; padding: 15px; margin-top: 10px; }
-        .reply-form textarea { width: 100%; min-height: 60px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-top: 10px; }
-        .btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
-        .btn-primary { background-color: #3498db; color: white; }
-        .btn-danger { background-color: #e74c3c; color: white; }
-        .btn-secondary { background-color: #95a5a6; color: white; }
-        .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.8em; color: white; }
-        .status-new { background-color: #f39c12; }
-        .status-replied { background-color: #2ecc71; }
-        .status-acknowledged { background-color: #95a5a6; }
-        .user-id { font-family: monospace; font-size: 0.9em; color: #7f8c8d; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        #app { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #444; }
+        .feedback-item { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px; transition: box-shadow 0.3s ease; }
+        .feedback-item:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .feedback-header { font-size: 0.8em; color: #777; margin-bottom: 10px; }
+        .feedback-header span { margin-right: 15px; }
+        .feedback-content { margin-bottom: 15px; white-space: pre-wrap; }
+        .status-new { color: #007bff; font-weight: bold; }
+        .status-replied { color: #28a745; font-weight: bold; }
+        .reply-section { margin-top: 10px; }
+        textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; min-height: 60px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; transition: background-color 0.3s ease; }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .replied-text { background-color: #e9f7ef; border-left: 3px solid #28a745; padding: 10px; margin-top: 10px; border-radius: 4px; }
+        .loading, .error { text-align: center; padding: 20px; font-size: 1.2em; color: #777; }
     </style>
 </head>
 <body>
-    <div id="app">
-        <aside class="sidebar">
-            <h1>管理后台</h1>
-            <nav>
-                <ul>
-                    <li><a href="#" @click.prevent="setView('dashboard')" :class="{ active: currentView === 'dashboard' }">仪表盘</a></li>
-                    <li><a href="#" @click.prevent="setView('users')" :class="{ active: currentView === 'users' }">用户管理</a></li>
-                    <li><a href="#" @click.prevent="setView('feedback')" :class="{ active: currentView === 'feedback' }">反馈管理</a></li>
-                </ul>
-            </nav>
-        </aside>
 
-        <main class="main-content">
-            <!-- 仪表盘视图 -->
-            <div id="dashboard-view" class="view" :class="{ active: currentView === 'dashboard' }">
-                <h2>仪表盘</h2>
-                <div class="card stats-grid">
-                    <div class="stat-item">
-                        <h3>总用户数</h3>
-                        <p>{{ stats.totalUsers || 0 }}</p>
-                    </div>
-                    <div class="stat-item">
-                        <h3>已封禁用户</h3>
-                        <p>{{ stats.bannedUsers || 0 }}</p>
-                    </div>
-                    <div class="stat-item">
-                        <h3>总事件数</h3>
-                        <p>{{ stats.totalEvents || 0 }}</p>
-                    </div>
-                    <div class="stat-item">
-                        <h3>总反馈数</h3>
-                        <p>{{ stats.totalFeedback || 0 }}</p>
-                    </div>
-                     <div class="stat-item">
-                        <h3>待处理反馈</h3>
-                        <p>{{ stats.newFeedback || 0 }}</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <h3>功能使用统计</h3>
-                    <canvas id="featureUsageChart"></canvas>
-                </div>
+<div id="app">
+    <h1>反馈管理面板</h1>
+
+    <div v-if="loading" class="loading">正在加载反馈...</div>
+    <div v-if="error" class="error">{{ error }}</div>
+
+    <div v-if="!loading && !error">
+        <div v-for="item in feedback" :key="item.id" class="feedback-item">
+            <div class="feedback-header">
+                <span><strong>ID:</strong> {{ item.id.substring(0, 8) }}</span>
+                <span><strong>时间:</strong> {{ new Date(item.timestamp).toLocaleString() }}</span>
+                <span><strong>状态:</strong> <span :class="'status-' + item.status">{{ item.status === 'new' ? '新反馈' : '已回复' }}</span></span>
+                <span><strong>客户端ID:</strong> {{ item.clientId.substring(0, 8) }}...</span>
+            </div>
+            <div class="feedback-content">
+                <p>{{ item.feedback }}</p>
             </div>
 
-            <!-- 用户管理视图 -->
-            <div id="users-view" class="view" :class="{ active: currentView === 'users' }">
-                <h2>用户管理</h2>
-                <div class="card">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>客户端 ID</th>
-                                <th>首次访问</th>
-                                <th>最近访问</th>
-                                <th>反馈数</th>
-                                <th>状态</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="user in users" :key="user.clientId">
-                                <td class="user-id">{{ user.clientId }}</td>
-                                <td>{{ formatTime(user.firstSeen) }}</td>
-                                <td>{{ formatTime(user.lastSeen) }}</td>
-                                <td>{{ user.feedbackCount || 0 }}</td>
-                                <td>
-                                    <span v-if="user.isBanned" class="status-badge btn-danger">已封禁</span>
-                                    <span v-else class="status-badge btn-secondary">正常</span>
-                                </td>
-                                <td>
-                                    <button v-if="!user.isBanned" @click="toggleBan(user.clientId, true)" class="btn btn-danger">封禁</button>
-                                    <button v-else @click="toggleBan(user.clientId, false)" class="btn btn-secondary">解封</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="reply-section">
+                <div v-if="item.reply" class="replied-text">
+                    <strong>您的回复 ({{ new Date(item.reply.repliedAt).toLocaleString() }}):</strong>
+                    <p>{{ item.reply.content }}</p>
+                </div>
+                <div v-else>
+                    <textarea v-model="item.replyText" placeholder="在此输入您的回复..."></textarea>
+                    <button @click="submitReply(item)" :disabled="!item.replyText">提交回复</button>
                 </div>
             </div>
-
-            <!-- 反馈管理视图 -->
-            <div id="feedback-view" class="view" :class="{ active: currentView === 'feedback' }">
-                <h2>反馈管理</h2>
-                <div v-for="item in feedback" :key="item.id" class="card feedback-item">
-                    <div class="feedback-header">
-                        <div>
-                            <strong>客户端ID:</strong> <span class="user-id">{{ item.clientId }}</span>
-                        </div>
-                        <div>
-                            <span :class="['status-badge', 'status-' + item.status]">{{ item.status }}</span>
-                            <span style="margin-left: 15px;">{{ formatTime(item.timestamp) }}</span>
-                        </div>
-                    </div>
-                    <div class="feedback-body">
-                        <p>{{ item.feedback }}</p>
-                        <div v-if="item.reply" class="feedback-reply">
-                            <strong>回复于 {{ formatTime(item.reply.repliedAt) }}:</strong>
-                            <p>{{ item.reply.content }}</p>
-                        </div>
-                        <div class="reply-form" v-if="item.status !== 'replied' && item.status !== 'acknowledged'">
-                            <textarea v-model="item.replyText" placeholder="在此输入回复..."></textarea>
-                            <button @click="submitReply(item)" class="btn btn-primary" style="margin-top: 10px;">提交回复</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
+        </div>
     </div>
+</div>
 
-    <script>
-        const { createApp } = Vue;
+<script>
+    const { createApp } = Vue;
 
-        createApp({
-            data() {
-                return {
-                    currentView: 'dashboard',
-                    stats: {},
-                    users: [],
-                    feedback: [],
-                    featureUsageChart: null,
-                    apiBaseUrl: 'http://115.190.92.23' // 你的服务器地址
-                };
-            },
-            methods: {
-                async setView(view) {
-                    this.currentView = view;
-                    if (view === 'dashboard') {
-                        await this.fetchDashboardStats();
-                    } else if (view === 'users') {
-                        await this.fetchUsers();
-                    } else if (view === 'feedback') {
-                        await this.fetchFeedback();
+    createApp({
+        data() {
+            return {
+                feedback: [],
+                loading: true,
+                error: null,
+                apiUrl: '' // API URL will be set on mount
+            };
+        },
+        methods: {
+            async fetchFeedback() {
+                this.loading = true;
+                this.error = null;
+                try {
+                    const response = await fetch(`${this.apiUrl}/api/feedback`);
+                    if (!response.ok) {
+                        throw new Error(`服务器错误: ${response.statusText}`);
                     }
-                },
-                async fetchDashboardStats() {
-                    try {
-                        const response = await fetch(`${this.apiBaseUrl}/api/dashboard-stats`);
-                        this.stats = await response.json();
-                        this.renderChart();
-                    } catch (error) {
-                        console.error('Error fetching dashboard stats:', error);
-                        alert('无法加载仪表盘数据。');
-                    }
-                },
-                async fetchUsers() {
-                    try {
-                        const response = await fetch(`${this.apiBaseUrl}/api/users`);
-                        this.users = await response.json();
-                    } catch (error) {
-                        console.error('Error fetching users:', error);
-                        alert('无法加载用户列表。');
-                    }
-                },
-                async fetchFeedback() {
-                    try {
-                        const response = await fetch(`${this.apiBaseUrl}/api/feedback`);
-                        this.feedback = (await response.json()).map(fb => ({ ...fb, replyText: '' }));
-                    } catch (error) {
-                        console.error('Error fetching feedback:', error);
-                        alert('无法加载反馈列表。');
-                    }
-                },
-                async toggleBan(clientId, ban) {
-                    if (!confirm(`确定要${ban ? '封禁' : '解封'}此用户吗？`)) return;
-                    try {
-                        const response = await fetch(`${this.apiBaseUrl}/api/users/${clientId}/ban`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ban })
-                        });
-                        if (!response.ok) throw new Error('操作失败');
-                        const updatedUser = await response.json();
-                        const index = this.users.findIndex(u => u.clientId === clientId);
-                        if (index !== -1) {
-                            this.users[index].isBanned = updatedUser.user.isBanned;
-                        }
-                        alert(`用户已成功${ban ? '封禁' : '解封'}`);
-                    } catch (error) {
-                        console.error('Error toggling ban status:', error);
-                        alert('操作失败，请检查控制台日志。');
-                    }
-                },
-                async submitReply(feedbackItem) {
-                    if (!feedbackItem.replyText.trim()) {
-                        alert('回复内容不能为空。');
-                        return;
-                    }
-                    try {
-                        const response = await fetch(`${this.apiBaseUrl}/api/feedback/${feedbackItem.id}/reply`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ reply: feedbackItem.replyText })
-                        });
-                        if (!response.ok) throw new Error('回复失败');
-                        const updatedFeedback = await response.json();
-                        const index = this.feedback.findIndex(fb => fb.id === feedbackItem.id);
-                        if (index !== -1) {
-                            this.feedback[index] = { ...updatedFeedback.feedback, replyText: '' };
-                        }
-                        alert('回复成功！');
-                    } catch (error) {
-                        console.error('Error submitting reply:', error);
-                        alert('回复失败，请检查控制台日志。');
-                    }
-                },
-                formatTime(isoString) {
-                    if (!isoString) return 'N/A';
-                    return new Date(isoString).toLocaleString('zh-CN', {
-                        year: 'numeric', month: '2-digit', day: '2-digit',
-                        hour: '2-digit', minute: '2-digit'
-                    });
-                },
-                renderChart() {
-                    const ctx = document.getElementById('featureUsageChart').getContext('2d');
-                    const labels = Object.keys(this.stats.featureUsage || {});
-                    const data = Object.values(this.stats.featureUsage || {});
-
-                    if (this.featureUsageChart) {
-                        this.featureUsageChart.destroy();
-                    }
-
-                    this.featureUsageChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: '功能使用次数',
-                                data: data,
-                                backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                                borderColor: 'rgba(52, 152, 219, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 1
-                                    }
-                                }
-                            }
-                        }
-                    });
+                    const data = await response.json();
+                    this.feedback = data.map(item => ({ ...item, replyText: '' }));
+                } catch (e) {
+                    this.error = `无法加载反馈数据: ${e.message}`;
+                    console.error(e);
+                } finally {
+                    this.loading = false;
                 }
             },
-            async mounted() {
-                await this.setView('dashboard');
+            async submitReply(item) {
+                if (!item.replyText.trim()) return;
+                
+                try {
+                    const response = await fetch(`${this.apiUrl}/api/feedback/${item.id}/reply`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ reply: item.replyText }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('回复失败');
+                    }
+                    
+                    // 刷新数据以显示回复
+                    await this.fetchFeedback();
+
+                } catch (e) {
+                    alert(`提交回复时出错: ${e.message}`);
+                    console.error(e);
+                }
             }
-        }).mount('#app');
-    </script>
+        },
+        mounted() {
+            // 动态设置API URL，使其在本地和服务器上都能工作
+            this.apiUrl = `${window.location.protocol}//${window.location.hostname}:${window.location.port || (window.location.protocol === 'https' ? 443 : 80)}`;
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                this.apiUrl = 'http://localhost:3000'; // 本地开发时强制使用3000端口
+            }
+            this.fetchFeedback();
+        }
+    }).mount('#app');
+</script>
+
 </body>
 </html>
