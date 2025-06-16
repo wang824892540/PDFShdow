@@ -114,7 +114,6 @@
  "feedback.submit": "提交反馈",
  "feedback.submitting": "正在提交...",
  "feedback.success": "反馈已成功提交，感谢！",
- "feedback.successWithReplyInfo": "反馈已成功提交！如有回复，您将会收到桌面通知。",
  "feedback.submitFailed": "提交失败:",
  "feedback.submitError": "提交出错:",
  "feedback.cannotBeEmpty": "反馈内容不能为空。"

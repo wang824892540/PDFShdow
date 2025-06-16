@@ -114,7 +114,6 @@
  "feedback.submit": "Submit Feedback",
  "feedback.submitting": "Submitting...",
  "feedback.success": "Feedback submitted successfully, thank you!",
- "feedback.successWithReplyInfo": "Feedback submitted successfully! If there is a reply, you will receive a desktop notification.",
  "feedback.submitFailed": "Submission failed:",
  "feedback.submitError": "Submission error:",
  "feedback.cannotBeEmpty": "Feedback content cannot be empty."
