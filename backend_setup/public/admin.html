@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后端统计</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <h1>后端统计数据</h1>
+
+    <div class="container">
+        <h2>总体统计</h2>
+        <div id="stats">
+            <p>反馈总数: <span id="feedback-count">加载中...</span></p>
+            <p>任务报告总数: <span id="task-count">加载中...</span></p>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>反馈详情</h2>
+        <div id="feedback-list">
+            <p>加载中...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 获取统计数据
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('feedback-count').textContent = data.feedbackCount;
+                    document.getElementById('task-count').textContent = data.taskCount;
+                })
+                .catch(error => {
+                    console.error('获取统计数据失败:', error);
+                    document.getElementById('stats').innerHTML = '<p>无法加载统计数据。</p>';
+                });
+
+            // 获取反馈列表
+            fetch('/api/feedback')
+                .then(response => response.json())
+                .then(data => {
+                    const feedbackList = document.getElementById('feedback-list');
+                    if (data.length === 0) {
+                        feedbackList.innerHTML = '<p>暂无反馈。</p>';
+                        return;
+                    }
+                    
+                    const list = data.map(item => {
+                        const bodyContent = JSON.stringify(item.body, null, 2);
+                        return `
+                            <div class="feedback-item">
+                                <p><strong>时间:</strong> ${new Date(item.receivedAt).toLocaleString()}</p>
+                                <p><strong>IP:</strong> ${item.sourceIp}</p>
+                                <pre><code>${bodyContent}</code></pre>
+                            </div>
+                        `;
+                    }).join('');
+                    feedbackList.innerHTML = list;
+                })
+                .catch(error => {
+                    console.error('获取反馈列表失败:', error);
+                    document.getElementById('feedback-list').innerHTML = '<p>无法加载反馈列表。</p>';
+                });
+        });
+    </script>
+</body>
+</html>

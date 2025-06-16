@@ -7,6 +7,7 @@ const port = 3000; // 您可以根据需要更改端口
 
 // 中间件，用于解析传入的 JSON 请求体
 app.use(express.json({ limit: '10mb' })); // 设置请求体大小限制
+app.use(express.static(path.join(__dirname, 'public'))); // 提供静态文件
 
 // 中间件，用于记录每个收到的请求
 app.use((req, res, next) => {
@@ -36,6 +37,23 @@ const appendToFile = async (fileName, data) => {
     console.log(`Data successfully appended to ${fileName}`);
   } catch (error) {
     console.error(`Error appending to file ${fileName}:`, error);
+  }
+};
+
+// 从日志文件中读取并解析数据的辅助函数
+const readLogFile = async (fileName) => {
+  const logFilePath = path.join(logDir, fileName);
+  try {
+    const data = await fs.readFile(logFilePath, 'utf8');
+    // 按换行符分割，过滤掉空行，然后解析每一行
+    return data.split('\n').filter(line => line.trim() !== '').map(line => JSON.parse(line));
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      // 如果文件不存在，返回空数组
+      return [];
+    }
+    console.error(`Error reading log file ${fileName}:`, error);
+    throw error; // 重新抛出错误
   }
 };
 
@@ -81,6 +99,36 @@ app.post('/task', async (req, res) => {
   await appendToFile('tasks.log', logEntry);
 
   res.status(200).json({ message: 'Task report received successfully.' });
+});
+
+// 提供统计数据的端点
+app.get('/api/stats', async (req, res) => {
+  try {
+    const feedbackLogs = await readLogFile('feedback.log');
+    const taskLogs = await readLogFile('tasks.log');
+    res.json({
+      feedbackCount: feedbackLogs.length,
+      taskCount: taskLogs.length
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not retrieve stats.' });
+  }
+});
+
+// 提供反馈列表的端点
+app.get('/api/feedback', async (req, res) => {
+  try {
+    const feedbackLogs = await readLogFile('feedback.log');
+    // 返回反向排序的日志，让最新的在最前面
+    res.json(feedbackLogs.reverse());
+  } catch (error) {
+    res.status(500).json({ error: 'Could not retrieve feedback list.' });
+  }
+});
+
+// 提供管理页面的端点
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 // 启动服务器
