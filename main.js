@@ -159,6 +159,11 @@ ipcMain.handle('open-file', async () => {
 })
 
 ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName }) => {
+  const isAllowed = await checkUserStatus();
+  if (!isAllowed) {
+    return { success: false, error: '操作被拒绝。您的账户可能已被限制使用此功能。' };
+  }
+
   return new Promise((resolve, reject) => {
     // Basic validation in main thread before starting worker
     if (!filePath || !operations || !outputName) {
@@ -201,15 +206,11 @@ ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName }) =>
         }
         // After a successful operation, report the task asynchronously
         if (result.success) {
-         reportTask({
-           taskType: 'PDF_RESIZE',
-           status: 'success',
-           originalFilePath: filePath,
-           outputFilePath: result.path,
-           details: {
-             operations,
-             outputName
-           }
+         reportEvent('pdf-resize', {
+           success: true,
+           outputName: outputName,
+           input: filePath,
+           details: { operations }
          });
        }
       }
@@ -238,6 +239,11 @@ ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName }) =>
 })
 
 ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM }) => {
+  const isAllowed = await checkUserStatus();
+  if (!isAllowed) {
+    return { success: false, error: '操作被拒绝。您的账户可能已被限制使用此功能。' };
+  }
+
   return new Promise((resolve, reject) => {
     // Basic validation in main thread before starting worker
     if (!pdf1Path || !pdf2Path || !outputName || typeof outputWidthMM !== 'number' || typeof outputHeightMM !== 'number' || outputWidthMM <= 0 || outputHeightMM <= 0) {
@@ -269,16 +275,10 @@ ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputNam
         }
         // After a successful operation, report the task asynchronously
         if (result.success) {
-         reportTask({
-           taskType: 'SHEIN_LABEL_GENERATION',
-           status: 'success',
-           originalFilePaths: { pdf1Path, pdf2Path },
-           outputFilePath: result.path,
-           details: {
-             outputName,
-             outputWidthMM,
-             outputHeightMM
-           }
+         reportEvent('shein-label-generation', {
+           success: true,
+           outputName: outputName,
+           details: { outputWidthMM, outputHeightMM }
          });
        }
       }
@@ -618,31 +618,54 @@ ipcMain.handle('submit-feedback', async (event, feedbackData) => {
  }
 });
 
-// --- Task Reporting Helper ---
-/**
-* Asynchronously reports a completed task to the backend.
-* Logs success or failure, does not show toasts or block execution.
-* @param {object} taskData - The data about the task to report.
-*/
-async function reportTask(taskData) {
- const reportPayload = {
-   ...taskData,
-   reportTimestamp: new Date().toISOString()
- };
+// --- Event Reporting & User Status ---
 
- try {
-   const response = await axios.post('http://115.190.92.23/task', reportPayload, {
-     headers: { 'Content-Type': 'application/json' },
-     timeout: 15000 // 15 second timeout for reporting
-   });
-   log.info(`Task reported successfully: ${taskData.taskType}`, { response: response.data });
- } catch (error) {
-   log.error(`Failed to report task: ${taskData.taskType}`, {
-     message: error.message,
-     responseData: error.response ? error.response.data : 'No response data',
-     requestPayload: reportPayload // Log the payload that failed
-   });
- }
+async function reportEvent(featureName, details) {
+  const settings = await getSettings();
+  const clientId = settings.clientId;
+  if (!clientId) {
+    log.warn(`Cannot report event for feature '${featureName}' without a clientId.`);
+    return;
+  }
+
+  const payload = {
+    clientId,
+    feature: featureName,
+    details: details || {}
+  };
+
+  try {
+    await axios.post('http://115.190.92.23/api/event', payload, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 8000
+    });
+    log.info(`Event '${featureName}' reported successfully.`);
+  } catch (error) {
+    log.error(`Failed to report event '${featureName}':`, error.message);
+  }
+}
+
+async function checkUserStatus() {
+  const settings = await getSettings();
+  const clientId = settings.clientId;
+  if (!clientId) {
+    log.error('Cannot check user status: No client ID found.');
+    return false; // Block if no ID
+  }
+
+  try {
+    const response = await axios.get(`http://115.190.92.23/api/status/${clientId}`, { timeout: 5000 });
+    const { isBanned } = response.data;
+    if (isBanned) {
+      log.warn(`User with clientId ${clientId} is banned. Operation denied.`);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    log.error('Failed to check user status:', error.message);
+    // Fail-open: If the server is unreachable, allow usage.
+    return true;
+  }
 }
 
 // --- 回复轮询和通知 ---
