@@ -499,7 +499,8 @@ input[type="text"],
 input[type="number"],
 select {
 padding: 6px 10px; /* Reduced */
-margin-bottom: 8px; /* Reduced */
+/* margin-bottom: 8px;  */
+/* Reduced */
 border: 0.1px solid var(--border-color-soft); /* Softer border for light mode */
 border-radius: var(--border-radius-sm); /* Sharper corners */
 box-sizing: border-box;

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>PDF Processor</title>
+  <title data-i18n="title">PDF Processor</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -10,7 +10,13 @@
     <div class="title-bar-drag-region"></div>
     <div class="title-bar-text" style="display: flex; align-items: center;"><img width="30px" height="30px" src="static/pdfShdow.png" style="margin-right: 8px;">PDFShdow</div>
     <div class="title-bar-controls">
-      <div id="themeToggleSwitch" class="theme-switch-wrapper" title="切换主题">
+      <div class="language-selector-wrapper" style="margin-right: 10px;">
+        <select id="languageSelector" class="title-bar-button">
+          <option value="zh-CN">简体中文</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div id="themeToggleSwitch" class="theme-switch-wrapper" title-i18n="themeToggle" title="切换主题">
         <div class="theme-switch-track">
           <div class="theme-switch-thumb">
             <span class="sun-icon">☀️</span>
@@ -18,28 +24,28 @@
           </div>
         </div>
       </div>
-      <!-- <button id="devToolsBtn" class="title-bar-button" aria-label="开发者工具" title="开发者工具">
+      <button id="devToolsBtn" class="title-bar-button" aria-label="开发者工具" title="开发者工具">
         <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 5,0 5,2 7,2 7,4 5,4 5,6 3,6 3,4 1,4 1,2 3,2 3,0 Z M 1,7 1,9 3,9 3,7 Z M 5,7 5,9 7,9 7,7 Z" /></svg>
-      </button> -->
-      <button id="websit" class="title-bar-button" onclick="electronAPI.openOfficialWebsite().catch(err => console.error(err))" aria-label="官方网站" title="官方网站">
-            官方网站
-          </button>
-      <button id="updateCheckBtn" class="title-bar-button" aria-label="检查更新" title="检查更新">
-        检查更新
       </button>
-      <button id="downloadStatusBtn" class="title-bar-button" aria-label="下载状态" title="下载状态" style="display: none;">
+      <button id="websit" class="title-bar-button" onclick="electronAPI.openOfficialWebsite().catch(err => console.error(err))" aria-label-i18n="officialWebsite" title-i18n="officialWebsite" aria-label="官方网站" title="官方网站">
+        <span data-i18n="officialWebsite">官方网站</span>
+      </button>
+      <button id="updateCheckBtn" class="title-bar-button" aria-label-i18n="checkForUpdates" title-i18n="checkForUpdates" aria-label="检查更新" title="检查更新">
+        <span data-i18n="checkForUpdates">检查更新</span>
+      </button>
+      <button id="downloadStatusBtn" class="title-bar-button" aria-label-i18n="downloadStatus" title-i18n="downloadStatus" aria-label="下载状态" title="下载状态" style="display: none;">
        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
          <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
          <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
        </svg>
       </button>
-      <button id="minimize-btn" class="title-bar-button" aria-label="最小化">
+      <button id="minimize-btn" class="title-bar-button" aria-label-i18n="minimize" aria-label="最小化">
         <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 0,5 10,5 10,6 0,6 Z" /></svg>
       </button>
-      <button id="maximize-restore-btn" class="title-bar-button" aria-label="最大化">
+      <button id="maximize-restore-btn" class="title-bar-button" aria-label-i18n="maximize" aria-label="最大化">
         <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 0,0 0,10 10,10 10,0 Z M 1,1 9,1 9,9 1,9 Z" /></svg>
       </button>
-      <button id="close-btn" class="title-bar-button" aria-label="关闭">
+      <button id="close-btn" class="title-bar-button" aria-label-i18n="close" aria-label="关闭">
         <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 0,0 0,0.7 4.3,5 0,9.3 0,10 0.7,10 5,5.7 9.3,10 10,10 10,9.3 5.7,5 10,0.7 10,0 9.3,0 5,4.3 0.7,0 Z" /></svg>
       </button>
     </div>
@@ -47,17 +53,17 @@
   <div class="app-layout">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <h2>功能导航</h2>
+        <h2 data-i18n="navigation">功能导航</h2>
       </div>
       <nav>
         <ul>
-          <li><a href="#" class="nav-link active" data-view="sheinLabelView">Shein 标签 生成</a></li>
-          <li><a href="#" class="nav-link" data-view="pdfResizeView">PDF 尺寸调整</a></li>
+          <li><a href="#" class="nav-link active" data-view="sheinLabelView" data-i18n="sheinLabelGenerator">Shein 标签 生成</a></li>
+          <li><a href="#" class="nav-link" data-view="pdfResizeView" data-i18n="pdfResizer">PDF 尺寸调整</a></li>
         </ul>
       </nav>
       <div class="sidebar-footer">
-        <div class="theme-notice">版本号: 0.0.1</div>
-        <div class="theme-notice">仅供学习交流使用，不可商用</div>
+        <div class="theme-notice" data-i18n="version" data-i18n-options='{"version": "0.0.1"}'>版本号: 0.0.1</div>
+        <div class="theme-notice" data-i18n="disclaimer">仅供学习交流使用，不可商用</div>
       </div>
     </aside>
 
@@ -66,31 +72,31 @@
         <!-- Existing content will be wrapped by its own .container if needed, or styled directly -->
         <div class="container"> <!-- This is the original .container -->
           <div class="title-with-description">
-            <h2>PDF 尺寸调整</h2>
-            <span class="feature-description">调整所选 PDF 文件的页面尺寸，支持预设尺寸和自定义尺寸。</span>
+            <h2 data-i18n="pdfResizer">PDF 尺寸调整</h2>
+            <span class="feature-description" data-i18n="pdfResizerDescription">调整所选 PDF 文件的页面尺寸，支持预设尺寸和自定义尺寸。</span>
           </div>
           
           <div class="section">
             <div class="field-wrapper"> <!-- Added wrapper for layout with error message -->
-              <button id="openFile" class="btn-primary">选择 PDF 文件</button>
+              <button id="openFile" class="btn-primary" data-i18n="selectPdfFile">选择 PDF 文件</button>
               <span id="selectedFile" class="file-select-status-span"></span>
-              <span class="field-hint">待调整尺寸的PDF</span>
+              <span class="field-hint" data-i18n="pdfForResizeHint">待调整尺寸的PDF</span>
               <small class="error-message" id="selectedFileError"></small> <!-- New error message placeholder -->
             </div>
           </div>
       
           <div class="section">
-            <label for="pdfResizeOutputName">文件名称 <span class="field-hint">输出文件名,不含扩展名</span></label>
-            <input type="text" id="pdfResizeOutputName" placeholder="例如: resized_document">
+            <label for="pdfResizeOutputName"><span data-i18n="fileName">文件名称</span> <span class="field-hint" data-i18n="outputFileNameHint">输出文件名,不含扩展名</span></label>
+            <input type="text" id="pdfResizeOutputName" placeholder-i18n="exampleResized" placeholder="例如: resized_document">
           </div>
       
           <div class="section">
-            <label for="pageSize">页面尺寸 <span class="field-hint">选择预设或自定义</span></label>
+            <label for="pageSize"><span data-i18n="pageSize">页面尺寸</span> <span class="field-hint" data-i18n="selectPresetOrCustom">选择预设或自定义</span></label>
             <div class="custom-select-wrapper">
               <select id="pageSize" style="display:none;">
                 <option value="A4">A4 (210x297mm)</option>
                 <option value="Shein" selected>Shein (70x60mm)</option>
-                <option value="custom">自定义</option>
+                <option value="custom" data-i18n="custom">自定义</option>
               </select>
               <div class="custom-select-container" id="customPageSizeSelect">
                 <div class="custom-select-trigger"><span>Shein (70x60mm)</span><div class="arrow"></div></div>
@@ -102,26 +108,26 @@
             <div id="customSize" class="dimension-inputs-container" style="display: none;">
               <div class="field-wrapper">
                 <div class="input-group">
-                  <input type="number" id="customWidth" placeholder="宽度">
+                  <input type="number" id="customWidth" placeholder-i18n="width" placeholder="宽度">
                   <span class="unit">mm</span>
                 </div>
-                <span class="field-hint">自定义宽度,毫米</span>
+                <span class="field-hint" data-i18n="customWidthHint">自定义宽度,毫米</span>
                 <small class="error-message" id="customWidthError"></small>
               </div>
               <div class="field-wrapper">
                 <div class="input-group">
-                  <input type="number" id="customHeight" placeholder="高度">
+                  <input type="number" id="customHeight" placeholder-i18n="height" placeholder="高度">
                   <span class="unit">mm</span>
                 </div>
-                <span class="field-hint">自定义高度,毫米</span>
+                <span class="field-hint" data-i18n="customHeightHint">自定义高度,毫米</span>
                 <small class="error-message" id="customHeightError"></small>
               </div>
             </div>
           </div>
       
           <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
-            <button id="processBtn" class="btn-primary">开始处理</button> <!-- Removed flex-grow: 1 -->
-            <button id="clearPdfResizeFormBtn" class="btn-secondary" style="margin-left: 10px;">清空</button>
+            <button id="processBtn" class="btn-primary" data-i18n="startProcessing">开始处理</button> <!-- Removed flex-grow: 1 -->
+            <button id="clearPdfResizeFormBtn" class="btn-secondary" style="margin-left: 10px;" data-i18n="clear">清空</button>
           </div>
           <div id="result"></div>
           <div id="pdfResizePostProcessActions" style="margin-top: 10px; display: none;">
@@ -135,40 +141,40 @@
       <div class="view-container" id="sheinLabelView" style="display: block;">
         <div class="container"> <!-- Each view can have its own container for consistency -->
           <div class="title-with-description">
-            <h2>Shein 标签 生成</h2>
-            <span class="feature-description">合并欧代和条码 PDF，生成符合 Shein 要求的标签。</span>
+            <h2 data-i18n="sheinLabelGenerator">Shein 标签 生成</h2>
+            <span class="feature-description" data-i18n="sheinLabelGeneratorDescription">合并欧代和条码 PDF，生成符合 Shein 要求的标签。</span>
           </div>
           
           <div class="section">
             <div class="field-wrapper"> <!-- Added wrapper -->
-              <button id="sheinOpenFile1Btn" class="btn-primary">选择欧代文件</button>
-              <span id="sheinSelectedFile1" class="file-select-status-span">未选择文件</span>
-              <span class="field-hint">欧代PDF文件</span>
+              <button id="sheinOpenFile1Btn" class="btn-primary" data-i18n="selectEcRepFile">选择欧代文件</button>
+              <span id="sheinSelectedFile1" class="file-select-status-span" data-i18n="noFileSelected">未选择文件</span>
+              <span class="field-hint" data-i18n="ecRepPdfHint">欧代PDF文件</span>
               <small class="error-message" id="sheinSelectedFile1Error"></small> <!-- New error message placeholder -->
             </div>
           </div>
 
           <div class="section">
             <div class="field-wrapper"> <!-- Added wrapper -->
-              <button id="sheinOpenFile2Btn" class="btn-primary">选择条码文件</button>
-              <span id="sheinSelectedFile2" class="file-select-status-span">未选择文件</span>
-              <span class="field-hint">条码PDF文件</span>
+              <button id="sheinOpenFile2Btn" class="btn-primary" data-i18n="selectBarcodeFile">选择条码文件</button>
+              <span id="sheinSelectedFile2" class="file-select-status-span" data-i18n="noFileSelected">未选择文件</span>
+              <span class="field-hint" data-i18n="barcodePdfHint">条码PDF文件</span>
               <small class="error-message" id="sheinSelectedFile2Error"></small> <!-- New error message placeholder -->
             </div>
           </div>
 
           <div class="section">
-            <label for="sheinOutputName">文件名称 <span class="field-hint">Shein标签输出文件名</span></label>
-            <input type="text" id="sheinOutputName" placeholder="例如: shein_label_output">
+            <label for="sheinOutputName"><span data-i18n="fileName">文件名称</span> <span class="field-hint" data-i18n="sheinOutputFileNameHint">Shein标签输出文件名</span></label>
+            <input type="text" id="sheinOutputName" placeholder-i18n="exampleSheinOutput" placeholder="例如: shein_label_output">
           </div>
 
           <div class="section">
-            <label for="sheinOutputPageSize">页面尺寸 <span class="field-hint">Shein标签输出尺寸</span></label>
+            <label for="sheinOutputPageSize"><span data-i18n="pageSize">页面尺寸</span> <span class="field-hint" data-i18n="sheinOutputPageSize">Shein标签输出尺寸</span></label>
             <div class="custom-select-wrapper">
               <select id="sheinOutputPageSize" style="display:none;">
                 <option value="A4">A4 (210x297mm)</option>
                 <option value="Shein" selected>Shein (70x60mm)</option>
-                <option value="custom">自定义</option>
+                <option value="custom" data-i18n="custom">自定义</option>
               </select>
               <div class="custom-select-container" id="customSheinOutputPageSizeSelect">
                 <div class="custom-select-trigger"><span>Shein (70x60mm)</span><div class="arrow"></div></div>
@@ -180,26 +186,26 @@
             <div id="sheinOutputCustomDimensions" class="dimension-inputs-container" style="display: none;">
               <div class="field-wrapper">
                 <div class="input-group">
-                  <input type="number" id="sheinOutputWidth" placeholder="宽度" value="70">
+                  <input type="number" id="sheinOutputWidth" placeholder-i18n="width" placeholder="宽度" value="70">
                   <span class="unit">mm</span>
                 </div>
-                <span class="field-hint">标签宽度,毫米</span>
+                <span class="field-hint" data-i18n="labelWidthHint">标签宽度,毫米</span>
                 <small class="error-message" id="sheinOutputWidthError"></small>
               </div>
               <div class="field-wrapper">
                 <div class="input-group">
-                  <input type="number" id="sheinOutputHeight" placeholder="高度" value="60">
+                  <input type="number" id="sheinOutputHeight" placeholder-i18n="height" placeholder="高度" value="60">
                   <span class="unit">mm</span>
                 </div>
-                <span class="field-hint">标签高度,毫米</span>
+                <span class="field-hint" data-i18n="labelHeightHint">标签高度,毫米</span>
                 <small class="error-message" id="sheinOutputHeightError"></small>
               </div>
             </div>
           </div>
 
           <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
-            <button id="generateSheinLabelBtn" class="btn-primary">生成 Shein 标签</button> <!-- Removed flex-grow: 1 -->
-            <button id="clearSheinLabelFormBtn" class="btn-secondary" style="margin-left: 10px;">清空</button>
+            <button id="generateSheinLabelBtn" class="btn-primary" data-i18n="generateSheinLabel">生成 Shein 标签</button> <!-- Removed flex-grow: 1 -->
+            <button id="clearSheinLabelFormBtn" class="btn-secondary" style="margin-left: 10px;" data-i18n="clear">清空</button>
           </div>
           <div id="sheinResult"></div>
           <div id="sheinPostProcessActions" style="margin-top: 10px; display: none;">
@@ -215,6 +221,49 @@
   <!-- <script src="renderer.js"></script> -->
   <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // --- i18n ---
+    let currentTranslations = {};
+
+    async function loadTranslations(lang) {
+      try {
+        const response = await fetch(`./locales/${lang}.json`);
+        if (!response.ok) {
+          console.error(`Could not load translation file for ${lang}.`);
+          return;
+        }
+        currentTranslations = await response.json();
+        translatePage();
+      } catch (error) {
+        console.error(`Error loading or parsing translation file for ${lang}:`, error);
+      }
+    }
+
+    function translatePage() {
+      document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (currentTranslations[key]) {
+          // Handle different ways of placing text
+          if (element.hasAttribute('placeholder-i18n')) {
+            element.placeholder = currentTranslations[key];
+          } else if (element.hasAttribute('title-i18n')) {
+            element.title = currentTranslations[key];
+          } else if (element.hasAttribute('aria-label-i18n')) {
+            element.setAttribute('aria-label', currentTranslations[key]);
+          } else {
+            element.textContent = currentTranslations[key];
+          }
+        }
+      });
+    }
+
+    const languageSelector = document.getElementById('languageSelector');
+    languageSelector.addEventListener('change', async (event) => {
+      const newLang = event.target.value;
+      appSettings.language = newLang;
+      await window.electronAPI.saveSettings(appSettings);
+      await loadTranslations(newLang);
+    });
+
     // --- Settings Persistence using Electron IPC ---
     // Note: saveToLocalStorage and loadFromLocalStorage are removed.
     // We will use window.electronAPI.getSettings() and window.electronAPI.saveSettings()
@@ -2092,6 +2141,7 @@
         appSettings = { // Default structure if no settings file or empty
           activeView: defaultViewId,
           theme: 'light',
+          language: 'zh-CN',
           pdfResizeSelectedPath: '',
           sheinEcRepPdfPath: '',
           sheinBarcodePdfPath: '',
@@ -2113,6 +2163,11 @@
       
       // Set theme (without re-saving immediately)
       await setTheme(appSettings.theme || 'light', false);
+
+      // Set language
+      const savedLang = appSettings.language || 'zh-CN';
+      languageSelector.value = savedLang;
+      await loadTranslations(savedLang);
 
       // Load selected file paths and their metadata
       selectedFilePath = appSettings.pdfResizeSelectedPath || '';
