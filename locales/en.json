@@ -101,5 +101,12 @@
   "pdfResizeFailed": "PDF resize failed: {error}",
   "pdfResizeError": "PDF resize error: {error}",
   "sheinLabelGenerationFailed": "Shein Label generation failed: {error}",
-  "sheinLabelGenerationError": "Shein Label generation error: {error}"
+  "sheinLabelGenerationError": "Shein Label generation error: {error}",
+  "devTools": "Developer Tools",
+  "errorSelectPdfFile": "Please select a PDF file first.",
+  "errorInvalidWidth": "Width must be a valid positive number.",
+  "errorInvalidHeight": "Height must be a valid positive number.",
+  "toast.pdfResizeFormCleared": "PDF Resizer form has been cleared",
+  "toast.sheinFormCleared": "Shein Label Generator form has been cleared",
+  "clientError": "Client Error: "
 }

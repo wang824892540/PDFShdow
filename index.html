@@ -24,7 +24,7 @@
           </div>
         </div>
       </div>
-      <button id="devToolsBtn" class="title-bar-button" aria-label="开发者工具" title="开发者工具">
+      <button id="devToolsBtn" class="title-bar-button" data-i18n-aria-label="devTools" data-i18n-title="devTools" aria-label="开发者工具" title="开发者工具">
         <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 5,0 5,2 7,2 7,4 5,4 5,6 3,6 3,4 1,4 1,2 3,2 3,0 Z M 1,7 1,9 3,9 3,7 Z M 5,7 5,9 7,9 7,7 Z" /></svg>
       </button>
       <button id="websit" class="title-bar-button" onclick="electronAPI.openOfficialWebsite().catch(err => console.error(err))" data-i18n-aria-label="officialWebsite" data-i18n-title="officialWebsite" aria-label="官方网站" title="官方网站">
@@ -148,7 +148,7 @@
           <div class="section">
             <div class="field-wrapper"> <!-- Added wrapper -->
               <button id="sheinOpenFile1Btn" class="btn-primary" data-i18n="selectEcRepFile">选择欧代文件</button>
-              <span id="sheinSelectedFile1" class="file-select-status-span" data-i18n="noFileSelected">未选择文件</span>
+              <span id="sheinSelectedFile1" class="file-select-status-span" data-i18n="noFileSelected"></span>
               <span class="field-hint" data-i18n="ecRepPdfHint">欧代PDF文件</span>
               <small class="error-message" id="sheinSelectedFile1Error"></small> <!-- New error message placeholder -->
             </div>
@@ -157,7 +157,7 @@
           <div class="section">
             <div class="field-wrapper"> <!-- Added wrapper -->
               <button id="sheinOpenFile2Btn" class="btn-primary" data-i18n="selectBarcodeFile">选择条码文件</button>
-              <span id="sheinSelectedFile2" class="file-select-status-span" data-i18n="noFileSelected">未选择文件</span>
+              <span id="sheinSelectedFile2" class="file-select-status-span" data-i18n="noFileSelected"></span>
               <span class="field-hint" data-i18n="barcodePdfHint">条码PDF文件</span>
               <small class="error-message" id="sheinSelectedFile2Error"></small> <!-- New error message placeholder -->
             </div>
@@ -407,7 +407,7 @@
         spanElement.textContent = displayText;
         spanElement.classList.add('file-selected-badge');
       } else {
-        spanElement.textContent = currentTranslations.noFileSelected || 'No file selected';
+        spanElement.textContent = currentTranslations.noFileSelected || '未选择文件';
         spanElement.classList.remove('file-selected-badge');
       }
     }
@@ -953,7 +953,7 @@
             // Optionally focus the button, though it might be disruptive
             // openFileButton.focus();
         }
-        const errorMessage = '请先选择一个 PDF 文件。';
+        const errorMessage = currentTranslations.errorSelectPdfFile || '请先选择一个 PDF 文件。';
         showToast(errorMessage, 'error'); // Added toast notification
         if (selectedFileErrorEl) {
             selectedFileErrorEl.textContent = errorMessage;
@@ -1086,7 +1086,7 @@
                     console.log(`After styling widthInput. New background: ${widthInput.style.backgroundColor}, New classes: ${widthInput.className}`);
                     widthInput.focus();
                 }
-                const widthErrorMessage = '宽度必须是有效的正数。';
+                const widthErrorMessage = currentTranslations.errorInvalidWidth || '宽度必须是有效的正数。';
                 showToast(widthErrorMessage, 'error');
                 if (customWidthErrorEl) {
                     console.log(`Attempting to show customWidthErrorEl (ID: ${customWidthErrorEl.id}). Current display: ${customWidthErrorEl.style.display}`);
@@ -1122,7 +1122,7 @@
 
 
                 }
-                const heightErrorMessage = '高度必须是有效的正数。';
+                const heightErrorMessage = currentTranslations.errorInvalidHeight || '高度必须是有效的正数。';
                 showToast(heightErrorMessage, 'error');
                 if (customHeightErrorEl) {
                     console.log(`Attempting to show customHeightErrorEl (ID: ${customHeightErrorEl.id}). Current display: ${customHeightErrorEl.style.display}`);
@@ -1165,11 +1165,11 @@
         processButton.disabled = true;
         startTime = Date.now();
         let secondsElapsed = 0;
-        processButton.textContent = `正在处理中... (${secondsElapsed}秒)`;
+        processButton.textContent = (currentTranslations.processing || '正在处理中... ({seconds}秒)').replace('{seconds}', secondsElapsed);
         processButton.classList.add('processing'); // Add processing class
         timerInterval = setInterval(() => {
           secondsElapsed++;
-          processButton.textContent = `正在处理中... (${secondsElapsed}秒)`;
+          processButton.textContent = (currentTranslations.processing || '正在处理中... ({seconds}秒)').replace('{seconds}', secondsElapsed);
         }, 1000);
       }
       // Optional: Show a processing message in resultDiv
@@ -1200,31 +1200,31 @@
       let entryHtml = '';
 
       if (apiResult && apiResult.success && generatedPath) {
-        showToast('处理成功！', 'success');
+        showToast(currentTranslations.processingSuccess || '处理成功！', 'success');
         entryDiv.classList.add('success-entry'); // Use new specific success class
-        entryHtml = `<p><strong>处理成功</strong></p><p>保存路径：${generatedPath}</p>`;
+        entryHtml = `<p><strong>${currentTranslations.processingStatusSuccess || '处理成功'}</strong></p><p>${(currentTranslations.savePath || '保存路径：{path}').replace('{path}', generatedPath)}</p>`;
         if (apiResult.outputFileSize !== null && apiResult.outputFileSize !== undefined) {
-          entryHtml += `<p>文件大小：${formatBytes(apiResult.outputFileSize)}`;
+          let sizeAndPages = `${(currentTranslations.fileSize || '文件大小：{size}').replace('{size}', formatBytes(apiResult.outputFileSize))}`;
           if (apiResult.outputPageCount !== null && apiResult.outputPageCount !== undefined) {
-            entryHtml += `，页数：${apiResult.outputPageCount}`;
+            sizeAndPages += `，${(currentTranslations.pageCount || '页数：{count}').replace('{count}', apiResult.outputPageCount)}`;
           }
-          entryHtml += `</p>`;
+          entryHtml += `<p>${sizeAndPages}</p>`;
         } else if (apiResult.outputPageCount !== null && apiResult.outputPageCount !== undefined) {
-          entryHtml += `<p>页数：${apiResult.outputPageCount}</p>`;
+          entryHtml += `<p>${(currentTranslations.pageCount || '页数：{count}').replace('{count}', apiResult.outputPageCount)}</p>`;
         }
         if(apiResult.metadataError){
-            entryHtml += `<p style="color: orange;">输出文件元数据警告: ${apiResult.metadataError}</p>`;
+            entryHtml += `<p style="color: orange;">${(currentTranslations.warningOutputMetadata || '输出文件元数据警告: {error}').replace('{error}', apiResult.metadataError)}</p>`;
         }
       } else {
         entryDiv.classList.add('error-entry'); // Use new specific error class
-        const errorMessage = (apiResult && apiResult.error) ? apiResult.error : '未知处理错误。';
-        showToast(`PDF尺寸调整失败：${errorMessage}`, 'error');
-        entryHtml = `<p class="error-message-text"><strong>处理失败：</strong>${errorMessage}</p>`; // Add class to error message paragraph
+        const errorMessage = (apiResult && apiResult.error) ? apiResult.error : (currentTranslations.unknownProcessingError || '未知处理错误。');
+        showToast((currentTranslations.pdfResizeFailed || 'PDF尺寸调整失败：{error}').replace('{error}', errorMessage), 'error');
+        entryHtml = `<p class="error-message-text"><strong>${currentTranslations.processingStatusFailed || '处理失败：'}</strong>${errorMessage}</p>`; // Add class to error message paragraph
       }
 
       const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-      entryHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
-      entryHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+      entryHtml += `<p>${(currentTranslations.processingStartTime || '处理开始时间：{time}').replace('{time}', startTimeFormatted)}</p>`;
+      entryHtml += `<p>${(currentTranslations.totalTime || '总耗时：{seconds}秒').replace('{seconds}', totalTimeSeconds)}</p>`;
       entryDiv.innerHTML = entryHtml;
 
       // Create and append action buttons for this entry
@@ -1232,7 +1232,7 @@
       actionsDiv.className = 'action-buttons-container'; // Use new class for button container
 
       const openBtn = document.createElement('button');
-      openBtn.textContent = '打开文件';
+      openBtn.textContent = currentTranslations.openFile || '打开文件';
       openBtn.className = 'action-button action-button-primary'; // Primary action
       if (!generatedPath) openBtn.disabled = true;
       openBtn.addEventListener('click', async () => {
@@ -1244,7 +1244,7 @@
       actionsDiv.appendChild(openBtn);
 
       const showInFolderBtn = document.createElement('button');
-      showInFolderBtn.textContent = '打开文件夹';
+      showInFolderBtn.textContent = currentTranslations.openFolder || '打开文件夹';
       showInFolderBtn.className = 'action-button';
       if (!generatedPath) showInFolderBtn.disabled = true;
       showInFolderBtn.addEventListener('click', async () => {
@@ -1256,9 +1256,9 @@
       actionsDiv.appendChild(showInFolderBtn);
 
       const copyBtn = document.createElement('button');
-      copyBtn.textContent = '复制文件';
+      copyBtn.textContent = currentTranslations.copyFile || '复制文件';
       copyBtn.className = 'action-button';
-      copyBtn.title = '尝试复制文件到剪贴板 (若失败则复制路径)';
+      copyBtn.title = currentTranslations.copyFileTooltip || '尝试复制文件到剪贴板 (若失败则复制路径)';
       if (!generatedPath) copyBtn.disabled = true;
       copyBtn.addEventListener('click', async () => {
         if (generatedPath) {
@@ -1287,10 +1287,10 @@
       
       const errorEntryDiv = document.createElement('div');
       errorEntryDiv.className = 'result-entry error-entry'; // Add new specific error class
-      let errorHtml = `<p class="error-message-text"><strong>客户端错误：</strong>${error.message || '发生意外错误。'}</p>`; // Add class to error message paragraph
+      let errorHtml = `<p class="error-message-text"><strong>${currentTranslations.clientError || '客户端错误：'}</strong>${error.message || (currentTranslations.unexpectedClientError || '发生意外错误。')}</p>`; // Add class to error message paragraph
       const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-      errorHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
-      errorHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+      errorHtml += `<p>${(currentTranslations.processingStartTime || '处理开始时间：{time}').replace('{time}', startTimeFormatted)}</p>`;
+      errorHtml += `<p>${(currentTranslations.totalTime || '总耗时：{seconds}秒').replace('{seconds}', totalTimeSeconds)}</p>`;
       errorEntryDiv.innerHTML = errorHtml;
       
       // Add disabled action buttons for client errors as well for consistency
@@ -1393,7 +1393,7 @@
         // currentGeneratedPdfResizePath = ''; // No longer used
 
         await window.electronAPI.saveSettings(appSettings);
-        showToast('PDF 尺寸调整已清空', 'info');
+        showToast(currentTranslations['toast.pdfResizeFormCleared'] || 'PDF 尺寸调整已清空', 'info');
       });
     }
 
@@ -1492,8 +1492,8 @@
 
     // Apply file-selected-badge styling if needed (assuming styles.css has this class)
     // Ensure initial placeholder text
-    if (sheinSelectedFile1Element) sheinSelectedFile1Element.textContent = '未选择文件';
-    if (sheinSelectedFile2Element) sheinSelectedFile2Element.textContent = '未选择文件';
+    if (sheinSelectedFile1Element) sheinSelectedFile1Element.textContent = currentTranslations.noFileSelected || '未选择文件';
+    if (sheinSelectedFile2Element) sheinSelectedFile2Element.textContent = currentTranslations.noFileSelected || '未选择文件';
 
 
     if (sheinOpenFile1Btn) {
@@ -1665,7 +1665,7 @@
         generateSheinLabelBtn.disabled = true;
         startTime = Date.now();
         let secondsElapsed = 0;
-        generateSheinLabelBtn.textContent = `正在处理中... (${secondsElapsed}秒)`;
+        generateSheinLabelBtn.textContent = (currentTranslations.processing || '正在处理中... ({seconds}秒)').replace('{seconds}', secondsElapsed);
         // generateSheinLabelBtn.classList.add('processing'); // Will be added after validation
 
         // sheinResultDiv.innerHTML = ''; // Clear previous results - Removed to preserve history
@@ -1709,7 +1709,7 @@
         if (!selectedSheinPdf1Path) {
           const sheinOpenFile1Button = document.getElementById('sheinOpenFile1Btn');
           const sheinSelectedFile1ErrorEl = document.getElementById('sheinSelectedFile1Error');
-          const errorMessage1 = '请选择欧代文件。';
+          const errorMessage1 = currentTranslations.errorSelectEcRepFile || '请选择欧代文件。';
           showToast(errorMessage1, 'error');
           if (sheinOpenFile1Button) {
               sheinOpenFile1Button.classList.add('input-error');
@@ -1731,7 +1731,7 @@
         if (!selectedSheinPdf2Path) {
           const sheinOpenFile2Button = document.getElementById('sheinOpenFile2Btn');
           const sheinSelectedFile2ErrorEl = document.getElementById('sheinSelectedFile2Error');
-          const errorMessage2 = '请选择条码文件。';
+          const errorMessage2 = currentTranslations.errorSelectBarcodeFile || '请选择条码文件。';
           showToast(errorMessage2, 'error');
           if (sheinOpenFile2Button) {
               sheinOpenFile2Button.classList.add('input-error');
@@ -1758,7 +1758,7 @@
 
         if (sheinPageSizeSelectedValue === 'custom') {
             if (isNaN(outputWidth) || outputWidth <= 0) {
-                const sheinWidthErrorMessage = '宽度必须是有效的正数。';
+                const sheinWidthErrorMessage = currentTranslations.errorInvalidWidth || '宽度必须是有效的正数。';
                 showToast(sheinWidthErrorMessage, 'error');
                 if (sheinOutputWidthInput) sheinOutputWidthInput.classList.add('input-error');
                 if (sheinOutputWidthErrorEl) {
@@ -1769,7 +1769,7 @@
                 sheinValidationPassed = false;
             }
             if (isNaN(outputHeight) || outputHeight <= 0) {
-                const sheinHeightErrorMessage = '高度必须是有效的正数。';
+                const sheinHeightErrorMessage = currentTranslations.errorInvalidHeight || '高度必须是有效的正数。';
                 showToast(sheinHeightErrorMessage, 'error');
                 if (sheinOutputHeightInput) sheinOutputHeightInput.classList.add('input-error');
                 if (sheinOutputHeightErrorEl) {
@@ -1811,7 +1811,7 @@
         generateSheinLabelBtn.classList.add('processing');
         timerInterval = setInterval(() => {
           secondsElapsed++;
-          generateSheinLabelBtn.textContent = `正在处理中... (${secondsElapsed}秒)`;
+          generateSheinLabelBtn.textContent = (currentTranslations.processing || '正在处理中... ({seconds}秒)').replace('{seconds}', secondsElapsed);
         }, 1000);
 
         // getCurrentHHMMSS is now a global helper function
@@ -1863,31 +1863,31 @@
 
           if (result && result.success && generatedPath) {
             // currentGeneratedSheinLabelPath = generatedPath; // This global var is less important now
-            showToast('Shein 标签 生成成功！', 'success');
+            showToast(currentTranslations.sheinLabelSuccess || 'Shein 标签 生成成功！', 'success');
             entryDiv.classList.add('success-entry'); // Use new specific success class
-            entryHtml = `<p><strong>处理成功</strong></p><p>保存路径：${generatedPath}</p>`;
+            entryHtml = `<p><strong>${currentTranslations.processingStatusSuccess || '处理成功'}</strong></p><p>${(currentTranslations.savePath || '保存路径：{path}').replace('{path}', generatedPath)}</p>`;
             if (result.outputFileSize !== null && result.outputFileSize !== undefined) {
-              entryHtml += `<p>文件大小：${formatBytes(result.outputFileSize)}`;
+              let sizeAndPages = `${(currentTranslations.fileSize || '文件大小：{size}').replace('{size}', formatBytes(result.outputFileSize))}`;
               if (result.outputPageCount !== null && result.outputPageCount !== undefined) {
-                entryHtml += `，页数：${result.outputPageCount}`;
+                sizeAndPages += `，${(currentTranslations.pageCount || '页数：{count}').replace('{count}', result.outputPageCount)}`;
               }
-              entryHtml += `</p>`;
+              entryHtml += `<p>${sizeAndPages}</p>`;
             } else if (result.outputPageCount !== null && result.outputPageCount !== undefined) {
-               entryHtml += `<p>页数：${result.outputPageCount}</p>`;
+               entryHtml += `<p>${(currentTranslations.pageCount || '页数：{count}').replace('{count}', result.outputPageCount)}</p>`;
             }
             if(result.metadataError){
-                entryHtml += `<p style="color: orange;">输出文件元数据警告: ${result.metadataError}</p>`;
+                entryHtml += `<p style="color: orange;">${(currentTranslations.warningOutputMetadata || '输出文件元数据警告: {error}').replace('{error}', result.metadataError)}</p>`;
             }
           } else { // API error or processing failure from electronAPI.generateSheinLabel
             entryDiv.classList.add('error-entry'); // Use new specific error class
-            const errorMessage = (result && result.error) ? result.error : '未知处理错误。';
-            showToast(`Shein 标签 生成失败：${errorMessage}`, 'error');
-            entryHtml = `<p class="error-message-text"><strong>处理失败：</strong>${errorMessage}</p>`; // Add class to error message paragraph
+            const errorMessage = (result && result.error) ? result.error : (currentTranslations.unknownProcessingError || '未知处理错误。');
+            showToast((currentTranslations.sheinLabelFailed || 'Shein 标签 生成失败：{error}').replace('{error}', errorMessage), 'error');
+            entryHtml = `<p class="error-message-text"><strong>${currentTranslations.processingStatusFailed || '处理失败：'}</strong>${errorMessage}</p>`; // Add class to error message paragraph
           }
 
           const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-          entryHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
-          entryHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+          entryHtml += `<p>${(currentTranslations.processingStartTime || '处理开始时间：{time}').replace('{time}', startTimeFormatted)}</p>`;
+          entryHtml += `<p>${(currentTranslations.totalTime || '总耗时：{seconds}秒').replace('{seconds}', totalTimeSeconds)}</p>`;
           entryDiv.innerHTML = entryHtml;
 
           // Create and append action buttons for this entry
@@ -1895,7 +1895,7 @@
           actionsDiv.className = 'action-buttons-container'; // Use new class for button container
 
           const openBtnShein = document.createElement('button');
-          openBtnShein.textContent = '打开文件';
+          openBtnShein.textContent = currentTranslations.openFile || '打开文件';
           openBtnShein.className = 'action-button action-button-primary'; // Primary action
           if (!generatedPath) openBtnShein.disabled = true;
           openBtnShein.addEventListener('click', async () => {
@@ -1907,7 +1907,7 @@
           actionsDiv.appendChild(openBtnShein);
 
           const showInFolderBtnShein = document.createElement('button');
-          showInFolderBtnShein.textContent = '打开文件夹';
+          showInFolderBtnShein.textContent = currentTranslations.openFolder || '打开文件夹';
           showInFolderBtnShein.className = 'action-button';
           if (!generatedPath) showInFolderBtnShein.disabled = true;
           showInFolderBtnShein.addEventListener('click', async () => {
@@ -1919,9 +1919,9 @@
           actionsDiv.appendChild(showInFolderBtnShein);
 
           const copyBtnShein = document.createElement('button');
-          copyBtnShein.textContent = '复制文件';
+          copyBtnShein.textContent = currentTranslations.copyFile || '复制文件';
           copyBtnShein.className = 'action-button';
-          copyBtnShein.title = '尝试复制文件到剪贴板 (若失败则复制路径)';
+          copyBtnShein.title = currentTranslations.copyFileTooltip || '尝试复制文件到剪贴板 (若失败则复制路径)';
           if (!generatedPath) copyBtnShein.disabled = true;
           copyBtnShein.addEventListener('click', async () => {
             if (generatedPath) {
@@ -1950,11 +1950,11 @@
 
           const errorEntryDiv = document.createElement('div');
           errorEntryDiv.className = 'result-entry error-entry'; // Add new specific error class
-          let errorHtml = `<p class="error-message-text"><strong>客户端错误：</strong>${error.message || '发生意外错误。'}</p>`; // Add class to error message paragraph
+          let errorHtml = `<p class="error-message-text"><strong>${currentTranslations.clientError || '客户端错误：'}</strong>${error.message || (currentTranslations.unexpectedClientError || '发生意外错误。')}</p>`; // Add class to error message paragraph
           
           const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-          errorHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
-          errorHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+          errorHtml += `<p>${(currentTranslations.processingStartTime || '处理开始时间：{time}').replace('{time}', startTimeFormatted)}</p>`;
+          errorHtml += `<p>${(currentTranslations.totalTime || '总耗时：{seconds}秒').replace('{seconds}', totalTimeSeconds)}</p>`;
           errorEntryDiv.innerHTML = errorHtml;
 
           // Add disabled action buttons for client errors as well for consistency
@@ -2053,7 +2053,7 @@
         // currentGeneratedSheinLabelPath = ''; // This global var is no longer the primary source for path
 
         await window.electronAPI.saveSettings(appSettings);
-        showToast('Shein 标签 生成已清空', 'info');
+        showToast(currentTranslations['toast.sheinFormCleared'] || 'Shein 标签 生成已清空', 'info');
       });
     }
     }

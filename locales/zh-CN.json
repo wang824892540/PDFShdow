@@ -101,5 +101,12 @@
   "pdfResizeFailed": "PDF尺寸调整失败：{error}",
   "pdfResizeError": "PDF尺寸调整出错：{error}",
   "sheinLabelGenerationFailed": "Shein 标签生成失败：{error}",
-  "sheinLabelGenerationError": "Shein 标签生成出错：{error}"
+  "sheinLabelGenerationError": "Shein 标签生成出错：{error}",
+  "devTools": "开发者工具",
+  "errorSelectPdfFile": "请先选择一个 PDF 文件。",
+  "errorInvalidWidth": "宽度必须是有效的正数。",
+  "errorInvalidHeight": "高度必须是有效的正数。",
+  "toast.pdfResizeFormCleared": "PDF 尺寸调整已清空",
+  "toast.sheinFormCleared": "Shein 标签 生成已清空",
+  "clientError": "客户端错误："
 }
