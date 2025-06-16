@@ -10,20 +10,6 @@
     <div class="title-bar-drag-region"></div>
     <div class="title-bar-text" style="display: flex; align-items: center;"><img width="30px" height="30px" src="static/pdfShdow.png" style="margin-right: 8px;">PDFShdow</div>
     <div class="title-bar-controls">
-      <div class="language-selector-wrapper" style="margin-right: 10px;">
-        <select id="languageSelector" class="title-bar-button">
-          <option value="zh-CN">简体中文</option>
-          <option value="en">English</option>
-        </select>
-      </div>
-      <div id="themeToggleSwitch" class="theme-switch-wrapper" title-i18n="themeToggle" title="切换主题">
-        <div class="theme-switch-track">
-          <div class="theme-switch-thumb">
-            <span class="sun-icon">☀️</span>
-            <span class="moon-icon">🌙</span>
-          </div>
-        </div>
-      </div>
       <button id="devToolsBtn" class="title-bar-button" data-i18n-aria-label="devTools" data-i18n-title="devTools" aria-label="开发者工具" title="开发者工具">
         <svg aria-hidden="true" version="1.1" width="10" height="10"><path d="M 5,0 5,2 7,2 7,4 5,4 5,6 3,6 3,4 1,4 1,2 3,2 3,0 Z M 1,7 1,9 3,9 3,7 Z M 5,7 5,9 7,9 7,7 Z" /></svg>
       </button>
@@ -62,6 +48,22 @@
         </ul>
       </nav>
       <div class="sidebar-footer">
+        <div class="sidebar-controls">
+          <div class="language-selector-wrapper">
+            <select id="languageSelector" class="sidebar-select">
+              <option value="zh-CN">简体中文</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div id="themeToggleSwitch" class="theme-switch-wrapper" title-i18n="themeToggle" title="切换主题">
+            <div class="theme-switch-track">
+              <div class="theme-switch-thumb">
+                <span class="sun-icon">☀️</span>
+                <span class="moon-icon">🌙</span>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="theme-notice" data-i18n="version" data-i18n-options='{"version": "0.0.1"}'>版本号: 0.0.1</div>
         <div class="theme-notice" data-i18n="disclaimer">仅供学习交流使用，不可商用</div>
       </div>
