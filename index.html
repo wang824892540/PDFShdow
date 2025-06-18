@@ -851,10 +851,16 @@
         }
 
         // Update output directory display if not globally set
+        // Update output directory display if not globally set
         if (!appSettings.outputDirectory) {
           const dirName = getDirnameFrontend(selectedFilePath);
-          const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-          document.getElementById('outputDirDisplay').textContent = displayText;
+          const outputDirDisplay = document.getElementById('outputDirDisplay');
+          const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+          // Only update if the display is still showing the default text.
+          if (dirName && outputDirDisplay.textContent === defaultDirText) {
+            const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+            outputDirDisplay.textContent = displayText;
+          }
         }
 
         // Auto-fill output name for PDF Resize
@@ -1592,10 +1598,16 @@
           }
 
           // Update output directory display if not globally set
+          // Update output directory display if not globally set
           if (!appSettings.outputDirectory) {
             const dirName = getDirnameFrontend(selectedSheinPdf1Path);
-            const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-            document.getElementById('sheinOutputDirDisplay').textContent = displayText;
+            const sheinOutputDirDisplay = document.getElementById('sheinOutputDirDisplay');
+            const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+            // Only update if the display is still showing the default text.
+            if (dirName && sheinOutputDirDisplay.textContent === defaultDirText) {
+              const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+              sheinOutputDirDisplay.textContent = displayText;
+            }
           }
           const saveResult = await window.electronAPI.saveSettings(appSettings);
           if (!saveResult || !saveResult.success) {
@@ -1640,10 +1652,16 @@
           }
 
           // Update output directory display if not globally set
+          // Update output directory display if not globally set
           if (!appSettings.outputDirectory) {
             const dirName = getDirnameFrontend(selectedSheinPdf2Path);
-            const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-            document.getElementById('sheinOutputDirDisplay').textContent = displayText;
+            const sheinOutputDirDisplay = document.getElementById('sheinOutputDirDisplay');
+            const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+            // Only update if the display is still showing the default text.
+            if (dirName && sheinOutputDirDisplay.textContent === defaultDirText) {
+              const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+              sheinOutputDirDisplay.textContent = displayText;
+            }
           }
   
           // Auto-fill output name for Shein 标签 (based on barcode file)
