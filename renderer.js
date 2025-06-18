@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('electronAPI', {
   openOfficialWebsite: () => ipcRenderer.invoke('open-official-website'),
   openFile: () => ipcRenderer.invoke('open-file'),
+  selectDirectory: () => ipcRenderer.invoke('select-output-directory'),
   processPDF: (config) => ipcRenderer.invoke('process-pdf', config),
   generateSheinLabel: (params) => ipcRenderer.invoke('generate-shein-label', params),
   openPath: (filePath) => ipcRenderer.invoke('open-path', filePath),

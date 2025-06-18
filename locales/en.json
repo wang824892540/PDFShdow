@@ -108,5 +108,11 @@
   "errorInvalidHeight": "Height must be a valid positive number.",
   "toast.pdfResizeFormCleared": "PDF Resizer form has been cleared",
   "toast.sheinFormCleared": "Shein Label Generator form has been cleared",
-  "clientError": "Client Error: "
+  "clientError": "Client Error: ",
+  "selectOutputDirectory": "Select Output Directory",
+  "outputDirectoryHint": "Choose a folder to save all generated files",
+  "notSetUseDefault": "Not set, using source file directory",
+  "currentPath": "Current Path",
+  "outputDirSet": "Output directory set to: {dir}",
+  "operationCancelled": "Operation cancelled."
 }

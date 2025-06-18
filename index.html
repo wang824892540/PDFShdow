@@ -95,6 +95,14 @@
             <label for="pdfResizeOutputName"><span data-i18n="fileName">文件名称</span> <span class="field-hint" data-i18n="outputFileNameHint">输出文件名,不含扩展名</span></label>
             <input type="text" id="pdfResizeOutputName" data-i18n-placeholder="exampleResized" placeholder="例如: resized_document">
           </div>
+
+          <div class="section">
+            <div class="field-wrapper">
+              <button id="selectOutputDirBtn" class="btn-secondary" data-i18n="selectOutputDirectory">选择输出目录</button>
+              <span id="outputDirDisplay" class="file-select-status-span" data-i18n="notSetUseDefault"></span>
+              <span class="field-hint" data-i18n="outputDirectoryHint">选择一个文件夹来保存所有生成的文件</span>
+            </div>
+          </div>
       
           <div class="section">
             <label for="pageSize"><span data-i18n="pageSize">页面尺寸</span> <span class="field-hint" data-i18n="selectPresetOrCustom">选择预设或自定义</span></label>
@@ -172,6 +180,14 @@
           <div class="section">
             <label for="sheinOutputName"><span data-i18n="fileName">文件名称</span> <span class="field-hint" data-i18n="sheinOutputFileNameHint">Shein标签输出文件名</span></label>
             <input type="text" id="sheinOutputName" data-i18n-placeholder="exampleSheinOutput" placeholder="例如: shein_label_output">
+          </div>
+
+          <div class="section">
+            <div class="field-wrapper">
+              <button id="sheinSelectOutputDirBtn" class="btn-secondary" data-i18n="selectOutputDirectory">选择输出目录</button>
+              <span id="sheinOutputDirDisplay" class="file-select-status-span" data-i18n="notSetUseDefault"></span>
+               <span class="field-hint" data-i18n="outputDirectoryHint">选择一个文件夹来保存所有生成的文件</span>
+            </div>
           </div>
 
           <div class="section">
@@ -330,6 +346,18 @@
         return normalizedPath; // No slashes, the whole path is the filename
       }
       return normalizedPath.substring(lastSlashIndex + 1);
+    }
+
+    function getDirnameFrontend(filePath) {
+      if (!filePath || typeof filePath !== 'string') {
+        return '';
+      }
+      const normalizedPath = filePath.replace(/\\/g, '/');
+      const lastSlashIndex = normalizedPath.lastIndexOf('/');
+      if (lastSlashIndex === -1) {
+        return ''; // No directory part
+      }
+      return normalizedPath.substring(0, lastSlashIndex);
     }
 
     function getFilenameWithoutExtension(filePath) {
@@ -822,6 +850,13 @@
           updateFileSelectionUI(selectedFilePath, 'selectedFile', null, null, false); // Show filename at least, remove loading
         }
 
+        // Update output directory display if not globally set
+        if (!appSettings.outputDirectory) {
+          const dirName = getDirnameFrontend(selectedFilePath);
+          const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+          document.getElementById('outputDirDisplay').textContent = displayText;
+        }
+
         // Auto-fill output name for PDF Resize
         const pdfResizeOutputNameInput = document.getElementById('pdfResizeOutputName');
         if (pdfResizeOutputNameInput) {
@@ -1192,7 +1227,8 @@
       const apiResult = await window.electronAPI.processPDF({ // Renamed to apiResult
         filePath: selectedFilePath,
         operations,
-        outputName: finalOutputNameWithPdf // Pass name with .pdf
+        outputName: finalOutputNameWithPdf, // Pass name with .pdf
+        outputDir: appSettings.outputDirectory || ''
       });
       console.log('[PDF Resize] After calling window.electronAPI.processPDF. Result:', apiResult); // DEBUG LOG
 
@@ -1398,6 +1434,12 @@
         // }
         // currentGeneratedPdfResizePath = ''; // No longer used
 
+        // Clear output directory
+        appSettings.outputDirectory = '';
+        const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+        document.getElementById('outputDirDisplay').textContent = defaultDirText;
+        document.getElementById('sheinOutputDirDisplay').textContent = defaultDirText;
+
         await window.electronAPI.saveSettings(appSettings);
         showToast(currentTranslations['toast.pdfResizeFormCleared'] || 'PDF 尺寸调整已清空', 'info');
       });
@@ -1548,6 +1590,13 @@
             showToast(`获取欧代文件元数据时出错: ${err.message}`, 'error');
             updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', null, null, false); // Show filename at least, remove loading
           }
+
+          // Update output directory display if not globally set
+          if (!appSettings.outputDirectory) {
+            const dirName = getDirnameFrontend(selectedSheinPdf1Path);
+            const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+            document.getElementById('sheinOutputDirDisplay').textContent = displayText;
+          }
           const saveResult = await window.electronAPI.saveSettings(appSettings);
           if (!saveResult || !saveResult.success) {
             console.error('Failed to save settings after Shein File 1 selection:', saveResult ? saveResult.error : 'Unknown error');
@@ -1588,6 +1637,13 @@
           } catch (err) {
             showToast(`获取条码文件元数据时出错: ${err.message}`, 'error');
             updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null, false); // Show filename at least, remove loading
+          }
+
+          // Update output directory display if not globally set
+          if (!appSettings.outputDirectory) {
+            const dirName = getDirnameFrontend(selectedSheinPdf2Path);
+            const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+            document.getElementById('sheinOutputDirDisplay').textContent = displayText;
           }
   
           // Auto-fill output name for Shein 标签 (based on barcode file)
@@ -1856,7 +1912,8 @@
           pdf2Path: selectedSheinPdf2Path,
           outputName: outputName.toLowerCase().endsWith('.pdf') ? outputName : outputName + '.pdf', // Add .pdf before sending to API
           outputWidthMM: outputWidth,
-          outputHeightMM: outputHeight
+          outputHeightMM: outputHeight,
+          outputDir: appSettings.outputDirectory || ''
         };
 
         try {
@@ -2061,6 +2118,12 @@
         // }
         // currentGeneratedSheinLabelPath = ''; // This global var is no longer the primary source for path
 
+        // Clear output directory
+        appSettings.outputDirectory = '';
+        const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+        document.getElementById('outputDirDisplay').textContent = defaultDirText;
+        document.getElementById('sheinOutputDirDisplay').textContent = defaultDirText;
+
         await window.electronAPI.saveSettings(appSettings);
         showToast(currentTranslations['toast.sheinFormCleared'] || 'Shein 标签 生成已清空', 'info');
       });
@@ -2153,6 +2216,7 @@
           activeView: defaultViewId,
           theme: 'light',
           language: 'zh-CN',
+          outputDirectory: '',
           pdfResizeSelectedPath: '',
           sheinEcRepPdfPath: '',
           sheinBarcodePdfPath: '',
@@ -2228,6 +2292,31 @@
         updateFileSelectionUI(null, 'sheinSelectedFile2');
       }
       
+      // Load output directory
+      const outputDir = appSettings.outputDirectory || '';
+      const outputDirDisplay = document.getElementById('outputDirDisplay');
+      const sheinOutputDirDisplay = document.getElementById('sheinOutputDirDisplay');
+      const defaultText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+      if (outputDirDisplay) {
+        outputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
+      }
+      if (sheinOutputDirDisplay) {
+        sheinOutputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
+      }
+
+      // This logic is now handled by the file selection events, but we can keep a fallback here on load.
+      if (!outputDir) {
+        if (selectedFilePath) {
+            const dirName = getDirnameFrontend(selectedFilePath);
+            if(dirName) document.getElementById('outputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+        }
+        if (selectedSheinPdf1Path || selectedSheinPdf2Path) {
+            const sheinPath = selectedSheinPdf2Path || selectedSheinPdf1Path; // Prefer barcode path
+            const dirName = getDirnameFrontend(sheinPath);
+            if(dirName) document.getElementById('sheinOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+        }
+      }
+
       // Load form elements
       const formElementsToPersist = [
         { id: 'pdfResizeOutputName', type: 'text' },
@@ -2305,6 +2394,29 @@
 
     loadAndApplySettings(); // Call the main function to load settings
 
+    // --- Output Directory Selection Logic ---
+    const setupOutputDirButton = (buttonId, displayId) => {
+      const button = document.getElementById(buttonId);
+      if (button) {
+        button.addEventListener('click', async () => {
+          const newDir = await window.electronAPI.selectDirectory();
+          if (newDir) {
+            appSettings.outputDirectory = newDir;
+            await window.electronAPI.saveSettings(appSettings);
+            const displayText = `${currentTranslations.currentPath || '当前路径'}: ${newDir}`;
+            // Update both displays to keep them in sync
+            document.getElementById('outputDirDisplay').textContent = displayText;
+            document.getElementById('sheinOutputDirDisplay').textContent = displayText;
+            showToast((currentTranslations.outputDirSet || '输出目录已设置为: {dir}').replace('{dir}', newDir), 'success');
+          } else {
+            showToast(currentTranslations.operationCancelled || '操作已取消。', 'info');
+          }
+        });
+      }
+    };
+
+    setupOutputDirButton('selectOutputDirBtn', 'outputDirDisplay');
+    setupOutputDirButton('sheinSelectOutputDirBtn', 'sheinOutputDirDisplay');
   })
 </script>
 

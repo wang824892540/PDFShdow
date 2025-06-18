@@ -14,7 +14,7 @@ function streamToBuffer(stream) {
   });
 }
 
-async function performSheinLabelGeneration({ pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM }) {
+async function performSheinLabelGeneration({ pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM, outputDir }) {
   try {
     if (!pdf1Path || !pdf2Path || !outputName || !outputWidthMM || !outputHeightMM) {
       throw new Error('Missing required parameters in Shein 标签 worker.');
@@ -87,7 +87,8 @@ async function performSheinLabelGeneration({ pdf1Path, pdf2Path, outputName, out
     const finalPdfBytes = await finalPdfDoc.save();
     
     const outputFilename = outputName.endsWith('.pdf') ? outputName : `${outputName}.pdf`;
-    const savePath = path.join(path.dirname(pdf1Path), outputFilename); // Save in the same directory as PDF1
+    const baseDir = outputDir || path.dirname(pdf1Path);
+    const savePath = path.join(baseDir, outputFilename); // Save in the outputDir or the same directory as PDF1
     
     // fs.writeFileSync(savePath, finalPdfBytes); // Replaced with stream
     const writeStream = fs.createWriteStream(savePath);

@@ -154,7 +154,7 @@ ipcMain.handle('open-file', async () => {
   return filePaths[0];
 })
 
-ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName }) => {
+ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName, outputDir }) => {
   return new Promise((resolve, reject) => {
     // Basic validation in main thread before starting worker
     if (!filePath || !operations || !outputName) {
@@ -174,7 +174,7 @@ ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName }) =>
     }
 
     const worker = new Worker(path.join(__dirname, 'process-pdf-worker.js'), {
-      workerData: { filePath, operations, outputName }
+      workerData: { filePath, operations, outputName, outputDir }
     });
 
     let resolved = false; // Flag to prevent multiple resolves
@@ -220,7 +220,7 @@ ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName }) =>
   });
 })
 
-ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM }) => {
+ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM, outputDir }) => {
   return new Promise((resolve, reject) => {
     // Basic validation in main thread before starting worker
     if (!pdf1Path || !pdf2Path || !outputName || typeof outputWidthMM !== 'number' || typeof outputHeightMM !== 'number' || outputWidthMM <= 0 || outputHeightMM <= 0) {
@@ -230,7 +230,7 @@ ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputNam
     }
 
     const worker = new Worker(path.join(__dirname, 'shein-label-worker.js'), {
-      workerData: { pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM }
+      workerData: { pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM, outputDir }
     });
 
     let resolved = false; // Flag to prevent multiple resolves
@@ -272,6 +272,17 @@ ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputNam
       }
     });
   });
+});
+
+// IPC handler to select an output directory
+ipcMain.handle('select-output-directory', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory']
+  });
+  if (canceled || !filePaths || filePaths.length === 0) {
+    return null;
+  }
+  return filePaths[0];
 });
 
 // IPC handler to open a given path (file or directory)

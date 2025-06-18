@@ -14,7 +14,7 @@ function streamToBuffer(stream) {
   });
 }
 
-async function performPdfProcessing({ filePath, operations, outputName }) {
+async function performPdfProcessing({ filePath, operations, outputName, outputDir }) {
   try {
     // --- This core logic is almost identical to the original process-pdf in main.js ---
     if (!filePath || !operations || !outputName) {
@@ -68,7 +68,8 @@ async function performPdfProcessing({ filePath, operations, outputName }) {
 
     const processedPdfBytes = await newPdfDoc.save();
     // outputName is expected to be a valid .pdf filename string from the frontend
-    const savePath = path.join(path.dirname(filePath), outputName);
+    const baseDir = outputDir || path.dirname(filePath);
+    const savePath = path.join(baseDir, outputName);
     
     // fs.writeFileSync(savePath, processedPdfBytes); // Replaced with stream
     const writeStream = fs.createWriteStream(savePath);

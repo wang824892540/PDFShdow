@@ -108,5 +108,11 @@
   "errorInvalidHeight": "高度必须是有效的正数。",
   "toast.pdfResizeFormCleared": "PDF 尺寸调整已清空",
   "toast.sheinFormCleared": "Shein 标签 生成已清空",
-  "clientError": "客户端错误："
+  "clientError": "客户端错误：",
+  "selectOutputDirectory": "选择输出目录",
+  "outputDirectoryHint": "选择一个文件夹来保存所有生成的文件",
+  "notSetUseDefault": "未设置，使用源文件目录",
+  "currentPath": "当前路径",
+  "outputDirSet": "输出目录已设置为: {dir}",
+  "operationCancelled": "操作已取消。"
 }
