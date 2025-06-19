@@ -1,6 +1,6 @@
 {
   "name": "pdf-shdow",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "This is an Electron-based desktop application that provides a set of tools for processing PDF files.",
   "author": "hxw <82489254@qq.com>",
   "main": "main.js",
@@ -28,7 +28,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://pdfshdow.cn/updates/"
+        "url": "https://www.pdfshdow.cn/updates/"
       }
     ],
     "win": {
