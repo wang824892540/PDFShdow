@@ -293,7 +293,12 @@ body.dark-mode {
   /* Softer border */
   border-radius: var(--border-radius-lg); /* Kept large radius for cards */
   box-shadow: var(--shadow-sm); /* Softer shadow for sections */
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.section:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 .section:last-child {
   margin-bottom: 0;
