@@ -340,8 +340,8 @@ ipcMain.handle('copy-file-to-clipboard', async (event, filePath) => {
   }
 });
 
-// IPC handler for getting settings
-ipcMain.handle('get-settings', async () => {
+// --- Settings Read/Write Helpers ---
+async function readSettings() {
   const filePath = getSettingsFilePath();
   try {
     const data = await fs.readFile(filePath, 'utf8');
@@ -349,7 +349,7 @@ ipcMain.handle('get-settings', async () => {
   } catch (error) {
     if (error.code === 'ENOENT') {
       // File doesn't exist, return default settings (empty object)
-      sendToastToRenderer('未找到设置文件，将使用默认设置。', 'info');
+      // No toast here, as it's normal for the first run.
       return {};
     }
     // Other error (e.g., corrupted JSON, permissions)
@@ -357,20 +357,29 @@ ipcMain.handle('get-settings', async () => {
     sendToastToRenderer(`读取设置失败: ${error.message || '未知错误'}`, 'warning');
     return {}; // Return default on other errors as well to prevent app crash
   }
-});
+}
 
-// IPC handler for saving settings
-ipcMain.handle('save-settings', async (event, settings) => {
+async function writeSettings(settings) {
   const filePath = getSettingsFilePath();
   try {
     await fs.writeFile(filePath, JSON.stringify(settings, null, 2), 'utf8');
-    // sendToastToRenderer('设置已成功保存！', 'success');
     return { success: true };
   } catch (error) {
     console.error(`Error writing settings file ${filePath}:`, error);
     sendToastToRenderer(`保存设置失败: ${error.message || '未知错误'}`, 'error');
     return { success: false, error: error.message || 'Failed to save settings.' };
   }
+}
+// --- End Settings Read/Write Helpers ---
+
+// IPC handler for getting settings
+ipcMain.handle('get-settings', async () => {
+  return await readSettings();
+});
+
+// IPC handler for saving settings
+ipcMain.handle('save-settings', async (event, settings) => {
+  return await writeSettings(settings);
 });
 
 // IPC Handlers for custom window controls

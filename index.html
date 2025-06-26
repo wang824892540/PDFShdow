@@ -50,6 +50,16 @@
        display: flex;
        align-items: center;
      }
+     .editor-controls-footer {
+       display: flex;
+       justify-content: space-between;
+       align-items: center;
+       margin-top: 8px;
+       gap: 15px;
+     }
+     .editor-controls-footer .field-hint {
+         text-align: right;
+     }
   </style>
 </head>
 <body>
@@ -277,16 +287,15 @@
             </div>
             <div class="shein-label-editor-container">
               <div class="section">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <label data-i18n="editorArea">编辑区域</label>
-                  <div class="checkbox-wrapper">
-                    <input type="checkbox" id="sheinKeepAspectRatio" checked>
-                    <label for="sheinKeepAspectRatio" data-i18n="keepAspectRatio">固定高宽比</label>
-                  </div>
-                </div>
+                <label data-i18n="editorArea">编辑区域</label>
                 <div id="shein-editor-area" class="editor-area">
                 </div>
-                <span class="field-hint" data-i18n="editorAreaHint">在此区域调整欧代和条码的位置与大小。白色背景区域为最终输出大小。</span>
+                <div class="editor-controls-footer">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="sheinKeepAspectRatio" checked>
+                        <label for="sheinKeepAspectRatio" data-i18n="keepAspectRatio">固定高宽比</label>
+                    </div>
+                </div>
               </div>
             </div>
           </div>
@@ -2781,6 +2790,19 @@
 
     setupOutputDirButton('selectOutputDirBtn', 'outputDirDisplay');
     setupOutputDirButton('sheinSelectOutputDirBtn', 'sheinOutputDirDisplay');
+    
+    // Add a ResizeObserver to the editor container to fix aspect ratio on window resize
+    const editorContainer = document.querySelector('.shein-label-editor-container');
+    if (editorContainer) {
+        const resizeObserver = new ResizeObserver(() => {
+            // Only run the update function if the view is actually visible
+            // to avoid unnecessary calculations on hidden elements.
+            if (document.getElementById('sheinLabelView').style.display === 'block') {
+                updateSheinEditorAreaSize();
+            }
+        });
+        resizeObserver.observe(editorContainer);
+    }
   })
 </script>
 
