@@ -70,6 +70,23 @@
         </div>
         <div class="theme-notice" data-i18n="version" data-i18n-options='{"version": "0.0.2"}'>版本号: 0.0.2</div>
         <div class="theme-notice" data-i18n="disclaimer">仅供学习交流使用，不可商用</div>
+        <div class="contact-info">
+          <div style="display: flex; align-items: center;">
+            <h3 data-i18n="contactMe" style="margin-bottom: 0;">需求问题反馈我</h3>
+            <div class="contact-icons" style="margin-left: 8px;">
+             <svg id="redBookIcon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" style="cursor: pointer;">
+               <path d="M512 512m-448 0a448 448 0 1 0 896 0 448 448 0 1 0-896 0Z" fill="#FF2442"></path>
+               <path d="M742.4 332.8H281.6c-22.272 0-40.32 18.048-40.32 40.32v123.52c0 22.272 18.048 40.32 40.32 40.32h120.96v-80.64h-80.64v-83.2h481.28v201.6H522.24v80.64h220.16c22.272 0 40.32-18.048 40.32-40.32V373.12c0-22.272-18.048-40.32-40.32-40.32z" fill="#FFFFFF"></path>
+               <path d="M441.6 536.96v161.28h-160v-161.28h160zM401.28 496.64H240.96c-22.272 0-40.32 18.048-40.32 40.32v241.92c0 22.272 18.048 40.32 40.32 40.32h200.64c22.272 0 40.32-18.048 40.32-40.32V536.96c0-22.272-18.048-40.32-40.32-40.32z" fill="#FFFFFF"></path>
+            </svg>
+            </div>
+          </div>
+          <p data-i18n="qq">QQ: 824892540</p>
+          <p data-i18n="email">邮箱: 824892540@qq.com</p>
+        </div>
+        <div id="redBookPopup" class="image-popup">
+         <img src="static/redBook.png" alt="小红书码">
+       </div>
       </div>
     </aside>
 
@@ -2435,6 +2452,17 @@
 
     setupOutputDirButton('selectOutputDirBtn', 'outputDirDisplay');
     setupOutputDirButton('sheinSelectOutputDirBtn', 'sheinOutputDirDisplay');
+
+   const redBookIcon = document.getElementById('redBookIcon');
+   const redBookPopup = document.getElementById('redBookPopup');
+
+   redBookIcon.addEventListener('mouseenter', () => {
+     redBookPopup.style.display = 'block';
+   });
+
+   redBookIcon.addEventListener('mouseleave', () => {
+     redBookPopup.style.display = 'none';
+   });
   })
 </script>
 
