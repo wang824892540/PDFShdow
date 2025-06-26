@@ -11,7 +11,7 @@ log.transports.file.level = 'info';
 log.transports.console.level = 'info';
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
-autoUpdater.autoDownload = true; // Download updates automatically
+autoUpdater.autoDownload = false; // We will handle download manually or prompt user
 
 // Early setup for unhandled exception toaster
 let mainWindow // mainWindow will be assigned later in createWindow
@@ -440,14 +440,33 @@ autoUpdater.on('checking-for-update', () => {
 })
 
 autoUpdater.on('update-available', (info) => {
-  log.info('Update available, download will start automatically.', info);
-  sendToastToRenderer(`发现新版本 ${info.version}，将在后台自动下载。`, 'info', 5000);
+  log.info('Update available.', info);
+  sendToastToRenderer(`发现新版本 ${info.version}！正在准备下载...`, 'info', 5000);
   if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-status', { status: 'available', version: info.version });
-    // Since autoDownload is true, we can also immediately inform the UI that download has started.
-    mainWindow.webContents.send('update-status', { status: 'download-started', version: info.version });
   }
-  isDownloadingUpdate = true; // Set flag to indicate a download is in progress
+  // Example: Automatically start download if update is available
+  // Or prompt user via dialog before downloading
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: '发现新版本',
+    message: `发现新版本 ${info.version}。是否现在下载？`,
+    buttons: ['是', '否'],
+    defaultId: 0,
+    cancelId: 1
+  }).then(result => {
+    if (result.response === 0) { // '是' button
+      log.info('User agreed to download update. Starting download...');
+      if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('update-status', { status: 'download-started', version: info.version });
+      }
+      isDownloadingUpdate = true; // Set flag to true when download starts
+      autoUpdater.downloadUpdate();
+    } else {
+      log.info('User declined to download update.');
+      isDownloadingUpdate = false; // Reset flag if user declines
+    }
+  });
 })
 
 autoUpdater.on('update-not-available', (info) => {
@@ -488,13 +507,25 @@ autoUpdater.on('download-progress', (progressObj) => {
 
 autoUpdater.on('update-downloaded', (info) => {
   isDownloadingUpdate = false; // Reset flag when download is complete
-  log.info(`Update ${info.version} downloaded. It will be installed on the next application restart.`);
-  sendToastToRenderer(`新版本 ${info.version} 已下载，将在下次启动时自动安装。`, 'success', 10000);
+  log.info('Update downloaded; will install now or on next restart.', info);
+  sendToastToRenderer(`新版本 ${info.version} 已下载。重启应用以安装。`, 'success', 10000);
   if (mainWindow && mainWindow.webContents && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('update-status', { status: 'downloaded', version: info.version });
   }
-  // With silent updates, we don't prompt the user. The update will be applied
-  // automatically when the application is next launched.
+  // Prompt user to quit and install
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: '更新已就绪',
+    message: `新版本 ${info.version} 已下载。是否立即重启并安装？`,
+    buttons: ['立即重启', '稍后重启']
+  }).then(result => {
+    if (result.response === 0) { // '立即重启' button
+      log.info('User agreed to quit and install update.');
+      autoUpdater.quitAndInstall();
+    } else {
+      log.info('User chose to install update later.');
+    }
+  });
 });
 
 // IPC handler for renderer to manually check for updates
