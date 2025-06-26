@@ -22,7 +22,7 @@
        box-sizing: border-box;
        position: absolute;
        border: 1px dashed #007bff;
-       background-size: contain;
+       background-size: 100% 100%;
        background-repeat: no-repeat;
        background-position: center;
      }
@@ -32,6 +32,23 @@
        background: #007bff;
        border: 1px solid white;
        position: absolute;
+     }
+     .shein-label-layout {
+       display: flex;
+       gap: 20px;
+     }
+     .shein-label-controls {
+       flex: 2;
+       min-width: 300px;
+     }
+     .shein-label-editor-container {
+       flex: 0.5;
+       display: flex;
+       flex-direction: column;
+     }
+     .checkbox-wrapper {
+       display: flex;
+       align-items: center;
      }
   </style>
 </head>
@@ -183,95 +200,95 @@
       </div>
 
       <div class="view-container" id="sheinLabelView" style="display: block;">
-        <div class="container"> <!-- Each view can have its own container for consistency -->
+        <div class="container">
           <div class="title-with-description">
             <h2 data-i18n="sheinLabelGenerator">Shein 标签 生成</h2>
             <span class="feature-description" data-i18n="sheinLabelGeneratorDescription">合并欧代和条码 PDF，生成符合 Shein 要求的标签。</span>
           </div>
-          
-          <div class="section">
-            <div class="field-wrapper"> <!-- Added wrapper -->
-              <button id="sheinOpenFile1Btn" class="btn-primary" data-i18n="selectEcRepFile">选择欧代文件</button>
-              <span id="sheinSelectedFile1" class="file-select-status-span" data-i18n="noFileSelected"></span>
-              <span class="field-hint" data-i18n="ecRepPdfHint">欧代PDF文件</span>
-              <small class="error-message" id="sheinSelectedFile1Error"></small> <!-- New error message placeholder -->
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="field-wrapper"> <!-- Added wrapper -->
-              <button id="sheinOpenFile2Btn" class="btn-primary" data-i18n="selectBarcodeFile">选择条码文件</button>
-              <span id="sheinSelectedFile2" class="file-select-status-span" data-i18n="noFileSelected"></span>
-              <span class="field-hint" data-i18n="barcodePdfHint">条码PDF文件</span>
-              <small class="error-message" id="sheinSelectedFile2Error"></small> <!-- New error message placeholder -->
-            </div>
-          </div>
-
-          <div class="section">
-            <div class="field-wrapper">
-              <button id="sheinSelectOutputDirBtn" class="btn-secondary" data-i18n="selectOutputDirectory">选择输出目录</button>
-              <span id="sheinOutputDirDisplay" class="file-select-status-span" data-i18n="notSetUseDefault"></span>
-               <span class="field-hint" data-i18n="outputDirectoryHint">选择一个文件夹来保存所有生成的文件</span>
-            </div>
-          </div>
-
-          <div class="section">
-            <label for="sheinOutputName"><span data-i18n="fileName">文件名称</span> <span class="field-hint" data-i18n="sheinOutputFileNameHint">Shein标签输出文件名</span></label>
-            <input type="text" id="sheinOutputName" data-i18n-placeholder="exampleSheinOutput" placeholder="例如: shein_label_output">
-          </div>
-
-          <div class="section">
-            <label for="sheinOutputPageSize"><span data-i18n="pageSize">页面尺寸</span> <span class="field-hint" data-i18n="sheinOutputPageSize">Shein标签输出尺寸</span></label>
-            <div class="custom-select-wrapper">
-              <select id="sheinOutputPageSize" style="display:none;">
-                <option value="A4">A4 (210x297mm)</option>
-                <option value="Shein" selected>Shein (70x60mm)</option>
-                <option value="custom" data-i18n="custom">自定义</option>
-              </select>
-              <div class="custom-select-container" id="customSheinOutputPageSizeSelect">
-                <div class="custom-select-trigger"><span>Shein (70x60mm)</span><div class="arrow"></div></div>
-                <div class="custom-select-options">
-                  {/* Options will be populated by JS */}
+          <div class="shein-label-layout">
+            <div class="shein-label-controls">
+              <div class="section">
+                <div class="field-wrapper">
+                  <button id="sheinOpenFile1Btn" class="btn-primary" data-i18n="selectEcRepFile">选择欧代文件</button>
+                  <span id="sheinSelectedFile1" class="file-select-status-span" data-i18n="noFileSelected"></span>
+                  <span class="field-hint" data-i18n="ecRepPdfHint">欧代PDF文件</span>
+                  <small class="error-message" id="sheinSelectedFile1Error"></small>
                 </div>
               </div>
-            </div>
-            <div id="sheinOutputCustomDimensions" class="dimension-inputs-container" style="display: none;">
-              <div class="field-wrapper">
-                <div class="input-group">
-                  <input type="number" id="sheinOutputWidth" data-i18n-placeholder="width" placeholder="宽度" value="70">
-                  <span class="unit">mm</span>
+              <div class="section">
+                <div class="field-wrapper">
+                  <button id="sheinOpenFile2Btn" class="btn-primary" data-i18n="selectBarcodeFile">选择条码文件</button>
+                  <span id="sheinSelectedFile2" class="file-select-status-span" data-i18n="noFileSelected"></span>
+                  <span class="field-hint" data-i18n="barcodePdfHint">条码PDF文件</span>
+                  <small class="error-message" id="sheinSelectedFile2Error"></small>
                 </div>
-                <span class="field-hint" data-i18n="labelWidthHint">标签宽度,毫米</span>
-                <small class="error-message" id="sheinOutputWidthError"></small>
               </div>
-              <div class="field-wrapper">
-                <div class="input-group">
-                  <input type="number" id="sheinOutputHeight" data-i18n-placeholder="height" placeholder="高度" value="60">
-                  <span class="unit">mm</span>
+              <div class="section">
+                <div class="field-wrapper">
+                  <button id="sheinSelectOutputDirBtn" class="btn-secondary" data-i18n="selectOutputDirectory">选择输出目录</button>
+                  <span id="sheinOutputDirDisplay" class="file-select-status-span" data-i18n="notSetUseDefault"></span>
+                  <span class="field-hint" data-i18n="outputDirectoryHint">选择一个文件夹来保存所有生成的文件</span>
                 </div>
-                <span class="field-hint" data-i18n="labelHeightHint">标签高度,毫米</span>
-                <small class="error-message" id="sheinOutputHeightError"></small>
+              </div>
+              <div class="section">
+                <label for="sheinOutputName"><span data-i18n="fileName">文件名称</span> <span class="field-hint" data-i18n="sheinOutputFileNameHint">Shein标签输出文件名</span></label>
+                <input type="text" id="sheinOutputName" data-i18n-placeholder="exampleSheinOutput" placeholder="例如: shein_label_output">
+              </div>
+              <div class="section">
+                <label for="sheinOutputPageSize"><span data-i18n="pageSize">页面尺寸</span> <span class="field-hint" data-i18n="sheinOutputPageSize">Shein标签输出尺寸</span></label>
+                <div class="custom-select-wrapper">
+                  <select id="sheinOutputPageSize" style="display:none;">
+                    <option value="A4">A4 (210x297mm)</option>
+                    <option value="Shein" selected>Shein (70x60mm)</option>
+                    <option value="custom" data-i18n="custom">自定义</option>
+                  </select>
+                  <div class="custom-select-container" id="customSheinOutputPageSizeSelect">
+                    <div class="custom-select-trigger"><span>Shein (70x60mm)</span><div class="arrow"></div></div>
+                    <div class="custom-select-options">
+                    </div>
+                  </div>
+                </div>
+                <div id="sheinOutputCustomDimensions" class="dimension-inputs-container" style="display: none;">
+                  <div class="field-wrapper">
+                    <div class="input-group">
+                      <input type="number" id="sheinOutputWidth" data-i18n-placeholder="width" placeholder="宽度" value="70">
+                      <span class="unit">mm</span>
+                    </div>
+                    <span class="field-hint" data-i18n="labelWidthHint">标签宽度,毫米</span>
+                    <small class="error-message" id="sheinOutputWidthError"></small>
+                  </div>
+                  <div class="field-wrapper">
+                    <div class="input-group">
+                      <input type="number" id="sheinOutputHeight" data-i18n-placeholder="height" placeholder="高度" value="60">
+                      <span class="unit">mm</span>
+                    </div>
+                    <span class="field-hint" data-i18n="labelHeightHint">标签高度,毫米</span>
+                    <small class="error-message" id="sheinOutputHeightError"></small>
+                  </div>
+                </div>
+              </div>
+              <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
+                <button id="generateSheinLabelBtn" class="btn-primary" data-i18n="generateSheinLabel">生成 Shein 标签</button>
+                <button id="clearSheinLabelFormBtn" class="btn-secondary" style="margin-left: 10px;" data-i18n="clear">清空</button>
+              </div>
+              <div id="sheinResult"></div>
+              <div id="sheinPostProcessActions" style="margin-top: 10px; display: none;">
               </div>
             </div>
-          </div>
-
-          <div class="section">
-           <label data-i18n="editorArea">编辑区域</label>
-           <div id="shein-editor-area" class="editor-area">
-               <!-- Draggable images will be added here by JS -->
-           </div>
-           <span class="field-hint" data-i18n="editorAreaHint">在此区域调整欧代和条码的位置与大小。白色背景区域为最终输出大小。</span>
-          </div>
-
-          <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
-            <button id="generateSheinLabelBtn" class="btn-primary" data-i18n="generateSheinLabel">生成 Shein 标签</button> <!-- Removed flex-grow: 1 -->
-            <button id="clearSheinLabelFormBtn" class="btn-secondary" style="margin-left: 10px;" data-i18n="clear">清空</button>
-          </div>
-          <div id="sheinResult"></div>
-          <div id="sheinPostProcessActions" style="margin-top: 10px; display: none;">
-            <!-- <button id="openGeneratedFileBtn" class="action-button">打开文件</button>
-            <button id="showGeneratedFileInFolderBtn" class="action-button">打开文件夹</button>
-            <button id="sheinCopyFileBtn" class="action-button" title="尝试复制文件到剪贴板 (若失败则复制路径)">复制文件</button> -->
+            <div class="shein-label-editor-container">
+              <div class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <label data-i18n="editorArea">编辑区域</label>
+                  <div class="checkbox-wrapper">
+                    <input type="checkbox" id="sheinKeepAspectRatio" checked>
+                    <label for="sheinKeepAspectRatio" data-i18n="keepAspectRatio">固定高宽比</label>
+                  </div>
+                </div>
+                <div id="shein-editor-area" class="editor-area">
+                </div>
+                <span class="field-hint" data-i18n="editorAreaHint">在此区域调整欧代和条码的位置与大小。白色背景区域为最终输出大小。</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1541,9 +1558,13 @@
        }
    }
 
-   function makePdfPageDraggable(elementId) {
-       const element = document.getElementById(elementId);
+   function setupInteractForElement(element) {
        if (!element) return;
+
+       // Unset previous interactable instance to apply new settings cleanly
+       interact(element).unset();
+
+       const keepAspectRatioCheckbox = document.getElementById('sheinKeepAspectRatio');
 
        interact(element)
            .draggable({
@@ -1555,6 +1576,9 @@
                        event.target.style.transform = `translate(${x}px, ${y}px)`;
                        
                        Object.assign(event.target.dataset, { x, y });
+                   },
+                   end: function (event) {
+                       saveEditorLayout();
                    },
                },
                modifiers: [
@@ -1579,7 +1603,10 @@
                        event.target.style.transform = `translate(${x}px, ${y}px)`;
 
                        Object.assign(event.target.dataset, { x, y });
-                   }
+                   },
+                   end: function (event) {
+                       saveEditorLayout();
+                   },
                },
                modifiers: [
                    interact.modifiers.restrictEdges({
@@ -1587,23 +1614,111 @@
                    }),
                    interact.modifiers.restrictSize({
                        min: { width: 50, height: 50 }
-                   })
+                   }),
+                   ...(keepAspectRatioCheckbox && keepAspectRatioCheckbox.checked ? [interact.modifiers.aspectRatio({ ratio: 'preserve' })] : [])
                ],
                inertia: true
            });
    }
 
+   function applySheinLayoutTemplate() {
+       const editorArea = document.getElementById('shein-editor-area');
+       const barcodeEl = document.getElementById('shein-pdf-2'); // Barcode PDF
+       const ecRepEl = document.getElementById('shein-pdf-1');   // EC Rep PDF
+
+       // Only apply template if both elements are present in the editor
+       if (!editorArea || !barcodeEl || !ecRepEl) {
+           return;
+       }
+
+       const template = 'barcode-top-ec-bottom'; // Hardcoded default template
+       const editorWidth = editorArea.clientWidth;
+       const editorHeight = editorArea.clientHeight;
+       
+       const verticalPadding = 5; // 5px from top/bottom edge
+       const horizontalPaddingPercent = 0.05; // 5% padding on sides
+
+       if (template === 'barcode-top-ec-bottom') {
+           // --- Barcode (Top) ---
+           const barcodeAspectRatio = parseFloat(barcodeEl.dataset.aspectRatio);
+           if (!isNaN(barcodeAspectRatio) && barcodeAspectRatio > 0) {
+               const barcodeWidth = editorWidth * (1 - 2 * horizontalPaddingPercent);
+               const barcodeHeight = barcodeWidth / barcodeAspectRatio;
+               barcodeEl.style.width = `${barcodeWidth}px`;
+               barcodeEl.style.height = `${barcodeHeight}px`;
+               
+               const barcodeX = (editorWidth - barcodeWidth) / 2; // Center horizontally
+               const barcodeY = verticalPadding; // Place at the top with padding
+               
+               barcodeEl.style.transform = `translate(${barcodeX}px, ${barcodeY}px)`;
+               Object.assign(barcodeEl.dataset, { x: barcodeX, y: barcodeY });
+           }
+
+           // --- EC Rep (Bottom) ---
+           const ecRepAspectRatio = parseFloat(ecRepEl.dataset.aspectRatio);
+           if (!isNaN(ecRepAspectRatio) && ecRepAspectRatio > 0) {
+               const ecRepWidth = editorWidth * (1 - 2 * horizontalPaddingPercent);
+               const ecRepHeight = ecRepWidth / ecRepAspectRatio;
+               ecRepEl.style.width = `${ecRepWidth}px`;
+               ecRepEl.style.height = `${ecRepHeight}px`;
+
+               const ecRepX = (editorWidth - ecRepWidth) / 2; // Center horizontally
+               const ecRepY = editorHeight - ecRepHeight - verticalPadding; // Place at the bottom with padding
+               
+               ecRepEl.style.transform = `translate(${ecRepX}px, ${ecRepY}px)`;
+               Object.assign(ecRepEl.dataset, { x: ecRepX, y: ecRepY });
+           }
+       }
+       // Future templates can be added here with 'else if'
+   }
+
+   async function saveEditorLayout() {
+       const editorArea = document.getElementById('shein-editor-area');
+       if (!editorArea) return;
+
+       const layoutData = [];
+       editorArea.querySelectorAll('.draggable-pdf-page').forEach(el => {
+           layoutData.push({
+               id: el.id,
+               x: el.dataset.x || '0',
+               y: el.dataset.y || '0',
+               width: el.style.width,
+               height: el.style.height,
+           });
+       });
+
+       appSettings.sheinEditorLayout = layoutData;
+       await window.electronAPI.saveSettings(appSettings);
+   }
+
+   function applySavedLayout() {
+       if (appSettings.sheinEditorLayout && Array.isArray(appSettings.sheinEditorLayout)) {
+           appSettings.sheinEditorLayout.forEach(item => {
+               const element = document.getElementById(item.id);
+               if (element) {
+                   element.style.width = item.width;
+                   element.style.height = item.height;
+                   const x = parseFloat(item.x) || 0;
+                   const y = parseFloat(item.y) || 0;
+                   element.style.transform = `translate(${x}px, ${y}px)`;
+                   element.dataset.x = x;
+                   element.dataset.y = y;
+               }
+           });
+       }
+   }
+
    async function renderPdfPageToEditor(filePath, elementId, displayName) {
        const editorArea = document.getElementById('shein-editor-area');
        let element = document.getElementById(elementId);
-       if (element) { // If element exists, remove it before re-rendering
+       if (element) {
            editorArea.removeChild(element);
        }
 
        try {
            const pdf = await pdfjsLib.getDocument(filePath).promise;
            const page = await pdf.getPage(1);
-           const viewport = page.getViewport({ scale: 1.5 });
+           const viewport = page.getViewport({ scale: 1.0 }); // Use scale 1.0 to get original ratio
 
            const canvas = document.createElement('canvas');
            const context = canvas.getContext('2d');
@@ -1616,13 +1731,24 @@
            element.id = elementId;
            element.className = 'draggable-pdf-page';
            element.style.backgroundImage = `url(${canvas.toDataURL()})`;
-           element.style.width = `${viewport.width * 0.5}px`; // Initial size
-           element.style.height = `${viewport.height * 0.5}px`;
+           
+           // Set initial size to 50% of editor width, maintaining aspect ratio
+           const editorWidth = editorArea.clientWidth;
+           const aspectRatio = viewport.width / viewport.height;
+           const initialWidth = editorWidth * 0.5;
+           const initialHeight = initialWidth / aspectRatio;
+
+           element.style.width = `${initialWidth}px`;
+           element.style.height = `${initialHeight}px`;
            element.dataset.pdfPath = filePath;
            element.dataset.displayName = displayName;
+           element.dataset.aspectRatio = aspectRatio;
 
            editorArea.appendChild(element);
-           makePdfPageDraggable(elementId);
+           setupInteractForElement(element);
+
+           // Attempt to apply layout template automatically if both PDFs are now present
+           applySheinLayoutTemplate();
 
        } catch (error) {
            console.error(`Error rendering PDF ${displayName}:`, error);
@@ -1841,6 +1967,16 @@
       });
     }
 
+   const sheinKeepAspectRatioCheckbox = document.getElementById('sheinKeepAspectRatio');
+   if (sheinKeepAspectRatioCheckbox) {
+     sheinKeepAspectRatioCheckbox.addEventListener('change', () => {
+       document.querySelectorAll('.draggable-pdf-page').forEach(el => {
+         setupInteractForElement(el);
+       });
+     });
+   }
+
+
     if (generateSheinLabelBtn) {
       // Event listeners for open/show buttons, defined once
       // openGeneratedFileBtn.addEventListener('click', async () => {
@@ -1924,7 +2060,7 @@
         const sheinSelectedFile2ErrorForReset = document.getElementById('sheinSelectedFile2Error');
         if (sheinOpenFile2ButtonForReset && sheinSelectedFile2ErrorForReset) {
             sheinOpenFile2ButtonForReset.classList.remove('input-error');
-            selectedSheinPdf2Path.textContent = '';
+            sheinSelectedFile2ErrorForReset.textContent = '';
             sheinSelectedFile2ErrorForReset.style.display = 'none';
         }
         // Reset inline error messages for Shein custom dimensions
@@ -2299,6 +2435,11 @@
             sheinOutputPageSizeSelect.dispatchEvent(event);
         }
 
+        // Clear the editor area
+        const editorArea = document.getElementById('shein-editor-area');
+        if (editorArea) {
+          editorArea.innerHTML = '';
+        }
 
         // Clear result and post-process actions
         if (sheinResultDiv) {
@@ -2420,7 +2561,8 @@
           sheinOutputName: '',
           sheinOutputPageSize: 'Shein',
           sheinOutputWidth: '70',
-          sheinOutputHeight: '60'
+          sheinOutputHeight: '60',
+          sheinEditorLayout: []
         };
       }
 
@@ -2591,6 +2733,25 @@
           }
       }
 
+      // --- Shein Editor State Restoration ---
+      const renderPromises = [];
+      // Re-check paths from appSettings as they are the source of truth
+      if (appSettings.sheinEcRepPdfPath) {
+          renderPromises.push(renderPdfPageToEditor(appSettings.sheinEcRepPdfPath, 'shein-pdf-1', '欧代PDF'));
+      }
+      if (appSettings.sheinBarcodePdfPath) {
+          renderPromises.push(renderPdfPageToEditor(appSettings.sheinBarcodePdfPath, 'shein-pdf-2', '条码PDF'));
+      }
+
+      if (renderPromises.length > 0) {
+           console.log('Found saved PDFs, rendering them to editor...');
+           await Promise.all(renderPromises);
+           console.log('PDFs rendered, applying saved layout.');
+           // After rendering is complete, apply any saved custom layout,
+           // overriding the default template layout that was applied during rendering.
+           applySavedLayout();
+      }
+      // --- End Shein Editor State Restoration ---
     }
 
     loadAndApplySettings().then(() => {

@@ -110,7 +110,7 @@ function createWindow() {
   const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize
 
   mainWindow = new BrowserWindow({
-    width: Math.round(screenWidth * 0.6),
+    width: Math.round(screenWidth * 0.7),
     height: Math.round(screenHeight * 0.8), // Changed from 0.8 to 0.9
     show: false, // Don't show the window until it's ready
     frame: false, // Create a frameless window
