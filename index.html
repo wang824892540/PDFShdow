@@ -105,6 +105,7 @@
       <nav>
         <ul>
           <li><a href="#" class="nav-link active" data-view="sheinLabelView" data-i18n="sheinLabelGenerator">Shein 标签 生成</a></li>
+          <li><a href="#" class="nav-link" data-view="multiPdfMergeView" data-i18n="multiPdfMerge">多PDF合并</a></li>
           <li><a href="#" class="nav-link" data-view="pdfResizeView" data-i18n="pdfResizer">PDF 尺寸调整</a></li>
         </ul>
       </nav>
@@ -294,6 +295,107 @@
                     <div class="checkbox-wrapper">
                         <input type="checkbox" id="sheinKeepAspectRatio" checked>
                         <label for="sheinKeepAspectRatio" data-i18n="keepAspectRatio">固定高宽比</label>
+                    </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="view-container" id="multiPdfMergeView" style="display: none;">
+        <div class="container">
+          <div class="title-with-description">
+            <h2 data-i18n="multiPdfMerge">多PDF合并</h2>
+            <span class="feature-description" data-i18n="multiPdfMergeDescription">合并条码、环保标和欧代 PDF，生成最终标签。</span>
+          </div>
+          <div class="shein-label-layout">
+            <div class="shein-label-controls">
+              <div class="section">
+                <div class="field-wrapper">
+                  <button id="multiMergeOpenFile1Btn" class="btn-primary" data-i18n="selectBarcodeFile">选择条码文件</button>
+                  <span id="multiMergeSelectedFile1" class="file-select-status-span" data-i18n="noFileSelected"></span>
+                  <span class="field-hint" data-i18n="barcodePdfHint">条码PDF文件</span>
+                  <small class="error-message" id="multiMergeSelectedFile1Error"></small>
+                </div>
+              </div>
+              <div class="section">
+                <div class="field-wrapper">
+                  <button id="multiMergeOpenFile2Btn" class="btn-primary" data-i18n="selectEcoLabelFile">选择环保标文件</button>
+                  <span id="multiMergeSelectedFile2" class="file-select-status-span" data-i18n="noFileSelected"></span>
+                  <span class="field-hint" data-i18n="ecoLabelPdfHint">环保标PDF文件</span>
+                  <small class="error-message" id="multiMergeSelectedFile2Error"></small>
+                </div>
+              </div>
+              <div class="section">
+                <div class="field-wrapper">
+                  <button id="multiMergeOpenFile3Btn" class="btn-primary" data-i18n="selectEcRepFile">选择欧代文件</button>
+                  <span id="multiMergeSelectedFile3" class="file-select-status-span" data-i18n="noFileSelected"></span>
+                  <span class="field-hint" data-i18n="ecRepPdfHint">欧代PDF文件</span>
+                  <small class="error-message" id="multiMergeSelectedFile3Error"></small>
+                </div>
+              </div>
+              <div class="section">
+                <div class="field-wrapper">
+                  <button id="multiMergeSelectOutputDirBtn" class="btn-secondary" data-i18n="selectOutputDirectory">选择输出目录</button>
+                  <span id="multiMergeOutputDirDisplay" class="file-select-status-span" data-i18n="notSetUseDefault"></span>
+                  <span class="field-hint" data-i18n="outputDirectoryHint">选择一个文件夹来保存所有生成的文件</span>
+                </div>
+              </div>
+              <div class="section">
+                <label for="multiMergeOutputName"><span data-i18n="fileName">文件名称</span> <span class="field-hint" data-i18n="multiMergeOutputFileNameHint">合并后输出文件名</span></label>
+                <input type="text" id="multiMergeOutputName" data-i18n-placeholder="exampleMultiMergeOutput" placeholder="例如: merged_label_output">
+              </div>
+              <div class="section">
+                <label for="multiMergeOutputPageSize"><span data-i18n="pageSize">页面尺寸</span> <span class="field-hint" data-i18n="multiMergeOutputPageSize">合并后输出尺寸</span></label>
+                <div class="custom-select-wrapper">
+                  <select id="multiMergeOutputPageSize" style="display:none;">
+                    <option value="A4">A4 (210x297mm)</option>
+                    <option value="Shein" selected>Shein (70x60mm)</option>
+                    <option value="custom" data-i18n="custom">自定义</option>
+                  </select>
+                  <div class="custom-select-container" id="customMultiMergeOutputPageSizeSelect">
+                    <div class="custom-select-trigger"><span>Shein (70x60mm)</span><div class="arrow"></div></div>
+                    <div class="custom-select-options">
+                    </div>
+                  </div>
+                </div>
+                <div id="multiMergeOutputCustomDimensions" class="dimension-inputs-container" style="display: none;">
+                  <div class="field-wrapper">
+                    <div class="input-group">
+                      <input type="number" id="multiMergeOutputWidth" data-i18n-placeholder="width" placeholder="宽度" value="70">
+                      <span class="unit">mm</span>
+                    </div>
+                    <span class="field-hint" data-i18n="labelWidthHint">标签宽度,毫米</span>
+                    <small class="error-message" id="multiMergeOutputWidthError"></small>
+                  </div>
+                  <div class="field-wrapper">
+                    <div class="input-group">
+                      <input type="number" id="multiMergeOutputHeight" data-i18n-placeholder="height" placeholder="高度" value="60">
+                      <span class="unit">mm</span>
+                    </div>
+                    <span class="field-hint" data-i18n="labelHeightHint">标签高度,毫米</span>
+                    <small class="error-message" id="multiMergeOutputHeightError"></small>
+                  </div>
+                </div>
+              </div>
+              <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
+                <button id="generateMultiMergeBtn" class="btn-primary" data-i18n="generateMultiMergeLabel">生成合并标签</button>
+                <button id="clearMultiMergeFormBtn" class="btn-secondary" style="margin-left: 10px;" data-i18n="clear">清空</button>
+              </div>
+              <div id="multiMergeResult"></div>
+              <div id="multiMergePostProcessActions" style="margin-top: 10px; display: none;">
+              </div>
+            </div>
+            <div class="shein-label-editor-container">
+              <div class="section">
+                <label data-i18n="editorArea">编辑区域</label>
+                <div id="multi-merge-editor-area" class="editor-area">
+                </div>
+                <div class="editor-controls-footer">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="multiMergeKeepAspectRatio" checked>
+                        <label for="multiMergeKeepAspectRatio" data-i18n="keepAspectRatio">固定高宽比</label>
                     </div>
                 </div>
               </div>
@@ -2474,6 +2576,449 @@
     }
     // --- End Shein 标签 Feature ---
 
+    // --- Multi PDF Merge Feature ---
+    let selectedMultiMergePdf1Path = ''; // Barcode
+    let selectedMultiMergePdf2Path = ''; // Eco Label
+    let selectedMultiMergePdf3Path = ''; // EC Rep
+
+    const multiMergeOpenFile1Btn = document.getElementById('multiMergeOpenFile1Btn');
+    const multiMergeOpenFile2Btn = document.getElementById('multiMergeOpenFile2Btn');
+    const multiMergeOpenFile3Btn = document.getElementById('multiMergeOpenFile3Btn');
+    const generateMultiMergeBtn = document.getElementById('generateMultiMergeBtn');
+    const clearMultiMergeFormBtn = document.getElementById('clearMultiMergeFormBtn');
+    const multiMergeOutputNameInput = document.getElementById('multiMergeOutputName');
+    const multiMergeOutputPageSizeSelect = document.getElementById('multiMergeOutputPageSize');
+    const multiMergeOutputCustomDimensionsDiv = document.getElementById('multiMergeOutputCustomDimensions');
+    const multiMergeOutputWidthInput = document.getElementById('multiMergeOutputWidth');
+    const multiMergeOutputHeightInput = document.getElementById('multiMergeOutputHeight');
+    const multiMergeResultDiv = document.getElementById('multiMergeResult');
+    const multiMergeKeepAspectRatioCheckbox = document.getElementById('multiMergeKeepAspectRatio');
+
+    function updateMultiMergeEditorAreaSize() {
+       const pageSize = multiMergeOutputPageSizeSelect.value;
+       let widthMM, heightMM;
+
+       if (pageSize === 'custom') {
+           widthMM = parseFloat(multiMergeOutputWidthInput.value) || 70;
+           heightMM = parseFloat(multiMergeOutputHeightInput.value) || 60;
+       } else {
+           const dims = pageSizeMapMM[pageSize];
+           widthMM = dims.width;
+           heightMM = dims.height;
+       }
+
+       const editorArea = document.getElementById('multi-merge-editor-area');
+       editorArea.style.width = '100%';
+       const displayWidth = editorArea.clientWidth;
+       
+       if (displayWidth > 0 && heightMM > 0) {
+           const aspectRatio = widthMM / heightMM;
+           editorArea.style.height = `${displayWidth / aspectRatio}px`;
+       } else {
+           editorArea.style.height = '250px'; // Fallback height
+       }
+    }
+
+    function setupInteractForMultiMergeElement(element) {
+        if (!element) return;
+
+        interact(element).unset();
+
+        interact(element)
+            .draggable({
+                listeners: {
+                    move(event) {
+                        let x = (parseFloat(event.target.dataset.x) || 0) + event.dx;
+                        let y = (parseFloat(event.target.dataset.y) || 0) + event.dy;
+                        event.target.style.transform = `translate(${x}px, ${y}px)`;
+                        Object.assign(event.target.dataset, { x, y });
+                    },
+                    end: function () { saveMultiMergeEditorLayout(); },
+                },
+                modifiers: [interact.modifiers.restrictRect({ restriction: 'parent' })]
+            })
+            .resizable({
+                edges: { left: true, right: true, bottom: true, top: true },
+                listeners: {
+                    move(event) {
+                        let x = (parseFloat(event.target.dataset.x) || 0);
+                        let y = (parseFloat(event.target.dataset.y) || 0);
+                        event.target.style.width = `${event.rect.width}px`;
+                        event.target.style.height = `${event.rect.height}px`;
+                        x += event.deltaRect.left;
+                        y += event.deltaRect.top;
+                        event.target.style.transform = `translate(${x}px, ${y}px)`;
+                        Object.assign(event.target.dataset, { x, y });
+                    },
+                    end: function () { saveMultiMergeEditorLayout(); },
+                },
+                modifiers: [
+                    interact.modifiers.restrictEdges({ outer: 'parent' }),
+                    interact.modifiers.restrictSize({ min: { width: 50, height: 50 } }),
+                    ...(multiMergeKeepAspectRatioCheckbox && multiMergeKeepAspectRatioCheckbox.checked ? [interact.modifiers.aspectRatio({ ratio: 'preserve' })] : [])
+                ],
+                inertia: true
+            });
+    }
+
+    function applyMultiMergeLayoutTemplate() {
+        const editorArea = document.getElementById('multi-merge-editor-area');
+        const barcodeEl = document.getElementById('multi-merge-pdf-1'); // Barcode
+        const ecoLabelEl = document.getElementById('multi-merge-pdf-2'); // Eco Label
+        const ecRepEl = document.getElementById('multi-merge-pdf-3');   // EC Rep
+
+        if (!editorArea || !barcodeEl || !ecoLabelEl || !ecRepEl) {
+            return;
+        }
+
+        const editorWidth = editorArea.clientWidth;
+        const editorHeight = editorArea.clientHeight;
+        const padding = 5; // 5px padding
+        const elementHeight = (editorHeight - 4 * padding) / 3; // Height for each element
+
+        [barcodeEl, ecoLabelEl, ecRepEl].forEach((el, index) => {
+            const aspectRatio = parseFloat(el.dataset.aspectRatio);
+            if (!isNaN(aspectRatio) && aspectRatio > 0) {
+                const elWidth = elementHeight * aspectRatio;
+                el.style.width = `${elWidth}px`;
+                el.style.height = `${elementHeight}px`;
+
+                const elX = (editorWidth - elWidth) / 2; // Center horizontally
+                const elY = padding + index * (elementHeight + padding); // Position vertically
+                
+                el.style.transform = `translate(${elX}px, ${elY}px)`;
+                Object.assign(el.dataset, { x: elX, y: elY });
+            }
+        });
+    }
+
+    async function saveMultiMergeEditorLayout() {
+        const editorArea = document.getElementById('multi-merge-editor-area');
+        if (!editorArea) return;
+
+        const layoutData = [];
+        editorArea.querySelectorAll('.draggable-pdf-page').forEach(el => {
+            layoutData.push({
+                id: el.id,
+                x: el.dataset.x || '0',
+                y: el.dataset.y || '0',
+                width: el.style.width,
+                height: el.style.height,
+            });
+        });
+
+        appSettings.multiMergeEditorLayout = layoutData;
+        await window.electronAPI.saveSettings(appSettings);
+    }
+
+    function applyMultiMergeSavedLayout() {
+        if (appSettings.multiMergeEditorLayout && Array.isArray(appSettings.multiMergeEditorLayout)) {
+            appSettings.multiMergeEditorLayout.forEach(item => {
+                const element = document.getElementById(item.id);
+                if (element) {
+                    element.style.width = item.width;
+                    element.style.height = item.height;
+                    const x = parseFloat(item.x) || 0;
+                    const y = parseFloat(item.y) || 0;
+                    element.style.transform = `translate(${x}px, ${y}px)`;
+                    element.dataset.x = x;
+                    element.dataset.y = y;
+                }
+            });
+        }
+    }
+
+    async function renderPdfPageToMultiMergeEditor(filePath, elementId, displayName) {
+        const editorArea = document.getElementById('multi-merge-editor-area');
+        let element = document.getElementById(elementId);
+        if (element) {
+            editorArea.removeChild(element);
+        }
+
+        try {
+            const pdf = await pdfjsLib.getDocument(filePath).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 1.0 });
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+            element = document.createElement('div');
+            element.id = elementId;
+            element.className = 'draggable-pdf-page';
+            element.style.backgroundImage = `url(${canvas.toDataURL()})`;
+            
+            const editorWidth = editorArea.clientWidth;
+            const aspectRatio = viewport.width / viewport.height;
+            const initialWidth = editorWidth * 0.5;
+            const initialHeight = initialWidth / aspectRatio;
+
+            element.style.width = `${initialWidth}px`;
+            element.style.height = `${initialHeight}px`;
+            element.dataset.pdfPath = filePath;
+            element.dataset.displayName = displayName;
+            element.dataset.aspectRatio = aspectRatio;
+
+            editorArea.appendChild(element);
+            setupInteractForMultiMergeElement(element);
+
+            // Apply layout template if all three PDFs are now present
+            if (document.getElementById('multi-merge-pdf-1') && document.getElementById('multi-merge-pdf-2') && document.getElementById('multi-merge-pdf-3')) {
+                applyMultiMergeLayoutTemplate();
+            }
+
+        } catch (error) {
+            console.error(`Error rendering PDF ${displayName}:`, error);
+            showToast(`渲染PDF失败: ${displayName}`, 'error');
+        }
+    }
+
+    if (multiMergeOpenFile1Btn) {
+      multiMergeOpenFile1Btn.addEventListener('click', async () => {
+        const newPath = await window.electronAPI.openFile();
+        if (newPath) {
+          selectedMultiMergePdf1Path = newPath;
+          appSettings.multiMergePdf1Path = newPath;
+          updateFileSelectionUI(newPath, 'multiMergeSelectedFile1', null, null, true);
+          renderPdfPageToMultiMergeEditor(newPath, 'multi-merge-pdf-1', '条码PDF');
+          try {
+            const metadata = await window.electronAPI.getPdfMetadata(newPath);
+            updateFileSelectionUI(newPath, 'multiMergeSelectedFile1', metadata.pageCount, metadata.size, false);
+          } catch (e) {
+            console.error('Failed to get metadata for multi-merge PDF 1', e);
+          }
+          await window.electronAPI.saveSettings(appSettings);
+        }
+      });
+    }
+
+    if (multiMergeOpenFile2Btn) {
+      multiMergeOpenFile2Btn.addEventListener('click', async () => {
+        const newPath = await window.electronAPI.openFile();
+        if (newPath) {
+          selectedMultiMergePdf2Path = newPath;
+          appSettings.multiMergePdf2Path = newPath;
+          updateFileSelectionUI(newPath, 'multiMergeSelectedFile2', null, null, true);
+          renderPdfPageToMultiMergeEditor(newPath, 'multi-merge-pdf-2', '环保标PDF');
+          try {
+            const metadata = await window.electronAPI.getPdfMetadata(newPath);
+            updateFileSelectionUI(newPath, 'multiMergeSelectedFile2', metadata.pageCount, metadata.size, false);
+          } catch (e) {
+            console.error('Failed to get metadata for multi-merge PDF 2', e);
+          }
+          await window.electronAPI.saveSettings(appSettings);
+        }
+      });
+    }
+
+    if (multiMergeOpenFile3Btn) {
+      multiMergeOpenFile3Btn.addEventListener('click', async () => {
+        const newPath = await window.electronAPI.openFile();
+        if (newPath) {
+          selectedMultiMergePdf3Path = newPath;
+          appSettings.multiMergePdf3Path = newPath;
+          updateFileSelectionUI(newPath, 'multiMergeSelectedFile3', null, null, true);
+          renderPdfPageToMultiMergeEditor(newPath, 'multi-merge-pdf-3', '欧代PDF');
+          try {
+            const metadata = await window.electronAPI.getPdfMetadata(newPath);
+            updateFileSelectionUI(newPath, 'multiMergeSelectedFile3', metadata.pageCount, metadata.size, false);
+          } catch (e) {
+            console.error('Failed to get metadata for multi-merge PDF 3', e);
+          }
+          await window.electronAPI.saveSettings(appSettings);
+        }
+      });
+    }
+
+    if (multiMergeOutputPageSizeSelect) {
+      multiMergeOutputPageSizeSelect.addEventListener('change', async function() {
+        if (this.value === 'custom') {
+          multiMergeOutputCustomDimensionsDiv.style.display = 'flex';
+        } else {
+          multiMergeOutputCustomDimensionsDiv.style.display = 'none';
+          const selectedSizeMM = pageSizeMapMM[this.value];
+          if (selectedSizeMM) {
+            multiMergeOutputWidthInput.value = selectedSizeMM.width;
+            multiMergeOutputHeightInput.value = selectedSizeMM.height;
+          }
+        }
+        updateMultiMergeEditorAreaSize();
+        appSettings.multiMergeOutputPageSize = this.value;
+        await window.electronAPI.saveSettings(appSettings);
+      });
+    }
+
+    if (clearMultiMergeFormBtn) {
+      clearMultiMergeFormBtn.addEventListener('click', async () => {
+        selectedMultiMergePdf1Path = '';
+        selectedMultiMergePdf2Path = '';
+        selectedMultiMergePdf3Path = '';
+        appSettings.multiMergePdf1Path = '';
+        appSettings.multiMergePdf2Path = '';
+        appSettings.multiMergePdf3Path = '';
+        updateFileSelectionUI(null, 'multiMergeSelectedFile1');
+        updateFileSelectionUI(null, 'multiMergeSelectedFile2');
+        updateFileSelectionUI(null, 'multiMergeSelectedFile3');
+        document.getElementById('multi-merge-editor-area').innerHTML = '';
+        if (multiMergeOutputNameInput) multiMergeOutputNameInput.value = '';
+        appSettings.multiMergeOutputName = '';
+        if (multiMergeOutputPageSizeSelect) multiMergeOutputPageSizeSelect.value = 'Shein';
+        appSettings.multiMergeOutputPageSize = 'Shein';
+        if (multiMergeOutputCustomDimensionsDiv) multiMergeOutputCustomDimensionsDiv.style.display = 'none';
+        if (multiMergeOutputWidthInput) multiMergeOutputWidthInput.value = '70';
+        appSettings.multiMergeOutputWidth = '70';
+        if (multiMergeOutputHeightInput) multiMergeOutputHeightInput.value = '60';
+        appSettings.multiMergeOutputHeight = '60';
+        
+        const event = new Event('change', { bubbles: true });
+        if (multiMergeOutputPageSizeSelect) multiMergeOutputPageSizeSelect.dispatchEvent(event);
+
+        await window.electronAPI.saveSettings(appSettings);
+        showToast('多PDF合并表单已清空', 'info');
+      });
+    }
+
+    if (multiMergeKeepAspectRatioCheckbox) {
+      multiMergeKeepAspectRatioCheckbox.addEventListener('change', () => {
+        document.querySelectorAll('#multi-merge-editor-area .draggable-pdf-page').forEach(el => {
+          setupInteractForMultiMergeElement(el);
+        });
+      });
+    }
+
+    if (generateMultiMergeBtn) {
+        generateMultiMergeBtn.addEventListener('click', async () => {
+            const originalButtonText = generateMultiMergeBtn.textContent;
+            let startTime = 0;
+            let timerInterval;
+
+            // --- 1. Validation ---
+            if (!selectedMultiMergePdf1Path || !selectedMultiMergePdf2Path || !selectedMultiMergePdf3Path) {
+                showToast('请选择全部三个PDF文件。', 'error');
+                return;
+            }
+
+            let outputName = multiMergeOutputNameInput.value.trim();
+            if (!outputName) {
+                const baseName = getFilenameWithoutExtension(selectedMultiMergePdf1Path) || 'merged_output';
+                outputName = `${baseName}_merged`;
+                multiMergeOutputNameInput.value = outputName;
+            }
+
+            const filenameValidation = isValidFilename(outputName);
+            if (!filenameValidation.valid) {
+                showToast(filenameValidation.message, 'error');
+                multiMergeOutputNameInput.classList.add('input-error');
+                multiMergeOutputNameInput.focus();
+                return;
+            }
+
+            // --- 2. Collect Layout and Dimension Data ---
+            const editorArea = document.getElementById('multi-merge-editor-area');
+            const imagesData = [];
+            const draggableElements = editorArea.querySelectorAll('.draggable-pdf-page');
+            const parentRect = editorArea.getBoundingClientRect();
+
+            draggableElements.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                imagesData.push({
+                    id: el.id,
+                    path: el.dataset.pdfPath,
+                    x: rect.left - parentRect.left,
+                    y: rect.top - parentRect.top,
+                    width: rect.width,
+                    height: rect.height,
+                });
+            });
+
+            const pageSize = multiMergeOutputPageSizeSelect.value;
+            let outputWidthMM, outputHeightMM;
+            if (pageSize === 'custom') {
+                outputWidthMM = parseFloat(multiMergeOutputWidthInput.value);
+                outputHeightMM = parseFloat(multiMergeOutputHeightInput.value);
+                if (isNaN(outputWidthMM) || outputWidthMM <= 0 || isNaN(outputHeightMM) || outputHeightMM <= 0) {
+                    showToast('自定义尺寸无效，请输入有效的宽度和高度。', 'error');
+                    return;
+                }
+            } else {
+                const dims = pageSizeMapMM[pageSize];
+                outputWidthMM = dims.width;
+                outputHeightMM = dims.height;
+            }
+
+            // --- 3. Prepare Parameters for Main Process ---
+            const params = {
+                pdfPaths: [selectedMultiMergePdf1Path, selectedMultiMergePdf2Path, selectedMultiMergePdf3Path],
+                outputName: outputName.toLowerCase().endsWith('.pdf') ? outputName : outputName + '.pdf',
+                outputWidthMM: outputWidthMM,
+                outputHeightMM: outputHeightMM,
+                outputDir: appSettings.outputDirectory || '',
+                images: imagesData,
+                editorWidth: parentRect.width,
+                editorHeight: parentRect.height
+            };
+
+            // --- 4. IPC Call to Main Process ---
+            try {
+                generateMultiMergeBtn.disabled = true;
+                if(clearMultiMergeFormBtn) clearMultiMergeFormBtn.disabled = true;
+                startTime = Date.now();
+                let secondsElapsed = 0;
+                generateMultiMergeBtn.textContent = `正在生成... (0秒)`;
+                generateMultiMergeBtn.classList.add('processing');
+                timerInterval = setInterval(() => {
+                    secondsElapsed++;
+                    generateMultiMergeBtn.textContent = `正在生成... (${secondsElapsed}秒)`;
+                }, 1000);
+
+                const result = await window.electronAPI.generateMultiMergeLabel(params);
+                
+                const endTime = Date.now();
+                const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
+                
+                // Display result in a new entry
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'result-entry';
+                let entryHtml = '';
+
+                if (result && result.success) {
+                    showToast('合并标签生成成功！', 'success');
+                    entryDiv.classList.add('success-entry');
+                    entryHtml = `<p><strong>处理成功</strong></p><p>保存路径：${result.path}</p>`;
+                } else {
+                    showToast(`生成失败: ${result.error}`, 'error');
+                    entryDiv.classList.add('error-entry');
+                    entryHtml = `<p><strong>处理失败：</strong>${result.error}</p>`;
+                }
+                
+                entryHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+                entryDiv.innerHTML = entryHtml;
+                multiMergeResultDiv.prepend(entryDiv);
+                multiMergeResultDiv.style.display = 'block';
+
+            } catch (error) {
+                console.error('Error generating multi-merge label:', error);
+                showToast(`客户端错误: ${error.message}`, 'error');
+                const errorEntryDiv = document.createElement('div');
+                errorEntryDiv.className = 'result-entry error-entry';
+                errorEntryDiv.innerHTML = `<p><strong>客户端错误：</strong>${error.message}</p>`;
+                multiMergeResultDiv.prepend(errorEntryDiv);
+                multiMergeResultDiv.style.display = 'block';
+            } finally {
+                clearInterval(timerInterval);
+                generateMultiMergeBtn.disabled = false;
+                generateMultiMergeBtn.textContent = originalButtonText;
+                generateMultiMergeBtn.classList.remove('processing');
+                if(clearMultiMergeFormBtn) clearMultiMergeFormBtn.disabled = false;
+            }
+        });
+    }
+    // --- End Multi PDF Merge Feature ---
+
     // --- Custom Select Dropdown Logic ---
     function initializeCustomSelect(originalSelectElement) {
       if (!originalSelectElement) return;
@@ -2571,7 +3116,15 @@
           sheinOutputPageSize: 'Shein',
           sheinOutputWidth: '70',
           sheinOutputHeight: '60',
-          sheinEditorLayout: []
+          sheinEditorLayout: [],
+          multiMergePdf1Path: '',
+          multiMergePdf2Path: '',
+          multiMergePdf3Path: '',
+          multiMergeOutputName: '',
+          multiMergeOutputPageSize: 'Shein',
+          multiMergeOutputWidth: '70',
+          multiMergeOutputHeight: '60',
+          multiMergeEditorLayout: []
         };
       }
 
@@ -2640,12 +3193,16 @@
       const outputDir = appSettings.outputDirectory || '';
       const outputDirDisplay = document.getElementById('outputDirDisplay');
       const sheinOutputDirDisplay = document.getElementById('sheinOutputDirDisplay');
+      const multiMergeOutputDirDisplay = document.getElementById('multiMergeOutputDirDisplay');
       const defaultText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
       if (outputDirDisplay) {
         outputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
       }
       if (sheinOutputDirDisplay) {
         sheinOutputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
+      }
+      if (multiMergeOutputDirDisplay) {
+        multiMergeOutputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
       }
 
       // This logic is now handled by the file selection events, but we can keep a fallback here on load.
@@ -2670,7 +3227,11 @@
         { id: 'sheinOutputName', type: 'text' },
         { id: 'sheinOutputPageSize', type: 'select' },
         { id: 'sheinOutputWidth', type: 'number' },
-        { id: 'sheinOutputHeight', type: 'number' }
+        { id: 'sheinOutputHeight', type: 'number' },
+        { id: 'multiMergeOutputName', type: 'text' },
+        { id: 'multiMergeOutputPageSize', type: 'select' },
+        { id: 'multiMergeOutputWidth', type: 'number' },
+        { id: 'multiMergeOutputHeight', type: 'number' }
       ];
       
       // Add event listeners for Shein output dimensions to update editor size
@@ -2679,6 +3240,12 @@
        }
        if (sheinOutputHeightInput) {
            sheinOutputHeightInput.addEventListener('input', updateSheinEditorAreaSize);
+       }
+       if (multiMergeOutputWidthInput) {
+           multiMergeOutputWidthInput.addEventListener('input', updateMultiMergeEditorAreaSize);
+       }
+       if (multiMergeOutputHeightInput) {
+           multiMergeOutputHeightInput.addEventListener('input', updateMultiMergeEditorAreaSize);
        }
 
       formElementsToPersist.forEach(elementConfig => {
@@ -2710,9 +3277,11 @@
       // Initialize custom selects after settings are loaded and original selects are populated
       const pageSizeSelectEl = document.getElementById('pageSize');
       const sheinOutputPageSizeSelectEl = document.getElementById('sheinOutputPageSize');
+      const multiMergeOutputPageSizeSelectEl = document.getElementById('multiMergeOutputPageSize');
       
       if (pageSizeSelectEl) initializeCustomSelect(pageSizeSelectEl);
       if (sheinOutputPageSizeSelectEl) initializeCustomSelect(sheinOutputPageSizeSelectEl);
+      if (multiMergeOutputPageSizeSelectEl) initializeCustomSelect(multiMergeOutputPageSizeSelectEl);
 
       // Ensure custom select trigger text is updated if settings load changes the original select's value
       // This is important if the default selected option in HTML differs from the loaded setting.
@@ -2741,6 +3310,18 @@
               if(newCustomSelected) newCustomSelected.classList.add('selected');
           }
       }
+      if (multiMergeOutputPageSizeSelectEl && appSettings.multiMergeOutputPageSize) {
+          const customTriggerSpan = multiMergeOutputPageSizeSelectEl.parentElement.querySelector('.custom-select-trigger span');
+          const selectedOption = Array.from(multiMergeOutputPageSizeSelectEl.options).find(opt => opt.value === appSettings.multiMergeOutputPageSize);
+          if (customTriggerSpan && selectedOption) {
+              customTriggerSpan.textContent = selectedOption.textContent;
+              const customOptionsContainer = multiMergeOutputPageSizeSelectEl.parentElement.querySelector('.custom-select-options');
+              const currentCustomSelected = customOptionsContainer.querySelector('.custom-select-option.selected');
+              if(currentCustomSelected) currentCustomSelected.classList.remove('selected');
+              const newCustomSelected = customOptionsContainer.querySelector(`.custom-select-option[data-value="${appSettings.multiMergeOutputPageSize}"]`);
+              if(newCustomSelected) newCustomSelected.classList.add('selected');
+          }
+      }
 
       // --- Shein Editor State Restoration ---
       const renderPromises = [];
@@ -2761,11 +3342,63 @@
            applySavedLayout();
       }
       // --- End Shein Editor State Restoration ---
+
+      // --- Multi Merge Editor State Restoration ---
+      selectedMultiMergePdf1Path = appSettings.multiMergePdf1Path || '';
+      if (selectedMultiMergePdf1Path) {
+        updateFileSelectionUI(selectedMultiMergePdf1Path, 'multiMergeSelectedFile1', null, null, true);
+        try {
+          const metadata = await window.electronAPI.getPdfMetadata(selectedMultiMergePdf1Path);
+          updateFileSelectionUI(selectedMultiMergePdf1Path, 'multiMergeSelectedFile1', metadata.pageCount, metadata.size, false);
+        } catch (e) { updateFileSelectionUI(selectedMultiMergePdf1Path, 'multiMergeSelectedFile1', null, null, false); }
+      } else {
+        updateFileSelectionUI(null, 'multiMergeSelectedFile1');
+      }
+
+      selectedMultiMergePdf2Path = appSettings.multiMergePdf2Path || '';
+      if (selectedMultiMergePdf2Path) {
+        updateFileSelectionUI(selectedMultiMergePdf2Path, 'multiMergeSelectedFile2', null, null, true);
+        try {
+          const metadata = await window.electronAPI.getPdfMetadata(selectedMultiMergePdf2Path);
+          updateFileSelectionUI(selectedMultiMergePdf2Path, 'multiMergeSelectedFile2', metadata.pageCount, metadata.size, false);
+        } catch (e) { updateFileSelectionUI(selectedMultiMergePdf2Path, 'multiMergeSelectedFile2', null, null, false); }
+      } else {
+        updateFileSelectionUI(null, 'multiMergeSelectedFile2');
+      }
+
+      selectedMultiMergePdf3Path = appSettings.multiMergePdf3Path || '';
+      if (selectedMultiMergePdf3Path) {
+        updateFileSelectionUI(selectedMultiMergePdf3Path, 'multiMergeSelectedFile3', null, null, true);
+        try {
+          const metadata = await window.electronAPI.getPdfMetadata(selectedMultiMergePdf3Path);
+          updateFileSelectionUI(selectedMultiMergePdf3Path, 'multiMergeSelectedFile3', metadata.pageCount, metadata.size, false);
+        } catch (e) { updateFileSelectionUI(selectedMultiMergePdf3Path, 'multiMergeSelectedFile3', null, null, false); }
+      } else {
+        updateFileSelectionUI(null, 'multiMergeSelectedFile3');
+      }
+
+      const multiMergeRenderPromises = [];
+      if (appSettings.multiMergePdf1Path) {
+          multiMergeRenderPromises.push(renderPdfPageToMultiMergeEditor(appSettings.multiMergePdf1Path, 'multi-merge-pdf-1', '条码PDF'));
+      }
+      if (appSettings.multiMergePdf2Path) {
+          multiMergeRenderPromises.push(renderPdfPageToMultiMergeEditor(appSettings.multiMergePdf2Path, 'multi-merge-pdf-2', '环保标PDF'));
+      }
+      if (appSettings.multiMergePdf3Path) {
+          multiMergeRenderPromises.push(renderPdfPageToMultiMergeEditor(appSettings.multiMergePdf3Path, 'multi-merge-pdf-3', '欧代PDF'));
+      }
+
+      if (multiMergeRenderPromises.length > 0) {
+           await Promise.all(multiMergeRenderPromises);
+           applyMultiMergeSavedLayout();
+      }
+      // --- End Multi Merge Editor State Restoration ---
     }
 
     loadAndApplySettings().then(() => {
-       updateSheinEditorAreaSize(); // Set initial size after settings are loaded
-    });
+     updateSheinEditorAreaSize(); // Set initial size after settings are loaded
+     updateMultiMergeEditorAreaSize();
+  });
 
     // --- Output Directory Selection Logic ---
     const setupOutputDirButton = (buttonId, displayId) => {
@@ -2777,9 +3410,10 @@
             appSettings.outputDirectory = newDir;
             await window.electronAPI.saveSettings(appSettings);
             const displayText = `${currentTranslations.currentPath || '当前路径'}: ${newDir}`;
-            // Update both displays to keep them in sync
+            // Update all displays to keep them in sync
             document.getElementById('outputDirDisplay').textContent = displayText;
             document.getElementById('sheinOutputDirDisplay').textContent = displayText;
+            document.getElementById('multiMergeOutputDirDisplay').textContent = displayText;
             showToast((currentTranslations.outputDirSet || '输出目录已设置为: {dir}').replace('{dir}', newDir), 'success');
           } else {
             showToast(currentTranslations.operationCancelled || '操作已取消。', 'info');
@@ -2790,18 +3424,27 @@
 
     setupOutputDirButton('selectOutputDirBtn', 'outputDirDisplay');
     setupOutputDirButton('sheinSelectOutputDirBtn', 'sheinOutputDirDisplay');
+    setupOutputDirButton('multiMergeSelectOutputDirBtn', 'multiMergeOutputDirDisplay');
     
     // Add a ResizeObserver to the editor container to fix aspect ratio on window resize
-    const editorContainer = document.querySelector('.shein-label-editor-container');
-    if (editorContainer) {
+    const sheinEditorContainer = document.querySelector('#sheinLabelView .shein-label-editor-container');
+    if (sheinEditorContainer) {
         const resizeObserver = new ResizeObserver(() => {
-            // Only run the update function if the view is actually visible
-            // to avoid unnecessary calculations on hidden elements.
             if (document.getElementById('sheinLabelView').style.display === 'block') {
                 updateSheinEditorAreaSize();
             }
         });
-        resizeObserver.observe(editorContainer);
+        resizeObserver.observe(sheinEditorContainer);
+    }
+
+    const multiMergeEditorContainer = document.querySelector('#multiPdfMergeView .shein-label-editor-container');
+    if (multiMergeEditorContainer) {
+        const resizeObserver = new ResizeObserver(() => {
+            if (document.getElementById('multiPdfMergeView').style.display === 'block') {
+                updateMultiMergeEditorAreaSize();
+            }
+        });
+        resizeObserver.observe(multiMergeEditorContainer);
     }
   })
 </script>

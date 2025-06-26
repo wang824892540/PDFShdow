@@ -277,6 +277,56 @@ ipcMain.handle('generate-shein-label', async (_, params) => {
   });
 });
 
+ipcMain.handle('generate-multi-merge-label', async (_, params) => {
+  console.log('[Main Process - generate-multi-merge-label] Received params:', params);
+
+  return new Promise((resolve) => {
+    // Basic validation
+    if (!params || !Array.isArray(params.pdfPaths) || params.pdfPaths.length !== 3 || !params.outputName || !params.outputWidthMM || !params.outputHeightMM) {
+      console.error('[Main Process - generate-multi-merge-label] Missing or invalid required parameters.', params);
+      resolve({ success: false, error: '主进程错误：缺少必要的参数或参数无效。' });
+      return;
+    }
+
+    const worker = new Worker(path.join(__dirname, 'multi-merge-worker.js'), {
+      workerData: params
+    });
+
+    let resolved = false;
+
+    worker.on('message', async (result) => {
+      if (resolved) return;
+      resolved = true;
+      console.log('[Main Process - generate-multi-merge-label] Worker finished with result:', result);
+      if (result.success && result.path) {
+        const metadata = await getPdfMetadataInternal(result.path);
+        if (metadata.success) {
+          result.outputFileSize = metadata.size;
+          result.outputPageCount = metadata.pageCount;
+        } else {
+          result.metadataError = metadata.error;
+        }
+      }
+      resolve(result);
+    });
+
+    worker.on('error', (error) => {
+      if (resolved) return;
+      resolved = true;
+      console.error('[Main Process - generate-multi-merge-label] Worker encountered an error:', error);
+      resolve({ success: false, error: error.message || '多PDF合并工作线程发生错误。' });
+    });
+
+    worker.on('exit', (code) => {
+      if (resolved) return;
+      if (code !== 0) {
+        console.error(`[Main Process - generate-multi-merge-label] Worker stopped with exit code ${code}`);
+        resolve({ success: false, error: `多PDF合并工作线程意外终止，退出码: ${code}。` });
+      }
+    });
+  });
+});
+
 // IPC handler to select an output directory
 ipcMain.handle('select-output-directory', async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
