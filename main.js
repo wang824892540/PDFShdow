@@ -220,17 +220,20 @@ ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName, outp
   });
 })
 
-ipcMain.handle('generate-shein-label', async (_, { pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM, outputDir }) => {
+ipcMain.handle('generate-shein-label', async (_, params) => {
+  // The entire parameter object from the renderer is now in 'params'
+  console.log('[Main Process - generate-shein-label] Received params:', params); // For debugging
+
   return new Promise((resolve, reject) => {
     // Basic validation in main thread before starting worker
-    if (!pdf1Path || !pdf2Path || !outputName || typeof outputWidthMM !== 'number' || typeof outputHeightMM !== 'number' || outputWidthMM <= 0 || outputHeightMM <= 0) {
-      console.error('[Main Process - generate-shein-label] Missing or invalid required parameters.');
-      resolve({ success: false, error: '主进程错误：缺少必要的参数或参数无效 (PDF路径、输出名或尺寸)。' });
+    if (!params.pdf1Path || !params.pdf2Path || !params.outputName || typeof params.outputWidthMM !== 'number' || typeof params.outputHeightMM !== 'number' || params.outputWidthMM <= 0 || params.outputHeightMM <= 0 || !params.images || typeof params.editorWidth !== 'number' || typeof params.editorHeight !== 'number' || params.editorWidth <= 0 || params.editorHeight <= 0) {
+      console.error('[Main Process - generate-shein-label] Missing or invalid required parameters.', params);
+      resolve({ success: false, error: '主进程错误：缺少必要的参数或参数无效 (PDF路径、输出名、尺寸或编辑器数据)。' });
       return;
     }
 
     const worker = new Worker(path.join(__dirname, 'shein-label-worker.js'), {
-      workerData: { pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM, outputDir }
+      workerData: params // Pass the entire object to the worker
     });
 
     let resolved = false; // Flag to prevent multiple resolves

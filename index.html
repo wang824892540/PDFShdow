@@ -4,6 +4,36 @@
   <meta charset="UTF-8">
   <title data-i18n="title">PDF Processor</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/build/pdf.min.js"></script>
+  <script>
+   pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/build/pdf.worker.min.js`;
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+  <style>
+     .editor-area {
+       position: relative;
+       background-color: white;
+       overflow: hidden;
+       border: 1px solid #ccc;
+       box-sizing: border-box;
+     }
+     .draggable-pdf-page {
+       touch-action: none;
+       box-sizing: border-box;
+       position: absolute;
+       border: 1px dashed #007bff;
+       background-size: contain;
+       background-repeat: no-repeat;
+       background-position: center;
+     }
+     .interact-resiz-handle {
+       width: 10px;
+       height: 10px;
+       background: #007bff;
+       border: 1px solid white;
+       position: absolute;
+     }
+  </style>
 </head>
 <body>
   <div class="title-bar">
@@ -223,6 +253,14 @@
                 <small class="error-message" id="sheinOutputHeightError"></small>
               </div>
             </div>
+          </div>
+
+          <div class="section">
+           <label data-i18n="editorArea">编辑区域</label>
+           <div id="shein-editor-area" class="editor-area">
+               <!-- Draggable images will be added here by JS -->
+           </div>
+           <span class="field-hint" data-i18n="editorAreaHint">在此区域调整欧代和条码的位置与大小。白色背景区域为最终输出大小。</span>
           </div>
 
           <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
@@ -1478,6 +1516,120 @@
     const sheinCopyFileBtn = document.getElementById('sheinCopyFileBtn'); // New button for Shein copy
     let currentGeneratedSheinLabelPath = ''; // To store the path for the buttons
 
+   function updateSheinEditorAreaSize() {
+       const pageSize = sheinOutputPageSizeSelect.value;
+       let widthMM, heightMM;
+
+       if (pageSize === 'custom') {
+           widthMM = parseFloat(sheinOutputWidthInput.value) || 70;
+           heightMM = parseFloat(sheinOutputHeightInput.value) || 60;
+       } else {
+           const dims = pageSizeMapMM[pageSize];
+           widthMM = dims.width;
+           heightMM = dims.height;
+       }
+
+       const editorArea = document.getElementById('shein-editor-area');
+       editorArea.style.width = '100%';
+       const displayWidth = editorArea.clientWidth;
+       
+       if (displayWidth > 0 && heightMM > 0) {
+           const aspectRatio = widthMM / heightMM;
+           editorArea.style.height = `${displayWidth / aspectRatio}px`;
+       } else {
+           editorArea.style.height = '250px'; // Fallback height
+       }
+   }
+
+   function makePdfPageDraggable(elementId) {
+       const element = document.getElementById(elementId);
+       if (!element) return;
+
+       interact(element)
+           .draggable({
+               listeners: {
+                   move(event) {
+                       let x = (parseFloat(event.target.dataset.x) || 0) + event.dx;
+                       let y = (parseFloat(event.target.dataset.y) || 0) + event.dy;
+
+                       event.target.style.transform = `translate(${x}px, ${y}px)`;
+                       
+                       Object.assign(event.target.dataset, { x, y });
+                   },
+               },
+               modifiers: [
+                   interact.modifiers.restrictRect({
+                       restriction: 'parent'
+                   })
+               ]
+           })
+           .resizable({
+               edges: { left: true, right: true, bottom: true, top: true },
+               listeners: {
+                   move(event) {
+                       let x = (parseFloat(event.target.dataset.x) || 0);
+                       let y = (parseFloat(event.target.dataset.y) || 0);
+
+                       event.target.style.width = `${event.rect.width}px`;
+                       event.target.style.height = `${event.rect.height}px`;
+
+                       x += event.deltaRect.left;
+                       y += event.deltaRect.top;
+
+                       event.target.style.transform = `translate(${x}px, ${y}px)`;
+
+                       Object.assign(event.target.dataset, { x, y });
+                   }
+               },
+               modifiers: [
+                   interact.modifiers.restrictEdges({
+                       outer: 'parent'
+                   }),
+                   interact.modifiers.restrictSize({
+                       min: { width: 50, height: 50 }
+                   })
+               ],
+               inertia: true
+           });
+   }
+
+   async function renderPdfPageToEditor(filePath, elementId, displayName) {
+       const editorArea = document.getElementById('shein-editor-area');
+       let element = document.getElementById(elementId);
+       if (element) { // If element exists, remove it before re-rendering
+           editorArea.removeChild(element);
+       }
+
+       try {
+           const pdf = await pdfjsLib.getDocument(filePath).promise;
+           const page = await pdf.getPage(1);
+           const viewport = page.getViewport({ scale: 1.5 });
+
+           const canvas = document.createElement('canvas');
+           const context = canvas.getContext('2d');
+           canvas.height = viewport.height;
+           canvas.width = viewport.width;
+
+           await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+           element = document.createElement('div');
+           element.id = elementId;
+           element.className = 'draggable-pdf-page';
+           element.style.backgroundImage = `url(${canvas.toDataURL()})`;
+           element.style.width = `${viewport.width * 0.5}px`; // Initial size
+           element.style.height = `${viewport.height * 0.5}px`;
+           element.dataset.pdfPath = filePath;
+           element.dataset.displayName = displayName;
+
+           editorArea.appendChild(element);
+           makePdfPageDraggable(elementId);
+
+       } catch (error) {
+           console.error(`Error rendering PDF ${displayName}:`, error);
+           showToast(`渲染PDF失败: ${displayName}`, 'error');
+       }
+   }
+
     // Logic for Shein output page size selection
     if (sheinOutputPageSizeSelect) {
       sheinOutputPageSizeSelect.addEventListener('change', async function() { // Added async
@@ -1491,6 +1643,7 @@
             sheinOutputHeightInput.value = selectedSizeMM.height;
           }
         }
+        updateSheinEditorAreaSize();
         appSettings.sheinOutputPageSize = this.value;
         await window.electronAPI.saveSettings(appSettings);
       });
@@ -1566,6 +1719,7 @@
           //updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1'); // Update with current (possibly old or empty)
         } else {
           selectedSheinPdf1Path = newPath;
+          renderPdfPageToEditor(newPath, 'shein-pdf-1', '欧代PDF');
           appSettings.sheinEcRepPdfPath = selectedSheinPdf1Path;
           // Immediately update UI to show filename and loading state
           updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', null, null, true);
@@ -1629,6 +1783,7 @@
           //updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
         } else {
           selectedSheinPdf2Path = newPath;
+          renderPdfPageToEditor(newPath, 'shein-pdf-2', '条码PDF');
           appSettings.sheinBarcodePdfPath = selectedSheinPdf2Path;
           // Immediately update UI to show filename and loading state
           updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null, true);
@@ -1925,13 +2080,33 @@
           return;
         }
         
+       const editorArea = document.getElementById('shein-editor-area');
+       const imagesData = [];
+       const draggableElements = editorArea.querySelectorAll('.draggable-pdf-page');
+       const parentRect = editorArea.getBoundingClientRect(); // Get parent rect once.
+
+       draggableElements.forEach(el => {
+           const rect = el.getBoundingClientRect();
+           imagesData.push({
+               id: el.id,
+               path: el.dataset.pdfPath,
+               x: rect.left - parentRect.left, // Calculate relative X
+               y: rect.top - parentRect.top,   // Calculate relative Y
+               width: rect.width,
+               height: rect.height,
+           });
+       });
+
         const params = {
           pdf1Path: selectedSheinPdf1Path,
           pdf2Path: selectedSheinPdf2Path,
           outputName: outputName.toLowerCase().endsWith('.pdf') ? outputName : outputName + '.pdf', // Add .pdf before sending to API
           outputWidthMM: outputWidth,
           outputHeightMM: outputHeight,
-          outputDir: appSettings.outputDirectory || ''
+          outputDir: appSettings.outputDirectory || '',
+          images: imagesData,
+          editorWidth: parentRect.width, // Use reliable width from getBoundingClientRect
+          editorHeight: parentRect.height // Use reliable height from getBoundingClientRect
         };
 
         try {
@@ -2346,6 +2521,14 @@
         { id: 'sheinOutputWidth', type: 'number' },
         { id: 'sheinOutputHeight', type: 'number' }
       ];
+      
+      // Add event listeners for Shein output dimensions to update editor size
+       if (sheinOutputWidthInput) {
+           sheinOutputWidthInput.addEventListener('input', updateSheinEditorAreaSize);
+       }
+       if (sheinOutputHeightInput) {
+           sheinOutputHeightInput.addEventListener('input', updateSheinEditorAreaSize);
+       }
 
       formElementsToPersist.forEach(elementConfig => {
         const el = document.getElementById(elementConfig.id);
@@ -2410,7 +2593,9 @@
 
     }
 
-    loadAndApplySettings(); // Call the main function to load settings
+    loadAndApplySettings().then(() => {
+       updateSheinEditorAreaSize(); // Set initial size after settings are loaded
+    });
 
     // --- Output Directory Selection Logic ---
     const setupOutputDirButton = (buttonId, displayId) => {
