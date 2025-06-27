@@ -213,6 +213,25 @@ body.dark-mode {
   padding-top: 10px; /* Add some space above the footer content */
 }
 
+.contact-info {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border-color-soft);
+}
+
+.contact-info h3 {
+  font-size: var(--font-size-sm);
+  color: var(--text-color);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.contact-info p {
+  margin: 4px 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-color-muted);
+}
+
 .main-content {
   border: 0.1px solid var(--sidebar-bg-color);
   border-radius: 10px 0 0 0;
@@ -1742,4 +1761,23 @@ body {
 
 .sidebar-controls .theme-switch-wrapper {
   margin: 0; /* Reset margin if any was inherited */
+}
+
+/* 小红书图标和弹窗样式 */
+.contact-icons {
+  /* The margin is now controlled by the flex container in index.html */
+}
+
+.image-popup {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 240px; /* Position it to the right of the sidebar */
+  z-index: 1001;
+  border-radius: 5px;
+}
+
+.image-popup img {
+  width: 200px;
+  height: auto;
 }

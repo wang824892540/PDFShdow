@@ -28,7 +28,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://www.pdfshdow.cn/updates/"
+        "url": "https://pdfshdow.cn/updates/"
       }
     ],
     "win": {

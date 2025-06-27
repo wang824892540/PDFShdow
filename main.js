@@ -474,7 +474,7 @@ app.whenReady().then(() => {
   // Configure update provider
   autoUpdater.setFeedURL({
     provider: 'generic',
-    url: 'https://www.pdfshdow.cn/updates/', // Replace with your actual update server URL
+    url: 'https://pdfshdow.cn/updates/', // Replace with your actual update server URL
     // channel: 'latest', // Optional: specify channel if you use channels
   });
 
@@ -614,7 +614,7 @@ app.on('window-all-closed', () => {
 // 添加处理官方网站链接的IPC处理器
 ipcMain.handle('open-official-website', async () => {
   try {
-    const websiteUrl = 'https://www.pdfshdow.cn' // 替换为实际官网URL
+    const websiteUrl = 'https://pdfshdow.cn' // 替换为实际官网URL
     await shell.openExternal(websiteUrl)
     return { success: true }
   } catch (error) {
