@@ -60,6 +60,10 @@
      .editor-controls-footer .field-hint {
          text-align: right;
      }
+     #redBookPopup img {
+       transform: scale(1.5) translateY(-30%);
+       transform-origin: top left;
+     }
   </style>
 </head>
 <body>
@@ -107,6 +111,7 @@
           <li><a href="#" class="nav-link active" data-view="sheinLabelView" data-i18n="sheinLabelGenerator">Shein 标签 生成</a></li>
           <li><a href="#" class="nav-link" data-view="multiPdfMergeView" data-i18n="multiPdfMerge">多PDF合并</a></li>
           <li><a href="#" class="nav-link" data-view="pdfResizeView" data-i18n="pdfResizer">PDF 尺寸调整</a></li>
+          <li><a href="#" class="nav-link" data-view="pdfToImageView" data-i18n="pdfToImage">PDF 转图片</a></li>
         </ul>
       </nav>
       <div class="sidebar-footer">
@@ -144,7 +149,7 @@
         </div>
         <div id="redBookPopup" class="image-popup">
          <img src="static/redBook.png" alt="小红书码">
-       </div>
+        </div>
       </div>
     </aside>
 
@@ -303,19 +308,7 @@
               <div id="sheinPostProcessActions" style="margin-top: 10px; display: none;">
               </div>
             </div>
-            <div class="shein-label-editor-container">
-              <div class="section">
-                <label data-i18n="editorArea">编辑区域</label>
-                <div id="shein-editor-area" class="editor-area">
-                </div>
-                <div class="editor-controls-footer">
-                    <div class="checkbox-wrapper">
-                        <input type="checkbox" id="sheinKeepAspectRatio" checked>
-                        <label for="sheinKeepAspectRatio" data-i18n="keepAspectRatio">固定高宽比</label>
-                    </div>
-                </div>
-              </div>
-            </div>
+            <!-- Editor container removed as per new requirements -->
           </div>
         </div>
       </div>
@@ -330,9 +323,9 @@
             <div class="shein-label-controls">
               <div class="section">
                 <div class="field-wrapper">
-                  <button id="multiMergeOpenFile1Btn" class="btn-primary" data-i18n="selectBarcodeFile">选择条码文件</button>
+                  <button id="multiMergeOpenFile1Btn" class="btn-primary" data-i18n="selectEcRepFile">选择欧代文件</button>
                   <span id="multiMergeSelectedFile1" class="file-select-status-span" data-i18n="noFileSelected"></span>
-                  <span class="field-hint" data-i18n="barcodePdfHint">条码PDF文件</span>
+                  <span class="field-hint" data-i18n="ecRepPdfHint">欧代PDF文件</span>
                   <small class="error-message" id="multiMergeSelectedFile1Error"></small>
                 </div>
               </div>
@@ -346,9 +339,9 @@
               </div>
               <div class="section">
                 <div class="field-wrapper">
-                  <button id="multiMergeOpenFile3Btn" class="btn-primary" data-i18n="selectEcRepFile">选择欧代文件</button>
+                  <button id="multiMergeOpenFile3Btn" class="btn-primary" data-i18n="selectBarcodeFile">选择条码文件</button>
                   <span id="multiMergeSelectedFile3" class="file-select-status-span" data-i18n="noFileSelected"></span>
-                  <span class="field-hint" data-i18n="ecRepPdfHint">欧代PDF文件</span>
+                  <span class="field-hint" data-i18n="barcodePdfHint">条码PDF文件</span>
                   <small class="error-message" id="multiMergeSelectedFile3Error"></small>
                 </div>
               </div>
@@ -404,7 +397,7 @@
               <div id="multiMergePostProcessActions" style="margin-top: 10px; display: none;">
               </div>
             </div>
-            <div class="shein-label-editor-container">
+            <div class="shein-label-editor-container" style="flex: 1.2;">
               <div class="section">
                 <label data-i18n="editorArea">编辑区域</label>
                 <div id="multi-merge-editor-area" class="editor-area">
@@ -420,6 +413,44 @@
           </div>
         </div>
       </div>
+
+      <div class="view-container" id="pdfToImageView" style="display: none;">
+        <div class="container">
+          <div class="title-with-description">
+            <h2 data-i18n="pdfToImage">PDF 转图片</h2>
+            <span class="feature-description" data-i18n="pdfToImageDescription">将所选 PDF 的每一页转换为 JPG 图片，并打包成一个 ZIP 文件。</span>
+          </div>
+          
+          <div class="section">
+            <div class="field-wrapper">
+              <button id="pdfToImageOpenFileBtn" class="btn-primary" data-i18n="selectPdfFile">选择 PDF 文件</button>
+              <span id="pdfToImageSelectedFile" class="file-select-status-span"></span>
+              <span class="field-hint" data-i18n="pdfToImageHint">待转换的PDF</span>
+              <small class="error-message" id="pdfToImageSelectedFileError"></small>
+            </div>
+          </div>
+      
+          <div class="section">
+            <div class="field-wrapper">
+              <button id="pdfToImageSelectOutputDirBtn" class="btn-secondary" data-i18n="selectOutputDirectory">选择输出目录</button>
+              <span id="pdfToImageOutputDirDisplay" class="file-select-status-span" data-i18n="notSetUseDefault"></span>
+              <span class="field-hint" data-i18n="outputDirectoryHint">选择一个文件夹来保存生成的ZIP文件</span>
+            </div>
+          </div>
+
+          <div class="section">
+            <label for="pdfToImageOutputName"><span data-i18n="fileName">文件名称</span> <span class="field-hint" data-i18n="outputZipFileNameHint">输出的ZIP文件名,不含扩展名</span></label>
+            <input type="text" id="pdfToImageOutputName" data-i18n-placeholder="example_images" placeholder="例如: my_document_images">
+          </div>
+      
+          <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
+            <button id="pdfToImageProcessBtn" class="btn-primary" data-i18n="startConverting">开始转换</button>
+            <button id="pdfToImageClearFormBtn" class="btn-secondary" style="margin-left: 10px;" data-i18n="clear">清空</button>
+          </div>
+          <div id="pdfToImageResult"></div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -1628,6 +1659,7 @@
         const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
         document.getElementById('outputDirDisplay').textContent = defaultDirText;
         document.getElementById('sheinOutputDirDisplay').textContent = defaultDirText;
+        document.getElementById('multiMergeOutputDirDisplay').textContent = defaultDirText;
 
         await window.electronAPI.saveSettings(appSettings);
         showToast(currentTranslations['toast.pdfResizeFormCleared'] || 'PDF 尺寸调整已清空', 'info');
@@ -1661,227 +1693,29 @@
     const sheinCopyFileBtn = document.getElementById('sheinCopyFileBtn'); // New button for Shein copy
     let currentGeneratedSheinLabelPath = ''; // To store the path for the buttons
 
-   function updateSheinEditorAreaSize() {
-       const pageSize = sheinOutputPageSizeSelect.value;
-       let widthMM, heightMM;
+   // All Shein editor functions are removed as the editor is no longer used.
+   // updateSheinEditorAreaSize, setupInteractForElement, placePdfInEditor, saveEditorLayout, applySheinLayoutFromSettings, renderPdfPageToEditor
+   // are no longer needed for the Shein feature. `placePdfInEditor` is kept for the multi-merge feature.
+   async function placePdfInEditor(newElement, editorArea, saveLayoutCallback, newElementWidth, newElementHeight) {
+       // All automatic layout logic is removed. New elements are placed in the top-left corner.
+       // The layout is saved on drag/resize and restored on startup.
+       return new Promise(resolve => {
+           setTimeout(async () => {
+               const padding = 10;
+               const newX = padding;
+               const newY = padding;
 
-       if (pageSize === 'custom') {
-           widthMM = parseFloat(sheinOutputWidthInput.value) || 70;
-           heightMM = parseFloat(sheinOutputHeightInput.value) || 60;
-       } else {
-           const dims = pageSizeMapMM[pageSize];
-           widthMM = dims.width;
-           heightMM = dims.height;
-       }
+               // Apply the default top-left position
+               newElement.style.transform = `translate(${newX}px, ${newY}px)`;
+               Object.assign(newElement.dataset, { x: newX, y: newY });
 
-       const editorArea = document.getElementById('shein-editor-area');
-       editorArea.style.width = '100%';
-       const displayWidth = editorArea.clientWidth;
-       
-       if (displayWidth > 0 && heightMM > 0) {
-           const aspectRatio = widthMM / heightMM;
-           editorArea.style.height = `${displayWidth / aspectRatio}px`;
-       } else {
-           editorArea.style.height = '250px'; // Fallback height
-       }
-   }
-
-   function setupInteractForElement(element) {
-       if (!element) return;
-
-       // Unset previous interactable instance to apply new settings cleanly
-       interact(element).unset();
-
-       const keepAspectRatioCheckbox = document.getElementById('sheinKeepAspectRatio');
-
-       interact(element)
-           .draggable({
-               listeners: {
-                   move(event) {
-                       let x = (parseFloat(event.target.dataset.x) || 0) + event.dx;
-                       let y = (parseFloat(event.target.dataset.y) || 0) + event.dy;
-
-                       event.target.style.transform = `translate(${x}px, ${y}px)`;
-                       
-                       Object.assign(event.target.dataset, { x, y });
-                   },
-                   end: function (event) {
-                       saveEditorLayout();
-                   },
-               },
-               modifiers: [
-                   interact.modifiers.restrictRect({
-                       restriction: 'parent'
-                   })
-               ]
-           })
-           .resizable({
-               edges: { left: true, right: true, bottom: true, top: true },
-               listeners: {
-                   move(event) {
-                       let x = (parseFloat(event.target.dataset.x) || 0);
-                       let y = (parseFloat(event.target.dataset.y) || 0);
-
-                       event.target.style.width = `${event.rect.width}px`;
-                       event.target.style.height = `${event.rect.height}px`;
-
-                       x += event.deltaRect.left;
-                       y += event.deltaRect.top;
-
-                       event.target.style.transform = `translate(${x}px, ${y}px)`;
-
-                       Object.assign(event.target.dataset, { x, y });
-                   },
-                   end: function (event) {
-                       saveEditorLayout();
-                   },
-               },
-               modifiers: [
-                   interact.modifiers.restrictEdges({
-                       outer: 'parent'
-                   }),
-                   interact.modifiers.restrictSize({
-                       min: { width: 50, height: 50 }
-                   }),
-                   ...(keepAspectRatioCheckbox && keepAspectRatioCheckbox.checked ? [interact.modifiers.aspectRatio({ ratio: 'preserve' })] : [])
-               ],
-               inertia: true
-           });
-   }
-
-   function applySheinLayoutTemplate() {
-       const editorArea = document.getElementById('shein-editor-area');
-       const barcodeEl = document.getElementById('shein-pdf-2'); // Barcode PDF
-       const ecRepEl = document.getElementById('shein-pdf-1');   // EC Rep PDF
-
-       // Only apply template if both elements are present in the editor
-       if (!editorArea || !barcodeEl || !ecRepEl) {
-           return;
-       }
-
-       const template = 'barcode-top-ec-bottom'; // Hardcoded default template
-       const editorWidth = editorArea.clientWidth;
-       const editorHeight = editorArea.clientHeight;
-       
-       const verticalPadding = 5; // 5px from top/bottom edge
-       const horizontalPaddingPercent = 0.05; // 5% padding on sides
-
-       if (template === 'barcode-top-ec-bottom') {
-           // --- Barcode (Top) ---
-           const barcodeAspectRatio = parseFloat(barcodeEl.dataset.aspectRatio);
-           if (!isNaN(barcodeAspectRatio) && barcodeAspectRatio > 0) {
-               const barcodeWidth = editorWidth * (1 - 2 * horizontalPaddingPercent);
-               const barcodeHeight = barcodeWidth / barcodeAspectRatio;
-               barcodeEl.style.width = `${barcodeWidth}px`;
-               barcodeEl.style.height = `${barcodeHeight}px`;
-               
-               const barcodeX = (editorWidth - barcodeWidth) / 2; // Center horizontally
-               const barcodeY = verticalPadding; // Place at the top with padding
-               
-               barcodeEl.style.transform = `translate(${barcodeX}px, ${barcodeY}px)`;
-               Object.assign(barcodeEl.dataset, { x: barcodeX, y: barcodeY });
-           }
-
-           // --- EC Rep (Bottom) ---
-           const ecRepAspectRatio = parseFloat(ecRepEl.dataset.aspectRatio);
-           if (!isNaN(ecRepAspectRatio) && ecRepAspectRatio > 0) {
-               const ecRepWidth = editorWidth * (1 - 2 * horizontalPaddingPercent);
-               const ecRepHeight = ecRepWidth / ecRepAspectRatio;
-               ecRepEl.style.width = `${ecRepWidth}px`;
-               ecRepEl.style.height = `${ecRepHeight}px`;
-
-               const ecRepX = (editorWidth - ecRepWidth) / 2; // Center horizontally
-               const ecRepY = editorHeight - ecRepHeight - verticalPadding; // Place at the bottom with padding
-               
-               ecRepEl.style.transform = `translate(${ecRepX}px, ${ecRepY}px)`;
-               Object.assign(ecRepEl.dataset, { x: ecRepX, y: ecRepY });
-           }
-       }
-       // Future templates can be added here with 'else if'
-   }
-
-   async function saveEditorLayout() {
-       const editorArea = document.getElementById('shein-editor-area');
-       if (!editorArea) return;
-
-       const layoutData = [];
-       editorArea.querySelectorAll('.draggable-pdf-page').forEach(el => {
-           layoutData.push({
-               id: el.id,
-               x: el.dataset.x || '0',
-               y: el.dataset.y || '0',
-               width: el.style.width,
-               height: el.style.height,
-           });
-       });
-
-       appSettings.sheinEditorLayout = layoutData;
-       await window.electronAPI.saveSettings(appSettings);
-   }
-
-   function applySavedLayout() {
-       if (appSettings.sheinEditorLayout && Array.isArray(appSettings.sheinEditorLayout)) {
-           appSettings.sheinEditorLayout.forEach(item => {
-               const element = document.getElementById(item.id);
-               if (element) {
-                   element.style.width = item.width;
-                   element.style.height = item.height;
-                   const x = parseFloat(item.x) || 0;
-                   const y = parseFloat(item.y) || 0;
-                   element.style.transform = `translate(${x}px, ${y}px)`;
-                   element.dataset.x = x;
-                   element.dataset.y = y;
+               // Save this initial layout so it's persisted if not moved.
+               if (saveLayoutCallback) {
+                   await saveLayoutCallback();
                }
-           });
-       }
-   }
-
-   async function renderPdfPageToEditor(filePath, elementId, displayName) {
-       const editorArea = document.getElementById('shein-editor-area');
-       let element = document.getElementById(elementId);
-       if (element) {
-           editorArea.removeChild(element);
-       }
-
-       try {
-           const pdf = await pdfjsLib.getDocument(filePath).promise;
-           const page = await pdf.getPage(1);
-           const viewport = page.getViewport({ scale: 1.0 }); // Use scale 1.0 to get original ratio
-
-           const canvas = document.createElement('canvas');
-           const context = canvas.getContext('2d');
-           canvas.height = viewport.height;
-           canvas.width = viewport.width;
-
-           await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-           element = document.createElement('div');
-           element.id = elementId;
-           element.className = 'draggable-pdf-page';
-           element.style.backgroundImage = `url(${canvas.toDataURL()})`;
-           
-           // Set initial size to 50% of editor width, maintaining aspect ratio
-           const editorWidth = editorArea.clientWidth;
-           const aspectRatio = viewport.width / viewport.height;
-           const initialWidth = editorWidth * 0.5;
-           const initialHeight = initialWidth / aspectRatio;
-
-           element.style.width = `${initialWidth}px`;
-           element.style.height = `${initialHeight}px`;
-           element.dataset.pdfPath = filePath;
-           element.dataset.displayName = displayName;
-           element.dataset.aspectRatio = aspectRatio;
-
-           editorArea.appendChild(element);
-           setupInteractForElement(element);
-
-           // Attempt to apply layout template automatically if both PDFs are now present
-           applySheinLayoutTemplate();
-
-       } catch (error) {
-           console.error(`Error rendering PDF ${displayName}:`, error);
-           showToast(`渲染PDF失败: ${displayName}`, 'error');
-       }
+               resolve();
+           }, 0);
+       });
    }
 
     // Logic for Shein output page size selection
@@ -1973,7 +1807,7 @@
           //updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1'); // Update with current (possibly old or empty)
         } else {
           selectedSheinPdf1Path = newPath;
-          renderPdfPageToEditor(newPath, 'shein-pdf-1', '欧代PDF');
+          // renderPdfPageToEditor is removed for Shein feature
           appSettings.sheinEcRepPdfPath = selectedSheinPdf1Path;
           // Immediately update UI to show filename and loading state
           updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', null, null, true);
@@ -2037,7 +1871,7 @@
           //updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2');
         } else {
           selectedSheinPdf2Path = newPath;
-          renderPdfPageToEditor(newPath, 'shein-pdf-2', '条码PDF');
+          // renderPdfPageToEditor is removed for Shein feature
           appSettings.sheinBarcodePdfPath = selectedSheinPdf2Path;
           // Immediately update UI to show filename and loading state
           updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null, true);
@@ -2095,14 +1929,7 @@
       });
     }
 
-   const sheinKeepAspectRatioCheckbox = document.getElementById('sheinKeepAspectRatio');
-   if (sheinKeepAspectRatioCheckbox) {
-     sheinKeepAspectRatioCheckbox.addEventListener('change', () => {
-       document.querySelectorAll('.draggable-pdf-page').forEach(el => {
-         setupInteractForElement(el);
-       });
-     });
-   }
+   // sheinKeepAspectRatioCheckbox logic removed as editor is gone.
 
 
     if (generateSheinLabelBtn) {
@@ -2344,33 +2171,15 @@
           return;
         }
         
-       const editorArea = document.getElementById('shein-editor-area');
-       const imagesData = [];
-       const draggableElements = editorArea.querySelectorAll('.draggable-pdf-page');
-       const parentRect = editorArea.getBoundingClientRect(); // Get parent rect once.
-
-       draggableElements.forEach(el => {
-           const rect = el.getBoundingClientRect();
-           imagesData.push({
-               id: el.id,
-               path: el.dataset.pdfPath,
-               x: rect.left - parentRect.left, // Calculate relative X
-               y: rect.top - parentRect.top,   // Calculate relative Y
-               width: rect.width,
-               height: rect.height,
-           });
-       });
-
+        // No longer collecting layout data from the editor.
         const params = {
-          pdf1Path: selectedSheinPdf1Path,
-          pdf2Path: selectedSheinPdf2Path,
-          outputName: outputName.toLowerCase().endsWith('.pdf') ? outputName : outputName + '.pdf', // Add .pdf before sending to API
+          pdf1Path: selectedSheinPdf1Path, // This is the EC Rep file
+          pdf2Path: selectedSheinPdf2Path, // This is the Barcode file
+          outputName: outputName.toLowerCase().endsWith('.pdf') ? outputName : outputName + '.pdf',
           outputWidthMM: outputWidth,
           outputHeightMM: outputHeight,
           outputDir: appSettings.outputDirectory || '',
-          images: imagesData,
-          editorWidth: parentRect.width, // Use reliable width from getBoundingClientRect
-          editorHeight: parentRect.height // Use reliable height from getBoundingClientRect
+          // 'images', 'editorWidth', 'editorHeight' are no longer needed
         };
 
         try {
@@ -2563,11 +2372,7 @@
             sheinOutputPageSizeSelect.dispatchEvent(event);
         }
 
-        // Clear the editor area
-        const editorArea = document.getElementById('shein-editor-area');
-        if (editorArea) {
-          editorArea.innerHTML = '';
-        }
+        // Editor area is removed, no need to clear it.
 
         // Clear result and post-process actions
         if (sheinResultDiv) {
@@ -2585,6 +2390,7 @@
         const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
         document.getElementById('outputDirDisplay').textContent = defaultDirText;
         document.getElementById('sheinOutputDirDisplay').textContent = defaultDirText;
+        document.getElementById('multiMergeOutputDirDisplay').textContent = defaultDirText;
 
         await window.electronAPI.saveSettings(appSettings);
         showToast(currentTranslations['toast.sheinFormCleared'] || 'Shein 标签 生成已清空', 'info');
@@ -2641,6 +2447,7 @@
 
         interact(element).unset();
 
+ 
         interact(element)
             .draggable({
                 listeners: {
@@ -2652,7 +2459,6 @@
                     },
                     end: function () { saveMultiMergeEditorLayout(); },
                 },
-                modifiers: [interact.modifiers.restrictRect({ restriction: 'parent' })]
             })
             .resizable({
                 edges: { left: true, right: true, bottom: true, top: true },
@@ -2670,124 +2476,145 @@
                     end: function () { saveMultiMergeEditorLayout(); },
                 },
                 modifiers: [
-                    interact.modifiers.restrictEdges({ outer: 'parent' }),
-                    interact.modifiers.restrictSize({ min: { width: 50, height: 50 } }),
+                    interact.modifiers.restrictSize({
+                        min: { width: 50, height: 50 }
+                    }),
                     ...(multiMergeKeepAspectRatioCheckbox && multiMergeKeepAspectRatioCheckbox.checked ? [interact.modifiers.aspectRatio({ ratio: 'preserve' })] : [])
                 ],
                 inertia: true
             });
     }
 
-    function applyMultiMergeLayoutTemplate() {
-        const editorArea = document.getElementById('multi-merge-editor-area');
-        const barcodeEl = document.getElementById('multi-merge-pdf-1'); // Barcode
-        const ecoLabelEl = document.getElementById('multi-merge-pdf-2'); // Eco Label
-        const ecRepEl = document.getElementById('multi-merge-pdf-3');   // EC Rep
-
-        if (!editorArea || !barcodeEl || !ecoLabelEl || !ecRepEl) {
-            return;
-        }
-
-        const editorWidth = editorArea.clientWidth;
-        const editorHeight = editorArea.clientHeight;
-        const padding = 5; // 5px padding
-        const elementHeight = (editorHeight - 4 * padding) / 3; // Height for each element
-
-        [barcodeEl, ecoLabelEl, ecRepEl].forEach((el, index) => {
-            const aspectRatio = parseFloat(el.dataset.aspectRatio);
-            if (!isNaN(aspectRatio) && aspectRatio > 0) {
-                const elWidth = elementHeight * aspectRatio;
-                el.style.width = `${elWidth}px`;
-                el.style.height = `${elementHeight}px`;
-
-                const elX = (editorWidth - elWidth) / 2; // Center horizontally
-                const elY = padding + index * (elementHeight + padding); // Position vertically
-                
-                el.style.transform = `translate(${elX}px, ${elY}px)`;
-                Object.assign(el.dataset, { x: elX, y: elY });
-            }
-        });
-    }
 
     async function saveMultiMergeEditorLayout() {
         const editorArea = document.getElementById('multi-merge-editor-area');
-        if (!editorArea) return;
-
+        if (!editorArea || editorArea.clientWidth === 0 || editorArea.clientHeight === 0) return;
+ 
         const layoutData = [];
         editorArea.querySelectorAll('.draggable-pdf-page').forEach(el => {
+            const x = parseFloat(el.dataset.x) || 0;
+            const y = parseFloat(el.dataset.y) || 0;
+            const width = el.clientWidth;
+ 
             layoutData.push({
                 id: el.id,
-                x: el.dataset.x || '0',
-                y: el.dataset.y || '0',
-                width: el.style.width,
-                height: el.style.height,
+                x_percent: (x / editorArea.clientWidth) * 100,
+                y_percent: (y / editorArea.clientHeight) * 100,
+                width_percent: (width / editorArea.clientWidth) * 100,
             });
         });
-
+ 
         appSettings.multiMergeEditorLayout = layoutData;
         await window.electronAPI.saveSettings(appSettings);
     }
 
     function applyMultiMergeSavedLayout() {
-        if (appSettings.multiMergeEditorLayout && Array.isArray(appSettings.multiMergeEditorLayout)) {
-            appSettings.multiMergeEditorLayout.forEach(item => {
-                const element = document.getElementById(item.id);
-                if (element) {
-                    element.style.width = item.width;
-                    element.style.height = item.height;
-                    const x = parseFloat(item.x) || 0;
-                    const y = parseFloat(item.y) || 0;
-                    element.style.transform = `translate(${x}px, ${y}px)`;
-                    element.dataset.x = x;
-                    element.dataset.y = y;
-                }
-            });
+        const editorArea = document.getElementById('multi-merge-editor-area');
+        if (!editorArea || !appSettings.multiMergeEditorLayout || !Array.isArray(appSettings.multiMergeEditorLayout) || appSettings.multiMergeEditorLayout.length === 0) {
+            return;
         }
+ 
+        // Migration for old pixel-based layouts
+        if (appSettings.multiMergeEditorLayout.some(item => item.width_percent === undefined)) {
+            console.warn("Old multi-merge layout format detected. Migrating to percentage-based layout.");
+            saveMultiMergeEditorLayout();
+        }
+ 
+        appSettings.multiMergeEditorLayout.forEach(item => {
+            const element = document.getElementById(item.id);
+            if (element) {
+                if (item.width_percent === undefined || item.x_percent === undefined || item.y_percent === undefined) {
+                    console.warn(`Layout for ${item.id} is still invalid after migration attempt. Skipping.`);
+                    return;
+                }
+                
+                const editorWidth = editorArea.clientWidth;
+                const editorHeight = editorArea.clientHeight;
+                const aspectRatio = parseFloat(element.dataset.aspectRatio);
+ 
+                if (editorWidth > 0 && editorHeight > 0 && !isNaN(aspectRatio) && aspectRatio > 0) {
+                    const newWidth = (item.width_percent / 100) * editorWidth;
+                    const newHeight = newWidth / aspectRatio;
+                    const newX = (item.x_percent / 100) * editorWidth;
+                    const newY = (item.y_percent / 100) * editorHeight;
+ 
+                    element.style.width = `${newWidth}px`;
+                    element.style.height = `${newHeight}px`;
+                    element.style.transform = `translate(${newX}px, ${newY}px)`;
+                    
+                    Object.assign(element.dataset, { x: newX, y: newY });
+                }
+            }
+        });
     }
 
-    async function renderPdfPageToMultiMergeEditor(filePath, elementId, displayName) {
+    async function renderPdfPageToMultiMergeEditor(filePath, elementId, displayName, isRestoring = false) {
         const editorArea = document.getElementById('multi-merge-editor-area');
-        let element = document.getElementById(elementId);
-        if (element) {
-            editorArea.removeChild(element);
+        let existingElement = document.getElementById(elementId);
+        
+        let oldLayout = null;
+        if (existingElement) {
+            // It's a replacement. Store the old layout.
+            oldLayout = {
+                x: parseFloat(existingElement.dataset.x),
+                y: parseFloat(existingElement.dataset.y),
+                width: existingElement.clientWidth,
+                height: existingElement.clientHeight
+            };
+            editorArea.removeChild(existingElement);
         }
-
+ 
         try {
             const pdf = await pdfjsLib.getDocument(filePath).promise;
             const page = await pdf.getPage(1);
             const viewport = page.getViewport({ scale: 1.0 });
-
+ 
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
             canvas.height = viewport.height;
             canvas.width = viewport.width;
-
+ 
             await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-            element = document.createElement('div');
-            element.id = elementId;
-            element.className = 'draggable-pdf-page';
-            element.style.backgroundImage = `url(${canvas.toDataURL()})`;
+ 
+            const newElement = document.createElement('div');
+            newElement.id = elementId;
+            newElement.className = 'draggable-pdf-page';
+            newElement.style.backgroundImage = `url(${canvas.toDataURL()})`;
             
-            const editorWidth = editorArea.clientWidth;
             const aspectRatio = viewport.width / viewport.height;
-            const initialWidth = editorWidth * 0.5;
-            const initialHeight = initialWidth / aspectRatio;
-
-            element.style.width = `${initialWidth}px`;
-            element.style.height = `${initialHeight}px`;
-            element.dataset.pdfPath = filePath;
-            element.dataset.displayName = displayName;
-            element.dataset.aspectRatio = aspectRatio;
-
-            editorArea.appendChild(element);
-            setupInteractForMultiMergeElement(element);
-
-            // Apply layout template if all three PDFs are now present
-            if (document.getElementById('multi-merge-pdf-1') && document.getElementById('multi-merge-pdf-2') && document.getElementById('multi-merge-pdf-3')) {
-                applyMultiMergeLayoutTemplate();
+            newElement.dataset.pdfPath = filePath;
+            newElement.dataset.displayName = displayName;
+            newElement.dataset.aspectRatio = aspectRatio;
+ 
+            // Set size and position
+            if (oldLayout && !isNaN(oldLayout.x) && !isNaN(oldLayout.y)) {
+                // This is a runtime replacement. Restore the old layout.
+                newElement.style.width = `${oldLayout.width}px`;
+                newElement.style.height = `${oldLayout.height}px`;
+                newElement.style.transform = `translate(${oldLayout.x}px, ${oldLayout.y}px)`;
+                Object.assign(newElement.dataset, { x: oldLayout.x, y: oldLayout.y });
+            } else {
+                // This is a new element OR a restored element. Set a default size.
+                const editorWidth = editorArea.clientWidth;
+                const initialWidth = editorWidth * 0.5;
+                const initialHeight = initialWidth / aspectRatio;
+                newElement.style.width = `${initialWidth}px`;
+                newElement.style.height = `${initialHeight}px`;
             }
-
+ 
+            editorArea.appendChild(newElement);
+            setupInteractForMultiMergeElement(newElement);
+ 
+            // Decide whether to call the placement function.
+            if (!isRestoring && !oldLayout) {
+                // It's a truly new element (not a replacement, not a restoration). Place it.
+                await placePdfInEditor(newElement, editorArea, saveMultiMergeEditorLayout, parseFloat(newElement.style.width), parseFloat(newElement.style.height));
+            } else if (oldLayout) {
+                // It's a replacement. The layout is restored, so just save it to update percentages.
+                await saveMultiMergeEditorLayout();
+            }
+            // If isRestoring, do nothing. apply...Layout will handle positioning later.
+ 
         } catch (error) {
             console.error(`Error rendering PDF ${displayName}:`, error);
             showToast(`渲染PDF失败: ${displayName}`, 'error');
@@ -2797,17 +2624,48 @@
     if (multiMergeOpenFile1Btn) {
       multiMergeOpenFile1Btn.addEventListener('click', async () => {
         const newPath = await window.electronAPI.openFile();
+        const multiMergeSelectedFile1ErrorEl = document.getElementById('multiMergeSelectedFile1Error');
+        
+        // Always clear previous specific warning
+        if (multiMergeSelectedFile1ErrorEl) {
+            clearInlineFileError('multiMergeSelectedFile1Error');
+        }
+
         if (newPath) {
           selectedMultiMergePdf1Path = newPath;
           appSettings.multiMergePdf1Path = newPath;
           updateFileSelectionUI(newPath, 'multiMergeSelectedFile1', null, null, true);
-          renderPdfPageToMultiMergeEditor(newPath, 'multi-merge-pdf-1', '条码PDF');
+          renderPdfPageToMultiMergeEditor(newPath, 'multi-merge-pdf-1', '欧代PDF');
           try {
             const metadata = await window.electronAPI.getPdfMetadata(newPath);
             updateFileSelectionUI(newPath, 'multiMergeSelectedFile1', metadata.pageCount, metadata.size, false);
+            
+            if (metadata.success && metadata.pageCount !== null && metadata.pageCount > 1) {
+                const warningMsg = `警告：欧代文件通常为1页。当前页数：${metadata.pageCount}`;
+                showToast('请检查，欧代PDF文件通常为1页PDF', 'warning', 6000);
+                if (multiMergeSelectedFile1ErrorEl) {
+                  multiMergeSelectedFile1ErrorEl.textContent = warningMsg;
+                  multiMergeSelectedFile1ErrorEl.style.display = 'block';
+                  multiMergeSelectedFile1ErrorEl.classList.add('warning-text');
+                }
+            }
+
           } catch (e) {
             console.error('Failed to get metadata for multi-merge PDF 1', e);
+            updateFileSelectionUI(newPath, 'multiMergeSelectedFile1', null, null, false); // Still show filename on error
           }
+          // Update output directory display if not globally set
+          if (!appSettings.outputDirectory) {
+            const dirName = getDirnameFrontend(newPath);
+            const multiMergeOutputDirDisplay = document.getElementById('multiMergeOutputDirDisplay');
+            const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+            // Only update if the display is still showing the default text.
+            if (dirName && multiMergeOutputDirDisplay.textContent === defaultDirText) {
+              const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+              multiMergeOutputDirDisplay.textContent = displayText;
+            }
+          }
+          
           await window.electronAPI.saveSettings(appSettings);
         }
       });
@@ -2839,12 +2697,22 @@
           selectedMultiMergePdf3Path = newPath;
           appSettings.multiMergePdf3Path = newPath;
           updateFileSelectionUI(newPath, 'multiMergeSelectedFile3', null, null, true);
-          renderPdfPageToMultiMergeEditor(newPath, 'multi-merge-pdf-3', '欧代PDF');
+          renderPdfPageToMultiMergeEditor(newPath, 'multi-merge-pdf-3', '条码PDF');
           try {
             const metadata = await window.electronAPI.getPdfMetadata(newPath);
             updateFileSelectionUI(newPath, 'multiMergeSelectedFile3', metadata.pageCount, metadata.size, false);
           } catch (e) {
             console.error('Failed to get metadata for multi-merge PDF 3', e);
+          }
+          // Auto-fill output name for Multi-Merge (based on barcode file)
+          const multiMergeOutputNameInput = document.getElementById('multiMergeOutputName');
+          if (multiMergeOutputNameInput) {
+            const baseNameNoExt = getFilenameWithoutExtension(newPath);
+            const newOutputName = `${baseNameNoExt}_`;
+            multiMergeOutputNameInput.value = newOutputName;
+            // Trigger input event for live validation and settings saving
+            const inputEvent = new Event('input', { bubbles: true });
+            multiMergeOutputNameInput.dispatchEvent(inputEvent);
           }
           await window.electronAPI.saveSettings(appSettings);
         }
@@ -2878,8 +2746,11 @@
         appSettings.multiMergePdf2Path = '';
         appSettings.multiMergePdf3Path = '';
         updateFileSelectionUI(null, 'multiMergeSelectedFile1');
+        clearInlineFileError('multiMergeSelectedFile1Error');
         updateFileSelectionUI(null, 'multiMergeSelectedFile2');
+        clearInlineFileError('multiMergeSelectedFile2Error');
         updateFileSelectionUI(null, 'multiMergeSelectedFile3');
+        clearInlineFileError('multiMergeSelectedFile3Error');
         document.getElementById('multi-merge-editor-area').innerHTML = '';
         if (multiMergeOutputNameInput) multiMergeOutputNameInput.value = '';
         appSettings.multiMergeOutputName = '';
@@ -2893,6 +2764,13 @@
         
         const event = new Event('change', { bubbles: true });
         if (multiMergeOutputPageSizeSelect) multiMergeOutputPageSizeSelect.dispatchEvent(event);
+
+        // Clear output directory
+        appSettings.outputDirectory = '';
+        const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+        document.getElementById('outputDirDisplay').textContent = defaultDirText;
+        document.getElementById('sheinOutputDirDisplay').textContent = defaultDirText;
+        document.getElementById('multiMergeOutputDirDisplay').textContent = defaultDirText;
 
         await window.electronAPI.saveSettings(appSettings);
         showToast('多PDF合并表单已清空', 'info');
@@ -2922,7 +2800,7 @@
             let outputName = multiMergeOutputNameInput.value.trim();
             if (!outputName) {
                 const baseName = getFilenameWithoutExtension(selectedMultiMergePdf1Path) || 'merged_output';
-                outputName = `${baseName}_merged`;
+                outputName = `${baseName}_`;
                 multiMergeOutputNameInput.value = outputName;
             }
 
@@ -3001,19 +2879,86 @@
                 const entryDiv = document.createElement('div');
                 entryDiv.className = 'result-entry';
                 let entryHtml = '';
+                const generatedPath = (result && result.success) ? result.path : null;
 
-                if (result && result.success) {
-                    showToast('合并标签生成成功！', 'success');
+                if (generatedPath) {
+                    showToast(currentTranslations.multiMergeSuccess || '合并标签生成成功！', 'success');
                     entryDiv.classList.add('success-entry');
-                    entryHtml = `<p><strong>处理成功</strong></p><p>保存路径：${result.path}</p>`;
+                    entryHtml = `<p><strong>${currentTranslations.processingStatusSuccess || '处理成功'}</strong></p><p>${(currentTranslations.savePath || '保存路径：{path}').replace('{path}', generatedPath)}</p>`;
+                    
+                    if (result.outputFileSize !== null && result.outputFileSize !== undefined) {
+                        let sizeAndPages = `${(currentTranslations.fileSize || '文件大小：{size}').replace('{size}', formatBytes(result.outputFileSize))}`;
+                        if (result.outputPageCount !== null && result.outputPageCount !== undefined) {
+                            sizeAndPages += `，${(currentTranslations.pageCount || '页数：{count}').replace('{count}', result.outputPageCount)}`;
+                        }
+                        entryHtml += `<p>${sizeAndPages}</p>`;
+                    } else if (result.outputPageCount !== null && result.outputPageCount !== undefined) {
+                        entryHtml += `<p>${(currentTranslations.pageCount || '页数：{count}').replace('{count}', result.outputPageCount)}</p>`;
+                    }
+                    if(result.metadataError){
+                        entryHtml += `<p style="color: orange;">${(currentTranslations.warningOutputMetadata || '输出文件元数据警告: {error}').replace('{error}', result.metadataError)}</p>`;
+                    }
+
                 } else {
-                    showToast(`生成失败: ${result.error}`, 'error');
+                    const errorMessage = (result && result.error) ? result.error : (currentTranslations.unknownProcessingError || '未知处理错误。');
+                    showToast((currentTranslations.multiMergeFailed || '合并标签生成失败：{error}').replace('{error}', errorMessage), 'error');
                     entryDiv.classList.add('error-entry');
-                    entryHtml = `<p><strong>处理失败：</strong>${result.error}</p>`;
+                    entryHtml = `<p class="error-message-text"><strong>${currentTranslations.processingStatusFailed || '处理失败：'}</strong>${errorMessage}</p>`;
                 }
                 
-                entryHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+                const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                entryHtml += `<p>${(currentTranslations.processingStartTime || '处理开始时间：{time}').replace('{time}', startTimeFormatted)}</p>`;
+                entryHtml += `<p>${(currentTranslations.totalTime || '总耗时：{seconds}秒').replace('{seconds}', totalTimeSeconds)}</p>`;
                 entryDiv.innerHTML = entryHtml;
+
+                // Create and append action buttons for this entry
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'action-buttons-container';
+
+                const openBtn = document.createElement('button');
+                openBtn.textContent = currentTranslations.openFile || '打开文件';
+                openBtn.className = 'action-button action-button-primary';
+                if (!generatedPath) openBtn.disabled = true;
+                openBtn.addEventListener('click', async () => {
+                    if (generatedPath) {
+                        try { await window.electronAPI.openPath(generatedPath); }
+                        catch (err) { showToast(`无法打开文件: ${err.message}`, 'error'); }
+                    }
+                });
+                actionsDiv.appendChild(openBtn);
+
+                const showInFolderBtn = document.createElement('button');
+                showInFolderBtn.textContent = currentTranslations.openFolder || '打开文件夹';
+                showInFolderBtn.className = 'action-button';
+                if (!generatedPath) showInFolderBtn.disabled = true;
+                showInFolderBtn.addEventListener('click', async () => {
+                    if (generatedPath) {
+                        try { await window.electronAPI.showItemInFolder(generatedPath); }
+                        catch (err) { showToast(`无法在文件夹中显示: ${err.message}`, 'error'); }
+                    }
+                });
+                actionsDiv.appendChild(showInFolderBtn);
+
+                const copyBtn = document.createElement('button');
+                copyBtn.textContent = currentTranslations.copyFile || '复制文件';
+                copyBtn.className = 'action-button';
+                copyBtn.title = currentTranslations.copyFileTooltip || '尝试复制文件到剪贴板 (若失败则复制路径)';
+                if (!generatedPath) copyBtn.disabled = true;
+                copyBtn.addEventListener('click', async () => {
+                    if (generatedPath) {
+                        try {
+                            const copyResult = await window.electronAPI.copyFileToClipboard(generatedPath);
+                            if (copyResult && copyResult.success) {
+                                showToast(copyResult.action === 'path_copied_unexpected_fallback' ? (copyResult.message || '未能复制文件本身，已改为复制文件路径至剪贴板。') : '文件已复制到剪贴板！', copyResult.action === 'path_copied_unexpected_fallback' ? 'warning' : 'success');
+                            } else {
+                                showToast(`复制文件失败: ${(copyResult && copyResult.error) ? copyResult.error : '未知错误'}`, 'error');
+                            }
+                        } catch (err) { showToast(`复制操作出错: ${err.message}`, 'error'); }
+                    }
+                });
+                actionsDiv.appendChild(copyBtn);
+                entryDiv.appendChild(actionsDiv);
+
                 multiMergeResultDiv.prepend(entryDiv);
                 multiMergeResultDiv.style.display = 'block';
 
@@ -3022,7 +2967,19 @@
                 showToast(`客户端错误: ${error.message}`, 'error');
                 const errorEntryDiv = document.createElement('div');
                 errorEntryDiv.className = 'result-entry error-entry';
-                errorEntryDiv.innerHTML = `<p><strong>客户端错误：</strong>${error.message}</p>`;
+                errorEntryDiv.innerHTML = `<p><strong>客户端错误：</strong>${error.message}</p><p>总耗时：${((Date.now() - startTime) / 1000).toFixed(2)}秒</p>`;
+
+                const errorActionsDiv = document.createElement('div');
+                errorActionsDiv.className = 'action-buttons-container';
+                ['打开文件', '打开文件夹', '复制文件'].forEach((text, index) => {
+                    const btn = document.createElement('button');
+                    btn.textContent = text;
+                    btn.className = (index === 0) ? 'action-button action-button-primary' : 'action-button';
+                    btn.disabled = true;
+                    errorActionsDiv.appendChild(btn);
+                });
+                errorEntryDiv.appendChild(errorActionsDiv);
+
                 multiMergeResultDiv.prepend(errorEntryDiv);
                 multiMergeResultDiv.style.display = 'block';
             } finally {
@@ -3035,6 +2992,189 @@
         });
     }
     // --- End Multi PDF Merge Feature ---
+
+    // --- PDF to Image Feature ---
+    let selectedPdfToImagePath = '';
+
+    const pdfToImageOpenFileBtn = document.getElementById('pdfToImageOpenFileBtn');
+    const pdfToImageProcessBtn = document.getElementById('pdfToImageProcessBtn');
+    const pdfToImageClearFormBtn = document.getElementById('pdfToImageClearFormBtn');
+    const pdfToImageOutputNameInput = document.getElementById('pdfToImageOutputName');
+    const pdfToImageResultDiv = document.getElementById('pdfToImageResult');
+
+    if (pdfToImageOpenFileBtn) {
+      pdfToImageOpenFileBtn.addEventListener('click', async () => {
+        const newPath = await window.electronAPI.openFile();
+        if (newPath) {
+          selectedPdfToImagePath = newPath;
+          appSettings.pdfToImageSelectedPath = newPath;
+          updateFileSelectionUI(newPath, 'pdfToImageSelectedFile', null, null, true);
+          try {
+            const metadata = await window.electronAPI.getPdfMetadata(newPath);
+            updateFileSelectionUI(newPath, 'pdfToImageSelectedFile', metadata.pageCount, metadata.size, false);
+          } catch (e) {
+            console.error('Failed to get metadata for PDF to Image file', e);
+            updateFileSelectionUI(newPath, 'pdfToImageSelectedFile', null, null, false);
+          }
+
+          if (!appSettings.outputDirectory) {
+            const dirName = getDirnameFrontend(newPath);
+            const outputDirDisplay = document.getElementById('pdfToImageOutputDirDisplay');
+            const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+            if (dirName && outputDirDisplay.textContent === defaultDirText) {
+              const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+              outputDirDisplay.textContent = displayText;
+            }
+          }
+
+          if (pdfToImageOutputNameInput) {
+            const baseNameNoExt = getFilenameWithoutExtension(newPath);
+            pdfToImageOutputNameInput.value = `${baseNameNoExt}_images`;
+            // Trigger input event to save setting
+            const inputEvent = new Event('input', { bubbles: true });
+            pdfToImageOutputNameInput.dispatchEvent(inputEvent);
+          }
+          
+          await window.electronAPI.saveSettings(appSettings);
+        }
+      });
+    }
+
+    if (pdfToImageProcessBtn) {
+      pdfToImageProcessBtn.addEventListener('click', async () => {
+          const originalButtonText = pdfToImageProcessBtn.textContent;
+          let startTime = 0;
+          let timerInterval;
+
+          if (!selectedPdfToImagePath) {
+              showToast('请先选择一个PDF文件进行转换。', 'error');
+              return;
+          }
+
+          let outputName = pdfToImageOutputNameInput.value.trim();
+          if (!outputName) {
+              outputName = `${getFilenameWithoutExtension(selectedPdfToImagePath)}_images`;
+              pdfToImageOutputNameInput.value = outputName;
+          }
+
+          const filenameValidation = isValidFilename(outputName);
+          if (!filenameValidation.valid) {
+              showToast(filenameValidation.message, 'error');
+              pdfToImageOutputNameInput.classList.add('input-error');
+              pdfToImageOutputNameInput.focus();
+              return;
+          }
+
+          const params = {
+              pdfPath: selectedPdfToImagePath,
+              outputName: outputName.toLowerCase().endsWith('.zip') ? outputName : outputName + '.zip',
+              outputDir: appSettings.outputDirectory || '',
+          };
+
+          try {
+              pdfToImageProcessBtn.disabled = true;
+              if(pdfToImageClearFormBtn) pdfToImageClearFormBtn.disabled = true;
+              startTime = Date.now();
+              let secondsElapsed = 0;
+              pdfToImageProcessBtn.textContent = `正在转换... (0秒)`;
+              pdfToImageProcessBtn.classList.add('processing');
+              timerInterval = setInterval(() => {
+                  secondsElapsed++;
+                  pdfToImageProcessBtn.textContent = `正在转换... (${secondsElapsed}秒)`;
+              }, 1000);
+
+              const result = await window.electronAPI.convertPdfToImages(params);
+              
+              const endTime = Date.now();
+              const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
+              
+              const entryDiv = document.createElement('div');
+              entryDiv.className = 'result-entry';
+              let entryHtml = '';
+              const generatedPath = (result && result.success) ? result.path : null;
+
+              if (generatedPath) {
+                  showToast('PDF转换图片成功！', 'success');
+                  entryDiv.classList.add('success-entry');
+                  entryHtml = `<p><strong>处理成功</strong></p><p>保存路径：${generatedPath}</p>`;
+                  if (result.outputFileSize) {
+                     entryHtml += `<p>文件大小：${formatBytes(result.outputFileSize)}</p>`;
+                  }
+              } else {
+                  const errorMessage = (result && result.error) ? result.error : '未知处理错误。';
+                  showToast(`PDF转换失败：${errorMessage}`, 'error');
+                  entryDiv.classList.add('error-entry');
+                  entryHtml = `<p class="error-message-text"><strong>处理失败：</strong>${errorMessage}</p>`;
+              }
+              
+              const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { hour12: false });
+              entryHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
+              entryHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+              entryDiv.innerHTML = entryHtml;
+
+              const actionsDiv = document.createElement('div');
+              actionsDiv.className = 'action-buttons-container';
+              ['打开文件', '打开文件夹', '复制文件'].forEach((text, index) => {
+                  const btn = document.createElement('button');
+                  btn.textContent = text;
+                  btn.className = (index === 0) ? 'action-button action-button-primary' : 'action-button';
+                  if (!generatedPath) btn.disabled = true;
+                  btn.addEventListener('click', async () => {
+                      if (generatedPath) {
+                          try {
+                              if (index === 0) await window.electronAPI.openPath(generatedPath);
+                              if (index === 1) await window.electronAPI.showItemInFolder(generatedPath);
+                              if (index === 2) {
+                                  const copyResult = await window.electronAPI.copyFileToClipboard(generatedPath);
+                                  if (copyResult.success) showToast('文件已复制到剪贴板！', 'success');
+                                  else showToast(`复制失败: ${copyResult.error}`, 'error');
+                              }
+                          } catch (err) { showToast(`操作失败: ${err.message}`, 'error'); }
+                      }
+                  });
+                  actionsDiv.appendChild(btn);
+              });
+              entryDiv.appendChild(actionsDiv);
+
+              pdfToImageResultDiv.prepend(entryDiv);
+              pdfToImageResultDiv.style.display = 'block';
+
+          } catch (error) {
+              console.error('Error converting PDF to images:', error);
+              showToast(`客户端错误: ${error.message}`, 'error');
+          } finally {
+              clearInterval(timerInterval);
+              pdfToImageProcessBtn.disabled = false;
+              pdfToImageProcessBtn.textContent = originalButtonText;
+              pdfToImageProcessBtn.classList.remove('processing');
+              if(pdfToImageClearFormBtn) pdfToImageClearFormBtn.disabled = false;
+          }
+      });
+    }
+
+    if (pdfToImageClearFormBtn) {
+      pdfToImageClearFormBtn.addEventListener('click', async () => {
+        selectedPdfToImagePath = '';
+        appSettings.pdfToImageSelectedPath = '';
+        updateFileSelectionUI(null, 'pdfToImageSelectedFile');
+        if (pdfToImageOutputNameInput) pdfToImageOutputNameInput.value = '';
+        appSettings.pdfToImageOutputName = '';
+        pdfToImageResultDiv.innerHTML = '';
+        pdfToImageResultDiv.style.display = 'none';
+        
+        // Clear global output directory setting for consistency
+        appSettings.outputDirectory = '';
+        const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+        document.getElementById('outputDirDisplay').textContent = defaultDirText;
+        document.getElementById('sheinOutputDirDisplay').textContent = defaultDirText;
+        document.getElementById('multiMergeOutputDirDisplay').textContent = defaultDirText;
+        document.getElementById('pdfToImageOutputDirDisplay').textContent = defaultDirText;
+
+        await window.electronAPI.saveSettings(appSettings);
+        showToast('PDF转图片表单已清空', 'info');
+      });
+    }
+    // --- End PDF to Image Feature ---
 
     // --- Custom Select Dropdown Logic ---
     function initializeCustomSelect(originalSelectElement) {
@@ -3115,35 +3255,37 @@
 
     // --- Load All Settings and Initialize UI ---
     async function loadAndApplySettings() {
-      appSettings = await window.electronAPI.getSettings();
-      if (!appSettings || Object.keys(appSettings).length === 0) {
-        appSettings = { // Default structure if no settings file or empty
-          activeView: defaultViewId,
-          theme: 'light',
-          language: 'zh-CN',
-          outputDirectory: '',
-          pdfResizeSelectedPath: '',
-          sheinEcRepPdfPath: '',
-          sheinBarcodePdfPath: '',
-          pdfResizeOutputName: '',
-          pageSize: 'Shein',
-          customWidth: '',
-          customHeight: '',
-          sheinOutputName: '',
-          sheinOutputPageSize: 'Shein',
-          sheinOutputWidth: '70',
-          sheinOutputHeight: '60',
-          sheinEditorLayout: [],
-          multiMergePdf1Path: '',
-          multiMergePdf2Path: '',
-          multiMergePdf3Path: '',
-          multiMergeOutputName: '',
-          multiMergeOutputPageSize: 'Shein',
-          multiMergeOutputWidth: '70',
-          multiMergeOutputHeight: '60',
-          multiMergeEditorLayout: []
-        };
-      }
+      const loadedSettings = await window.electronAPI.getSettings() || {};
+      const defaultSettings = { // Default structure ensures all keys exist
+        activeView: defaultViewId,
+        theme: 'light',
+        language: 'zh-CN',
+        outputDirectory: '',
+        pdfResizeSelectedPath: '',
+        sheinEcRepPdfPath: '',
+        sheinBarcodePdfPath: '',
+        pdfResizeOutputName: '',
+        pageSize: 'Shein',
+        customWidth: '',
+        customHeight: '',
+        sheinOutputName: '',
+        sheinOutputPageSize: 'Shein',
+        sheinOutputWidth: '70',
+        sheinOutputHeight: '60',
+        sheinEditorLayout: [],
+        multiMergePdf1Path: '',
+        multiMergePdf2Path: '',
+        multiMergePdf3Path: '',
+        multiMergeOutputName: '',
+        multiMergeOutputPageSize: 'Shein',
+        multiMergeOutputWidth: '70',
+        multiMergeOutputHeight: '60',
+        multiMergeEditorLayout: [],
+        pdfToImageSelectedPath: '',
+        pdfToImageOutputName: ''
+      };
+
+      appSettings = Object.assign({}, defaultSettings, loadedSettings);
 
       // Activate saved view or default
       if (!activateView(appSettings.activeView || defaultViewId)) {
@@ -3211,6 +3353,7 @@
       const outputDirDisplay = document.getElementById('outputDirDisplay');
       const sheinOutputDirDisplay = document.getElementById('sheinOutputDirDisplay');
       const multiMergeOutputDirDisplay = document.getElementById('multiMergeOutputDirDisplay');
+      const pdfToImageOutputDirDisplay = document.getElementById('pdfToImageOutputDirDisplay');
       const defaultText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
       if (outputDirDisplay) {
         outputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
@@ -3220,6 +3363,9 @@
       }
       if (multiMergeOutputDirDisplay) {
         multiMergeOutputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
+      }
+      if (pdfToImageOutputDirDisplay) {
+        pdfToImageOutputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
       }
 
       // This logic is now handled by the file selection events, but we can keep a fallback here on load.
@@ -3232,6 +3378,15 @@
             const sheinPath = selectedSheinPdf2Path || selectedSheinPdf1Path; // Prefer barcode path
             const dirName = getDirnameFrontend(sheinPath);
             if(dirName) document.getElementById('sheinOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+        }
+        if (selectedMultiMergePdf1Path || selectedMultiMergePdf2Path || selectedMultiMergePdf3Path) {
+            const multiMergePath = selectedMultiMergePdf3Path || selectedMultiMergePdf2Path || selectedMultiMergePdf1Path; // Prefer barcode path
+            const dirName = getDirnameFrontend(multiMergePath);
+            if(dirName) document.getElementById('multiMergeOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+        }
+        if (selectedPdfToImagePath) {
+            const dirName = getDirnameFrontend(selectedPdfToImagePath);
+            if(dirName) document.getElementById('pdfToImageOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
         }
       }
 
@@ -3248,16 +3403,11 @@
         { id: 'multiMergeOutputName', type: 'text' },
         { id: 'multiMergeOutputPageSize', type: 'select' },
         { id: 'multiMergeOutputWidth', type: 'number' },
-        { id: 'multiMergeOutputHeight', type: 'number' }
+        { id: 'multiMergeOutputHeight', type: 'number' },
+        { id: 'pdfToImageOutputName', type: 'text' }
       ];
       
-      // Add event listeners for Shein output dimensions to update editor size
-       if (sheinOutputWidthInput) {
-           sheinOutputWidthInput.addEventListener('input', updateSheinEditorAreaSize);
-       }
-       if (sheinOutputHeightInput) {
-           sheinOutputHeightInput.addEventListener('input', updateSheinEditorAreaSize);
-       }
+      // Event listeners for Shein output dimensions to update editor size are removed.
        if (multiMergeOutputWidthInput) {
            multiMergeOutputWidthInput.addEventListener('input', updateMultiMergeEditorAreaSize);
        }
@@ -3341,23 +3491,8 @@
       }
 
       // --- Shein Editor State Restoration ---
-      const renderPromises = [];
-      // Re-check paths from appSettings as they are the source of truth
-      if (appSettings.sheinEcRepPdfPath) {
-          renderPromises.push(renderPdfPageToEditor(appSettings.sheinEcRepPdfPath, 'shein-pdf-1', '欧代PDF'));
-      }
-      if (appSettings.sheinBarcodePdfPath) {
-          renderPromises.push(renderPdfPageToEditor(appSettings.sheinBarcodePdfPath, 'shein-pdf-2', '条码PDF'));
-      }
-
-      if (renderPromises.length > 0) {
-           console.log('Found saved PDFs, rendering them to editor...');
-           await Promise.all(renderPromises);
-           console.log('PDFs rendered, applying saved layout.');
-           // After rendering is complete, apply any saved custom layout,
-           // overriding the default template layout that was applied during rendering.
-           applySavedLayout();
-      }
+      // This entire block is removed as there is no editor to restore state into.
+      // The file paths are still loaded into their respective variables earlier in the load function.
       // --- End Shein Editor State Restoration ---
 
       // --- Multi Merge Editor State Restoration ---
@@ -3396,13 +3531,13 @@
 
       const multiMergeRenderPromises = [];
       if (appSettings.multiMergePdf1Path) {
-          multiMergeRenderPromises.push(renderPdfPageToMultiMergeEditor(appSettings.multiMergePdf1Path, 'multi-merge-pdf-1', '条码PDF'));
+          multiMergeRenderPromises.push(renderPdfPageToMultiMergeEditor(appSettings.multiMergePdf1Path, 'multi-merge-pdf-1', '欧代PDF', true));
       }
       if (appSettings.multiMergePdf2Path) {
-          multiMergeRenderPromises.push(renderPdfPageToMultiMergeEditor(appSettings.multiMergePdf2Path, 'multi-merge-pdf-2', '环保标PDF'));
+          multiMergeRenderPromises.push(renderPdfPageToMultiMergeEditor(appSettings.multiMergePdf2Path, 'multi-merge-pdf-2', '环保标PDF', true));
       }
       if (appSettings.multiMergePdf3Path) {
-          multiMergeRenderPromises.push(renderPdfPageToMultiMergeEditor(appSettings.multiMergePdf3Path, 'multi-merge-pdf-3', '欧代PDF'));
+          multiMergeRenderPromises.push(renderPdfPageToMultiMergeEditor(appSettings.multiMergePdf3Path, 'multi-merge-pdf-3', '条码PDF', true));
       }
 
       if (multiMergeRenderPromises.length > 0) {
@@ -3413,9 +3548,21 @@
     }
 
     loadAndApplySettings().then(() => {
-     updateSheinEditorAreaSize(); // Set initial size after settings are loaded
-     updateMultiMergeEditorAreaSize();
-  });
+      // updateSheinEditorAreaSize is removed.
+      updateMultiMergeEditorAreaSize();
+      
+      // Load settings for the new PDF to Image feature
+      selectedPdfToImagePath = appSettings.pdfToImageSelectedPath || '';
+      if (selectedPdfToImagePath) {
+        updateFileSelectionUI(selectedPdfToImagePath, 'pdfToImageSelectedFile', null, null, true);
+        window.electronAPI.getPdfMetadata(selectedPdfToImagePath).then(metadata => {
+          updateFileSelectionUI(selectedPdfToImagePath, 'pdfToImageSelectedFile', metadata.pageCount, metadata.size, false);
+        }).catch(() => updateFileSelectionUI(selectedPdfToImagePath, 'pdfToImageSelectedFile', null, null, false));
+      } else {
+        updateFileSelectionUI(null, 'pdfToImageSelectedFile');
+      }
+      // The output name is handled by the generic form loader
+    });
 
     // --- Output Directory Selection Logic ---
     const setupOutputDirButton = (buttonId, displayId) => {
@@ -3431,6 +3578,7 @@
             document.getElementById('outputDirDisplay').textContent = displayText;
             document.getElementById('sheinOutputDirDisplay').textContent = displayText;
             document.getElementById('multiMergeOutputDirDisplay').textContent = displayText;
+            document.getElementById('pdfToImageOutputDirDisplay').textContent = displayText;
             showToast((currentTranslations.outputDirSet || '输出目录已设置为: {dir}').replace('{dir}', newDir), 'success');
           } else {
             showToast(currentTranslations.operationCancelled || '操作已取消。', 'info');
@@ -3453,23 +3601,16 @@
      redBookPopup.style.display = 'none';
    });
     setupOutputDirButton('multiMergeSelectOutputDirBtn', 'multiMergeOutputDirDisplay');
+    setupOutputDirButton('pdfToImageSelectOutputDirBtn', 'pdfToImageOutputDirDisplay');
     
-    // Add a ResizeObserver to the editor container to fix aspect ratio on window resize
-    const sheinEditorContainer = document.querySelector('#sheinLabelView .shein-label-editor-container');
-    if (sheinEditorContainer) {
-        const resizeObserver = new ResizeObserver(() => {
-            if (document.getElementById('sheinLabelView').style.display === 'block') {
-                updateSheinEditorAreaSize();
-            }
-        });
-        resizeObserver.observe(sheinEditorContainer);
-    }
+   // ResizeObserver for sheinEditorContainer is removed.
 
     const multiMergeEditorContainer = document.querySelector('#multiPdfMergeView .shein-label-editor-container');
     if (multiMergeEditorContainer) {
         const resizeObserver = new ResizeObserver(() => {
             if (document.getElementById('multiPdfMergeView').style.display === 'block') {
                 updateMultiMergeEditorAreaSize();
+                setTimeout(applyMultiMergeSavedLayout, 0);
             }
         });
         resizeObserver.observe(multiMergeEditorContainer);

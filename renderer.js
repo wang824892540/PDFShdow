@@ -1,28 +1,35 @@
-const { contextBridge, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  openOfficialWebsite: () => ipcRenderer.invoke('open-official-website'),
   openFile: () => ipcRenderer.invoke('open-file'),
-  selectDirectory: () => ipcRenderer.invoke('select-output-directory'),
-  processPDF: (config) => ipcRenderer.invoke('process-pdf', config),
+  processPDF: (args) => ipcRenderer.invoke('process-pdf', args),
   generateSheinLabel: (params) => ipcRenderer.invoke('generate-shein-label', params),
-  openPath: (filePath) => ipcRenderer.invoke('open-path', filePath),
-  showItemInFolder: (filePath) => ipcRenderer.invoke('show-item-in-folder', filePath),
-  copyFileToClipboard: (filePath) => ipcRenderer.invoke('copy-file-to-clipboard', filePath),
+  generateMultiMergeLabel: (params) => ipcRenderer.invoke('generate-multi-merge-label', params),
+  convertPdfToImages: (params) => ipcRenderer.invoke('convert-pdf-to-images', params),
+  selectDirectory: () => ipcRenderer.invoke('select-output-directory'),
+  openPath: (path) => ipcRenderer.invoke('open-path', path),
+  showItemInFolder: (path) => ipcRenderer.invoke('show-item-in-folder', path),
+  copyFileToClipboard: (path) => ipcRenderer.invoke('copy-file-to-clipboard', path),
   getSettings: () => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
-  onShowToast: (callback) => ipcRenderer.on('show-toast', (_event, ...args) => callback(...args)),
   getPdfMetadata: (filePath) => ipcRenderer.invoke('get-pdf-metadata', filePath),
-
-  // Window control functions
+  
+  // Window controls
   minimizeWindow: () => ipcRenderer.send('minimize-window'),
   maximizeRestoreWindow: () => ipcRenderer.send('maximize-restore-window'),
   closeWindow: () => ipcRenderer.send('close-window'),
   toggleDevTools: () => ipcRenderer.send('toggle-dev-tools'),
-  checkForUpdates: () => ipcRenderer.send('check-for-updates'),
-
-  // Listeners for window state changes from main process
   onWindowMaximized: (callback) => ipcRenderer.on('window-maximized', callback),
   onWindowUnmaximized: (callback) => ipcRenderer.on('window-unmaximized', callback),
-  onUpdateStatus: (callback) => ipcRenderer.on('update-status', (_event, ...args) => callback(...args))
-})
+
+  // Updates
+  checkForUpdates: () => ipcRenderer.send('check-for-updates'),
+  quitAndInstallUpdate: () => ipcRenderer.send('quit-and-install-update'),
+  onUpdateStatus: (callback) => ipcRenderer.on('update-status', (event, ...args) => callback(...args)),
+
+  // Toasts from main
+  onShowToast: (callback) => ipcRenderer.on('show-toast', (event, ...args) => callback(...args)),
+  
+  // Misc
+  openOfficialWebsite: () => ipcRenderer.invoke('open-official-website'),
+});

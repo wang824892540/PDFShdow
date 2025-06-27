@@ -15,65 +15,71 @@ function streamToBuffer(stream) {
   });
 }
 
-async function performSheinLabelGeneration({ pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM, outputDir, images, editorWidth, editorHeight }) {
+async function performSheinLabelGeneration({ pdf1Path, pdf2Path, outputName, outputWidthMM, outputHeightMM, outputDir }) {
   try {
-    if (!pdf1Path || !pdf2Path || !outputName || !outputWidthMM || !outputHeightMM || !images || !editorWidth || !editorHeight) {
-      throw new Error('Missing required parameters in Shein 标签 worker.');
+    // pdf1 is EC Rep (bottom), pdf2 is Barcode (top)
+    if (!pdf1Path || !pdf2Path || !outputName || !outputWidthMM || !outputHeightMM) {
+      throw new Error('工作线程缺少必要的参数。');
     }
 
     const MM_TO_PT = 2.83465;
     const outputWidthPt = outputWidthMM * MM_TO_PT;
     const outputHeightPt = outputHeightMM * MM_TO_PT;
 
-    const scaleX = outputWidthPt / editorWidth;
-    const scaleY = outputHeightPt / editorHeight;
-
-    const pdf1Bytes = fs.readFileSync(pdf1Path);
-    const pdf1Doc = await PDFDocument.load(pdf1Bytes);
-    const pdf2Bytes = fs.readFileSync(pdf2Path);
-    const pdf2Doc = await PDFDocument.load(pdf2Bytes);
-
-    if (pdf1Doc.getPageCount() === 0) {
-      return { success: false, error: 'PDF 文件 1 不能为空.' };
-    }
-    const P1_1_original = pdf1Doc.getPages()[0];
-    const embeddedP1 = await PDFDocument.create();
-    const [p1Page] = await embeddedP1.copyPages(pdf1Doc, [0]);
+    const ecRepBytes = fs.readFileSync(pdf1Path);
+    const barcodeBytes = fs.readFileSync(pdf2Path);
     
-    const P2_pages_original = pdf2Doc.getPages();
-    if (P2_pages_original.length === 0) {
-      return { success: false, error: 'PDF 文件 2 不能为空.' };
+    const ecRepDoc = await PDFDocument.load(ecRepBytes);
+    const barcodeDoc = await PDFDocument.load(barcodeBytes);
+
+    if (ecRepDoc.getPageCount() === 0) {
+      return { success: false, error: '欧代文件 (PDF 1) 不能为空.' };
     }
+    if (barcodeDoc.getPageCount() === 0) {
+      return { success: false, error: '条码文件 (PDF 2) 不能为空.' };
+    }
+
+    const ecRepPageOriginal = ecRepDoc.getPages()[0];
+    const barcodePagesOriginal = barcodeDoc.getPages();
 
     const finalPdfDoc = await PDFDocument.create();
 
-    const image1Data = images.find(img => img.id === 'shein-pdf-1');
-    const image2Data = images.find(img => img.id === 'shein-pdf-2');
+    // Embed the EC Rep page once, as it's the same on all final pages.
+    const embeddedEcRepPage = await finalPdfDoc.embedPage(ecRepPageOriginal);
+    const { width: ecRepWidth, height: ecRepHeight } = ecRepPageOriginal.getSize();
+    const scaledEcRepHeight = ecRepHeight * (outputWidthPt / ecRepWidth);
 
-    if (!image1Data || !image2Data) {
-       throw new Error('Image data is missing from the worker payload.');
-    }
+    const GAP_PT = 5; // A small gap between the two PDFs
 
-    for (let i = 0; i < P2_pages_original.length; i++) {
+    for (let i = 0; i < barcodePagesOriginal.length; i++) {
        const newPage = finalPdfDoc.addPage([outputWidthPt, outputHeightPt]);
+       const barcodePageOriginal = barcodePagesOriginal[i];
+
+       // Embed the current barcode page
+       const embeddedBarcodePage = await finalPdfDoc.embedPage(barcodePageOriginal);
+       const { width: barcodeWidth, height: barcodeHeight } = barcodePageOriginal.getSize();
        
-       // Embed the first page of PDF1 (EC Rep)
-       const embeddedP1_final = await finalPdfDoc.embedPage(P1_1_original);
-       newPage.drawPage(embeddedP1_final, {
-           x: image1Data.x * scaleX,
-           y: outputHeightPt - (image1Data.y * scaleY) - (image1Data.height * scaleY), // Invert Y and adjust for height
-           width: image1Data.width * scaleX,
-           height: image1Data.height * scaleY,
+       // Scale barcode to fit the page width
+       const scaledBarcodeHeight = barcodeHeight * (outputWidthPt / barcodeWidth);
+       
+       // Calculate total content height and starting Y for vertical centering
+       const totalContentHeight = scaledBarcodeHeight + GAP_PT + scaledEcRepHeight;
+       const startY = (outputHeightPt - totalContentHeight) / 2;
+
+       // Draw EC Rep (Bottom element of the centered block)
+       newPage.drawPage(embeddedEcRepPage, {
+           x: 0,
+           y: startY,
+           width: outputWidthPt,
+           height: scaledEcRepHeight,
        });
 
-       // Embed the current page of PDF2 (Barcode)
-       const P2_x_original = P2_pages_original[i];
-       const embeddedP2_final = await finalPdfDoc.embedPage(P2_x_original);
-       newPage.drawPage(embeddedP2_final, {
-           x: image2Data.x * scaleX,
-           y: outputHeightPt - (image2Data.y * scaleY) - (image2Data.height * scaleY), // Invert Y and adjust for height
-           width: image2Data.width * scaleX,
-           height: image2Data.height * scaleY,
+       // Draw Barcode (Top element of the centered block)
+       newPage.drawPage(embeddedBarcodePage, {
+           x: 0,
+           y: startY + scaledEcRepHeight + GAP_PT,
+           width: outputWidthPt,
+           height: scaledBarcodeHeight,
        });
     }
 
@@ -81,9 +87,8 @@ async function performSheinLabelGeneration({ pdf1Path, pdf2Path, outputName, out
     
     const outputFilename = outputName.endsWith('.pdf') ? outputName : `${outputName}.pdf`;
     const baseDir = outputDir || path.dirname(pdf1Path);
-    const savePath = path.join(baseDir, outputFilename); // Save in the outputDir or the same directory as PDF1
+    const savePath = path.join(baseDir, outputFilename);
     
-    // fs.writeFileSync(savePath, finalPdfBytes); // Replaced with stream
     const writeStream = fs.createWriteStream(savePath);
     writeStream.write(finalPdfBytes);
     await new Promise((resolve, reject) => {

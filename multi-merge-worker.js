@@ -20,12 +20,14 @@ async function performMultiMergeGeneration({ pdfPaths, outputName, outputWidthMM
     const finalPdfDoc = await PDFDocument.create();
     const newPage = finalPdfDoc.addPage([outputWidthPt, outputHeightPt]);
 
-    for (let i = 0; i < pdfPaths.length; i++) {
-      const pdfPath = pdfPaths[i];
-      const imageData = images.find(img => img.path === pdfPath);
+    for (let i = 0; i < images.length; i++) {
+      const imageData = images[i];
+      const pdfPath = imageData.path;
 
-      if (!imageData) {
-        console.warn(`No image data found for PDF: ${pdfPath}`);
+      console.log(`Processing image ${i + 1}/${images.length}: ID=${imageData.id}, Path=${pdfPath}`);
+
+      if (!pdfPath) {
+        console.warn(`Skipping image data with no path: ${JSON.stringify(imageData)}`);
         continue;
       }
 

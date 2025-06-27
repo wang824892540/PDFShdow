@@ -3,6 +3,7 @@ const path = require('path')
 const fs = require('fs').promises; // For asynchronous file operations
 const { PDFDocument } = require('pdf-lib') // PDFDocument will be used by worker, but main might not need it directly for this handler anymore. Keep for now.
 const { Worker } = require('worker_threads') // Added Worker
+const crypto = require('crypto'); // For generating unique IDs
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 
@@ -226,9 +227,10 @@ ipcMain.handle('generate-shein-label', async (_, params) => {
 
   return new Promise((resolve, reject) => {
     // Basic validation in main thread before starting worker
-    if (!params.pdf1Path || !params.pdf2Path || !params.outputName || typeof params.outputWidthMM !== 'number' || typeof params.outputHeightMM !== 'number' || params.outputWidthMM <= 0 || params.outputHeightMM <= 0 || !params.images || typeof params.editorWidth !== 'number' || typeof params.editorHeight !== 'number' || params.editorWidth <= 0 || params.editorHeight <= 0) {
+    // Updated validation: No longer requires editor data ('images', 'editorWidth', 'editorHeight')
+    if (!params.pdf1Path || !params.pdf2Path || !params.outputName || typeof params.outputWidthMM !== 'number' || typeof params.outputHeightMM !== 'number' || params.outputWidthMM <= 0 || params.outputHeightMM <= 0) {
       console.error('[Main Process - generate-shein-label] Missing or invalid required parameters.', params);
-      resolve({ success: false, error: '主进程错误：缺少必要的参数或参数无效 (PDF路径、输出名、尺寸或编辑器数据)。' });
+      resolve({ success: false, error: '主进程错误：缺少必要的参数或参数无效 (PDF路径、输出名或尺寸)。' });
       return;
     }
 
@@ -304,7 +306,11 @@ ipcMain.handle('generate-multi-merge-label', async (_, params) => {
           result.outputFileSize = metadata.size;
           result.outputPageCount = metadata.pageCount;
         } else {
-          result.metadataError = metadata.error;
+          // Log error but don't fail the whole operation if metadata retrieval fails for output
+          console.warn(`[Main Process - generate-multi-merge-label] Could not get metadata for output file ${result.path}: ${metadata.error}`);
+          result.outputFileSize = null;
+          result.outputPageCount = null;
+          result.metadataError = metadata.error; // Optionally pass this info
         }
       }
       resolve(result);
@@ -325,6 +331,125 @@ ipcMain.handle('generate-multi-merge-label', async (_, params) => {
       }
     });
   });
+});
+
+ipcMain.handle('convert-pdf-to-images', async (_, params) => {
+  const { pdfPath, outputName, outputDir } = params;
+  if (!pdfPath || !outputName) {
+    return { success: false, error: '主进程错误：缺少PDF路径或输出文件名。' };
+  }
+
+  // --- Step 1: Use a worker to split the PDF into single-page PDFs ---
+  const splitResult = await new Promise((resolve) => {
+    const worker = new Worker(path.join(__dirname, 'pdf-to-image-worker.js'), {
+      workerData: { pdfPath }
+    });
+    worker.on('message', resolve);
+    worker.on('error', (err) => resolve({ success: false, error: `PDF拆分工作线程错误: ${err.message}` }));
+    worker.on('exit', (code) => {
+      if (code !== 0) resolve({ success: false, error: `PDF拆分工作线程意外终止，退出码: ${code}。` });
+    });
+  });
+
+  if (!splitResult.success) {
+    return splitResult; // Return the error from the worker
+  }
+
+  const { pagePaths, tempDir } = splitResult;
+  const imageBuffers = new Array(pagePaths.length);
+  const os = require('os');
+  const POOL_SIZE = Math.max(2, Math.floor(os.cpus().length / 2)); // Use half of the cores, at least 2
+  
+  const rendererWindows = [];
+
+  // --- Step 2: Create a pool of hidden renderer windows ---
+  try {
+    for (let i = 0; i < POOL_SIZE; i++) {
+      const rendererWindow = new BrowserWindow({
+        show: false,
+        webPreferences: {
+          nodeIntegration: true,
+          contextIsolation: false,
+        }
+      });
+      rendererWindow.loadFile('pdf-renderer.html');
+      rendererWindows.push(rendererWindow);
+    }
+    // Wait for all windows to be ready
+    await Promise.all(rendererWindows.map(w => new Promise(resolve => w.webContents.once('did-finish-load', resolve))));
+
+    // --- Step 3: Process pages using a task queue and the renderer pool ---
+    const tasks = pagePaths.map((pagePath, index) => ({ pagePath, index }));
+    let pagesProcessed = 0;
+
+    await new Promise((resolveAll, rejectAll) => {
+      if (pagePaths.length === 0) {
+        resolveAll();
+        return;
+      }
+
+      const processNextTask = (workerWindow) => {
+        if (tasks.length === 0) return; // No more tasks for this worker
+
+        const task = tasks.shift();
+        const { pagePath, index } = task;
+        const renderId = crypto.randomUUID();
+
+        const onRenderComplete = (event, result) => {
+          if (result.renderId === renderId) {
+            ipcMain.removeListener('render-complete', onRenderComplete);
+            if (result.success) {
+              const base64Data = result.dataUrl.replace(/^data:image\/jpeg;base64,/, "");
+              imageBuffers[index] = Buffer.from(base64Data, 'base64');
+              pagesProcessed++;
+
+              if (pagesProcessed === pagePaths.length) {
+                resolveAll(); // All pages are done
+              } else {
+                processNextTask(workerWindow); // This worker is free, give it the next task
+              }
+            } else {
+              // Stop all processing on the first error
+              rejectAll(new Error(`渲染第 ${index + 1} 页失败: ${result.error}`));
+            }
+          }
+        };
+        ipcMain.on('render-complete', onRenderComplete);
+        workerWindow.webContents.send('render-pdf-page', { filePath: pagePath, pageNum: 1, renderId });
+      };
+
+      // Start the initial batch of tasks, one for each worker in the pool
+      rendererWindows.forEach(workerWindow => processNextTask(workerWindow));
+    });
+
+    // --- Step 4: Zip the images and save the file ---
+    const JSZip = require('jszip');
+    const zip = new JSZip();
+    imageBuffers.forEach((buffer, index) => {
+      if (buffer) { // Ensure buffer exists
+        zip.file(`${index + 1}.jpg`, buffer);
+      }
+    });
+
+    const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+    const finalOutputPath = path.join(outputDir || path.dirname(pdfPath), outputName);
+    await fs.writeFile(finalOutputPath, zipBuffer);
+    const stats = await fs.stat(finalOutputPath);
+
+    return { success: true, path: finalOutputPath, outputFileSize: stats.size };
+
+  } catch (error) {
+    console.error('Error during PDF to image conversion process:', error);
+    return { success: false, error: error.message };
+  } finally {
+    // --- Step 5: Clean up renderer windows and temporary directory ---
+    rendererWindows.forEach(w => w.close());
+    if (tempDir) {
+      fs.rm(tempDir, { recursive: true, force: true }).catch(err => {
+        console.error(`Failed to clean up temporary directory ${tempDir}:`, err);
+      });
+    }
+  }
 });
 
 // IPC handler to select an output directory
@@ -411,10 +536,20 @@ async function readSettings() {
 
 async function writeSettings(settings) {
   const filePath = getSettingsFilePath();
+  // Guard against writing undefined or non-object settings
+  if (typeof settings !== 'object' || settings === null) {
+    const error = new Error('Attempted to write invalid, undefined, or null settings.');
+    // Log with stack trace for better debugging
+    console.error(`Error in writeSettings: Invalid data received.`, { settings, errorStack: error.stack });
+    sendToastToRenderer(`保存设置失败: 收到无效的设置数据。`, 'error');
+    return { success: false, error: 'Attempted to write invalid, undefined, or null settings.' };
+  }
   try {
     await fs.writeFile(filePath, JSON.stringify(settings, null, 2), 'utf8');
     return { success: true };
   } catch (error) {
+    // This catch block will now primarily handle file system errors,
+    // as the TypeError from JSON.stringify(undefined) is caught above.
     console.error(`Error writing settings file ${filePath}:`, error);
     sendToastToRenderer(`保存设置失败: ${error.message || '未知错误'}`, 'error');
     return { success: false, error: error.message || 'Failed to save settings.' };
@@ -429,6 +564,8 @@ ipcMain.handle('get-settings', async () => {
 
 // IPC handler for saving settings
 ipcMain.handle('save-settings', async (event, settings) => {
+  // The 'settings' object is the second argument passed from the renderer process
+  console.log('[Main Process - save-settings] Received settings to save:', settings); // For debugging
   return await writeSettings(settings);
 });
 
