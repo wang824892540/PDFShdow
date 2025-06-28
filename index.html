@@ -2433,7 +2433,6 @@
 
         interact(element).unset();
 
- 
         interact(element)
             .draggable({
                 listeners: {
@@ -2445,6 +2444,11 @@
                     },
                     end: function () { saveMultiMergeEditorLayout(); },
                 },
+                modifiers: [
+                    interact.modifiers.restrictRect({
+                        restriction: 'parent'
+                    })
+                ]
             })
             .resizable({
                 edges: { left: true, right: true, bottom: true, top: true },
@@ -2462,10 +2466,19 @@
                     end: function () { saveMultiMergeEditorLayout(); },
                 },
                 modifiers: [
+                    // 1. 首先，如果勾选了，则应用宽高比。这会计算出理想的尺寸。
+                    ...(multiMergeKeepAspectRatioCheckbox && multiMergeKeepAspectRatioCheckbox.checked ? [interact.modifiers.aspectRatio({ ratio: 'preserve' })] : []),
+
+                    // 2. 然后，限制尺寸，确保理想尺寸不会超过父容器的大小。
                     interact.modifiers.restrictSize({
-                        min: { width: 50, height: 50 }
+                        min: { width: 50, height: 50 },
+                        max: 'parent'
                     }),
-                    ...(multiMergeKeepAspectRatioCheckbox && multiMergeKeepAspectRatioCheckbox.checked ? [interact.modifiers.aspectRatio({ ratio: 'preserve' })] : [])
+
+                    // 3. 最后，将最终尺寸的元素限制在父容器的边缘内。
+                    interact.modifiers.restrictEdges({
+                        outer: 'parent',
+                    }),
                 ],
                 inertia: true
             });
@@ -2487,6 +2500,7 @@
                 x_percent: (x / editorArea.clientWidth) * 100,
                 y_percent: (y / editorArea.clientHeight) * 100,
                 width_percent: (width / editorArea.clientWidth) * 100,
+                height_percent: (el.clientHeight / editorArea.clientHeight) * 100,
             });
         });
  
@@ -2518,12 +2532,21 @@
                 const editorHeight = editorArea.clientHeight;
                 const aspectRatio = parseFloat(element.dataset.aspectRatio);
  
-                if (editorWidth > 0 && editorHeight > 0 && !isNaN(aspectRatio) && aspectRatio > 0) {
-                    const newWidth = (item.width_percent / 100) * editorWidth;
-                    const newHeight = newWidth / aspectRatio;
+                if (editorWidth > 0 && editorHeight > 0) {
                     const newX = (item.x_percent / 100) * editorWidth;
                     const newY = (item.y_percent / 100) * editorHeight;
- 
+                    const newWidth = (item.width_percent / 100) * editorWidth;
+                    let newHeight;
+
+                    // For backward compatibility with old layouts that didn't save height_percent
+                    if (item.height_percent !== undefined) {
+                        newHeight = (item.height_percent / 100) * editorHeight;
+                    } else {
+                        // Fallback for old data: calculate height from aspect ratio (less accurate on resize)
+                        const aspectRatio = parseFloat(element.dataset.aspectRatio);
+                        newHeight = !isNaN(aspectRatio) && aspectRatio > 0 ? newWidth / aspectRatio : 100; // Default height if aspect ratio is bad
+                    }
+
                     element.style.width = `${newWidth}px`;
                     element.style.height = `${newHeight}px`;
                     element.style.transform = `translate(${newX}px, ${newY}px)`;
