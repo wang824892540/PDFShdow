@@ -10,6 +10,7 @@
   "close": "关闭",
   "navigation": "功能导航",
   "sheinLabelGenerator": "Shein 标签生成",
+  "multiPdfMerge": "标签生成-含环保标",
   "pdfResizer": "PDF 尺寸调整",
   "version": "版本号: 0.0.3",
   "disclaimer": "仅供学习交流使用，不可商用",
@@ -34,6 +35,7 @@
   "startProcessing": "开始处理",
   "clear": "清空",
   "sheinLabelGeneratorDescription": "合并欧代和条码 PDF，生成符合 Shein 要求的标签。",
+  "multiPdfMergeDescription": "合并条码、环保标和欧代 PDF，生成最终标签。",
   "selectEcRepFile": "选择欧代文件",
   "noFileSelected": "未选择文件",
   "ecRepPdfHint": "欧代PDF文件",
@@ -119,5 +121,6 @@
   "notSetUseDefault": "未设置，使用源文件目录",
   "currentPath": "当前路径",
   "outputDirSet": "输出目录已设置为: {dir}",
-  "operationCancelled": "操作已取消。"
+  "operationCancelled": "操作已取消。",
+  "outputDirAutoSet": "输出目录已自动设置为: {dir}"
 }

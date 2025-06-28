@@ -109,7 +109,7 @@
       <nav>
         <ul>
           <li><a href="#" class="nav-link active" data-view="sheinLabelView" data-i18n="sheinLabelGenerator">Shein 标签 生成</a></li>
-          <li><a href="#" class="nav-link" data-view="multiPdfMergeView" data-i18n="multiPdfMerge">多PDF合并</a></li>
+          <li><a href="#" class="nav-link" data-view="multiPdfMergeView" data-i18n="multiPdfMerge">标签生成-含环保标</a></li>
           <li><a href="#" class="nav-link" data-view="pdfResizeView" data-i18n="pdfResizer">PDF 尺寸调整</a></li>
           <li><a href="#" class="nav-link" data-view="pdfToImageView" data-i18n="pdfToImage">PDF 转图片</a></li>
         </ul>
@@ -316,7 +316,7 @@
       <div class="view-container" id="multiPdfMergeView" style="display: none;">
         <div class="container">
           <div class="title-with-description">
-            <h2 data-i18n="multiPdfMerge">多PDF合并</h2>
+            <h2 data-i18n="multiPdfMerge">标签生成-含环保标</h2>
             <span class="feature-description" data-i18n="multiPdfMergeDescription">合并条码、环保标和欧代 PDF，生成最终标签。</span>
           </div>
           <div class="shein-label-layout">
@@ -1064,17 +1064,14 @@
           updateFileSelectionUI(selectedFilePath, 'selectedFile', null, null, false); // Show filename at least, remove loading
         }
 
-        // Update output directory display if not globally set
-        // Update output directory display if not globally set
-        if (!appSettings.outputDirectory) {
-          const dirName = getDirnameFrontend(selectedFilePath);
-          const outputDirDisplay = document.getElementById('outputDirDisplay');
-          const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
-          // Only update if the display is still showing the default text.
-          if (dirName && outputDirDisplay.textContent === defaultDirText) {
-            const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-            outputDirDisplay.textContent = displayText;
-          }
+        // Auto-set feature-specific output directory if not already set
+        if (!appSettings.pdfResizeOutputDir) {
+            const dirName = getDirnameFrontend(selectedFilePath);
+            if (dirName) {
+                appSettings.pdfResizeOutputDir = dirName;
+                await window.electronAPI.saveSettings(appSettings);
+                document.getElementById('outputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+            }
         }
 
         // Auto-fill output name for PDF Resize
@@ -1448,7 +1445,7 @@
         filePath: selectedFilePath,
         operations,
         outputName: finalOutputNameWithPdf, // Pass name with .pdf
-        outputDir: appSettings.outputDirectory || ''
+        outputDir: appSettings.pdfResizeOutputDir || ''
       });
       console.log('[PDF Resize] After calling window.electronAPI.processPDF. Result:', apiResult); // DEBUG LOG
 
@@ -1654,12 +1651,10 @@
         // }
         // currentGeneratedPdfResizePath = ''; // No longer used
 
-        // Clear output directory
-        appSettings.outputDirectory = '';
+        // Clear output directory for this feature only
+        appSettings.pdfResizeOutputDir = '';
         const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
         document.getElementById('outputDirDisplay').textContent = defaultDirText;
-        document.getElementById('sheinOutputDirDisplay').textContent = defaultDirText;
-        document.getElementById('multiMergeOutputDirDisplay').textContent = defaultDirText;
 
         await window.electronAPI.saveSettings(appSettings);
         showToast(currentTranslations['toast.pdfResizeFormCleared'] || 'PDF 尺寸调整已清空', 'info');
@@ -1839,17 +1834,14 @@
             updateFileSelectionUI(selectedSheinPdf1Path, 'sheinSelectedFile1', null, null, false); // Show filename at least, remove loading
           }
 
-          // Update output directory display if not globally set
-          // Update output directory display if not globally set
-          if (!appSettings.outputDirectory) {
-            const dirName = getDirnameFrontend(selectedSheinPdf1Path);
-            const sheinOutputDirDisplay = document.getElementById('sheinOutputDirDisplay');
-            const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
-            // Only update if the display is still showing the default text.
-            if (dirName && sheinOutputDirDisplay.textContent === defaultDirText) {
-              const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-              sheinOutputDirDisplay.textContent = displayText;
-            }
+          // Auto-set feature-specific output directory if not already set
+          if (!appSettings.sheinOutputDir) {
+              const dirName = getDirnameFrontend(selectedSheinPdf1Path);
+              if (dirName) {
+                  appSettings.sheinOutputDir = dirName;
+                  await window.electronAPI.saveSettings(appSettings);
+                  document.getElementById('sheinOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+              }
           }
           const saveResult = await window.electronAPI.saveSettings(appSettings);
           if (!saveResult || !saveResult.success) {
@@ -1894,17 +1886,14 @@
             updateFileSelectionUI(selectedSheinPdf2Path, 'sheinSelectedFile2', null, null, false); // Show filename at least, remove loading
           }
 
-          // Update output directory display if not globally set
-          // Update output directory display if not globally set
-          if (!appSettings.outputDirectory) {
-            const dirName = getDirnameFrontend(selectedSheinPdf2Path);
-            const sheinOutputDirDisplay = document.getElementById('sheinOutputDirDisplay');
-            const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
-            // Only update if the display is still showing the default text.
-            if (dirName && sheinOutputDirDisplay.textContent === defaultDirText) {
-              const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-              sheinOutputDirDisplay.textContent = displayText;
-            }
+          // Auto-set feature-specific output directory if not already set
+          if (!appSettings.sheinOutputDir) {
+              const dirName = getDirnameFrontend(selectedSheinPdf2Path);
+              if (dirName) {
+                  appSettings.sheinOutputDir = dirName;
+                  await window.electronAPI.saveSettings(appSettings);
+                  document.getElementById('sheinOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+              }
           }
   
           // Auto-fill output name for Shein 标签 (based on barcode file)
@@ -2178,7 +2167,7 @@
           outputName: outputName.toLowerCase().endsWith('.pdf') ? outputName : outputName + '.pdf',
           outputWidthMM: outputWidth,
           outputHeightMM: outputHeight,
-          outputDir: appSettings.outputDirectory || '',
+          outputDir: appSettings.sheinOutputDir || '',
           // 'images', 'editorWidth', 'editorHeight' are no longer needed
         };
 
@@ -2385,12 +2374,10 @@
         // }
         // currentGeneratedSheinLabelPath = ''; // This global var is no longer the primary source for path
 
-        // Clear output directory
-        appSettings.outputDirectory = '';
+        // Clear output directory for this feature only
+        appSettings.sheinOutputDir = '';
         const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
-        document.getElementById('outputDirDisplay').textContent = defaultDirText;
         document.getElementById('sheinOutputDirDisplay').textContent = defaultDirText;
-        document.getElementById('multiMergeOutputDirDisplay').textContent = defaultDirText;
 
         await window.electronAPI.saveSettings(appSettings);
         showToast(currentTranslations['toast.sheinFormCleared'] || 'Shein 标签 生成已清空', 'info');
@@ -2567,7 +2554,7 @@
         try {
             const pdf = await pdfjsLib.getDocument(filePath).promise;
             const page = await pdf.getPage(1);
-            const viewport = page.getViewport({ scale: 1.0 });
+            const viewport = page.getViewport({ scale: 10.0 });
  
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
@@ -2654,16 +2641,14 @@
             console.error('Failed to get metadata for multi-merge PDF 1', e);
             updateFileSelectionUI(newPath, 'multiMergeSelectedFile1', null, null, false); // Still show filename on error
           }
-          // Update output directory display if not globally set
-          if (!appSettings.outputDirectory) {
-            const dirName = getDirnameFrontend(newPath);
-            const multiMergeOutputDirDisplay = document.getElementById('multiMergeOutputDirDisplay');
-            const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
-            // Only update if the display is still showing the default text.
-            if (dirName && multiMergeOutputDirDisplay.textContent === defaultDirText) {
-              const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-              multiMergeOutputDirDisplay.textContent = displayText;
-            }
+          // Auto-set feature-specific output directory if not already set
+          if (!appSettings.multiMergeOutputDir) {
+              const dirName = getDirnameFrontend(newPath);
+              if (dirName) {
+                  appSettings.multiMergeOutputDir = dirName;
+                  await window.electronAPI.saveSettings(appSettings);
+                  document.getElementById('multiMergeOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+              }
           }
           
           await window.electronAPI.saveSettings(appSettings);
@@ -2684,6 +2669,15 @@
             updateFileSelectionUI(newPath, 'multiMergeSelectedFile2', metadata.pageCount, metadata.size, false);
           } catch (e) {
             console.error('Failed to get metadata for multi-merge PDF 2', e);
+          }
+          // Auto-set feature-specific output directory if not already set
+          if (!appSettings.multiMergeOutputDir) {
+              const dirName = getDirnameFrontend(newPath);
+              if (dirName) {
+                  appSettings.multiMergeOutputDir = dirName;
+                  await window.electronAPI.saveSettings(appSettings);
+                  document.getElementById('multiMergeOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+              }
           }
           await window.electronAPI.saveSettings(appSettings);
         }
@@ -2713,6 +2707,15 @@
             // Trigger input event for live validation and settings saving
             const inputEvent = new Event('input', { bubbles: true });
             multiMergeOutputNameInput.dispatchEvent(inputEvent);
+          }
+          // Auto-set feature-specific output directory if not already set
+          if (!appSettings.multiMergeOutputDir) {
+              const dirName = getDirnameFrontend(newPath);
+              if (dirName) {
+                  appSettings.multiMergeOutputDir = dirName;
+                  await window.electronAPI.saveSettings(appSettings);
+                  document.getElementById('multiMergeOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+              }
           }
           await window.electronAPI.saveSettings(appSettings);
         }
@@ -2765,11 +2768,17 @@
         const event = new Event('change', { bubbles: true });
         if (multiMergeOutputPageSizeSelect) multiMergeOutputPageSizeSelect.dispatchEvent(event);
 
-        // Clear output directory
-        appSettings.outputDirectory = '';
+        // Clear result div
+        const multiMergeResultDiv = document.getElementById('multiMergeResult');
+        if (multiMergeResultDiv) {
+            multiMergeResultDiv.innerHTML = '';
+            multiMergeResultDiv.className = '';
+            multiMergeResultDiv.style.display = 'none';
+        }
+
+        // Clear output directory for this feature only
+        appSettings.multiMergeOutputDir = '';
         const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
-        document.getElementById('outputDirDisplay').textContent = defaultDirText;
-        document.getElementById('sheinOutputDirDisplay').textContent = defaultDirText;
         document.getElementById('multiMergeOutputDirDisplay').textContent = defaultDirText;
 
         await window.electronAPI.saveSettings(appSettings);
@@ -2851,7 +2860,7 @@
                 outputName: outputName.toLowerCase().endsWith('.pdf') ? outputName : outputName + '.pdf',
                 outputWidthMM: outputWidthMM,
                 outputHeightMM: outputHeightMM,
-                outputDir: appSettings.outputDirectory || '',
+                outputDir: appSettings.multiMergeOutputDir || '',
                 images: imagesData,
                 editorWidth: parentRect.width,
                 editorHeight: parentRect.height
@@ -3017,14 +3026,14 @@
             updateFileSelectionUI(newPath, 'pdfToImageSelectedFile', null, null, false);
           }
 
-          if (!appSettings.outputDirectory) {
-            const dirName = getDirnameFrontend(newPath);
-            const outputDirDisplay = document.getElementById('pdfToImageOutputDirDisplay');
-            const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
-            if (dirName && outputDirDisplay.textContent === defaultDirText) {
-              const displayText = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-              outputDirDisplay.textContent = displayText;
-            }
+          // Auto-set feature-specific output directory if not already set
+          if (!appSettings.pdfToImageOutputDir) {
+              const dirName = getDirnameFrontend(newPath);
+              if (dirName) {
+                  appSettings.pdfToImageOutputDir = dirName;
+                  await window.electronAPI.saveSettings(appSettings);
+                  document.getElementById('pdfToImageOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+              }
           }
 
           if (pdfToImageOutputNameInput) {
@@ -3068,7 +3077,7 @@
           const params = {
               pdfPath: selectedPdfToImagePath,
               outputName: outputName.toLowerCase().endsWith('.zip') ? outputName : outputName + '.zip',
-              outputDir: appSettings.outputDirectory || '',
+              outputDir: appSettings.pdfToImageOutputDir || '',
           };
 
           try {
@@ -3162,12 +3171,9 @@
         pdfToImageResultDiv.innerHTML = '';
         pdfToImageResultDiv.style.display = 'none';
         
-        // Clear global output directory setting for consistency
-        appSettings.outputDirectory = '';
+        // Clear output directory for this feature only
+        appSettings.pdfToImageOutputDir = '';
         const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
-        document.getElementById('outputDirDisplay').textContent = defaultDirText;
-        document.getElementById('sheinOutputDirDisplay').textContent = defaultDirText;
-        document.getElementById('multiMergeOutputDirDisplay').textContent = defaultDirText;
         document.getElementById('pdfToImageOutputDirDisplay').textContent = defaultDirText;
 
         await window.electronAPI.saveSettings(appSettings);
@@ -3260,7 +3266,10 @@
         activeView: defaultViewId,
         theme: 'light',
         language: 'zh-CN',
-        outputDirectory: '',
+        pdfResizeOutputDir: '',
+        sheinOutputDir: '',
+        multiMergeOutputDir: '',
+        pdfToImageOutputDir: '',
         pdfResizeSelectedPath: '',
         sheinEcRepPdfPath: '',
         sheinBarcodePdfPath: '',
@@ -3282,7 +3291,7 @@
         multiMergeOutputHeight: '60',
         multiMergeEditorLayout: [],
         pdfToImageSelectedPath: '',
-        pdfToImageOutputName: ''
+        pdfToImageOutputName: '',
       };
 
       appSettings = Object.assign({}, defaultSettings, loadedSettings);
@@ -3348,46 +3357,31 @@
         updateFileSelectionUI(null, 'sheinSelectedFile2');
       }
       
-      // Load output directory
-      const outputDir = appSettings.outputDirectory || '';
-      const outputDirDisplay = document.getElementById('outputDirDisplay');
-      const sheinOutputDirDisplay = document.getElementById('sheinOutputDirDisplay');
-      const multiMergeOutputDirDisplay = document.getElementById('multiMergeOutputDirDisplay');
-      const pdfToImageOutputDirDisplay = document.getElementById('pdfToImageOutputDirDisplay');
+      // Load feature-specific output directories
       const defaultText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+
+      const pdfResizeOutputDir = appSettings.pdfResizeOutputDir || '';
+      const outputDirDisplay = document.getElementById('outputDirDisplay');
       if (outputDirDisplay) {
-        outputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
-      }
-      if (sheinOutputDirDisplay) {
-        sheinOutputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
-      }
-      if (multiMergeOutputDirDisplay) {
-        multiMergeOutputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
-      }
-      if (pdfToImageOutputDirDisplay) {
-        pdfToImageOutputDirDisplay.textContent = outputDir ? `${currentTranslations.currentPath || '当前路径'}: ${outputDir}` : defaultText;
+        outputDirDisplay.textContent = pdfResizeOutputDir ? `${currentTranslations.currentPath || '当前路径'}: ${pdfResizeOutputDir}` : defaultText;
       }
 
-      // This logic is now handled by the file selection events, but we can keep a fallback here on load.
-      if (!outputDir) {
-        if (selectedFilePath) {
-            const dirName = getDirnameFrontend(selectedFilePath);
-            if(dirName) document.getElementById('outputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-        }
-        if (selectedSheinPdf1Path || selectedSheinPdf2Path) {
-            const sheinPath = selectedSheinPdf2Path || selectedSheinPdf1Path; // Prefer barcode path
-            const dirName = getDirnameFrontend(sheinPath);
-            if(dirName) document.getElementById('sheinOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-        }
-        if (selectedMultiMergePdf1Path || selectedMultiMergePdf2Path || selectedMultiMergePdf3Path) {
-            const multiMergePath = selectedMultiMergePdf3Path || selectedMultiMergePdf2Path || selectedMultiMergePdf1Path; // Prefer barcode path
-            const dirName = getDirnameFrontend(multiMergePath);
-            if(dirName) document.getElementById('multiMergeOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-        }
-        if (selectedPdfToImagePath) {
-            const dirName = getDirnameFrontend(selectedPdfToImagePath);
-            if(dirName) document.getElementById('pdfToImageOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
-        }
+      const sheinOutputDir = appSettings.sheinOutputDir || '';
+      const sheinOutputDirDisplay = document.getElementById('sheinOutputDirDisplay');
+      if (sheinOutputDirDisplay) {
+        sheinOutputDirDisplay.textContent = sheinOutputDir ? `${currentTranslations.currentPath || '当前路径'}: ${sheinOutputDir}` : defaultText;
+      }
+
+      const multiMergeOutputDir = appSettings.multiMergeOutputDir || '';
+      const multiMergeOutputDirDisplay = document.getElementById('multiMergeOutputDirDisplay');
+      if (multiMergeOutputDirDisplay) {
+        multiMergeOutputDirDisplay.textContent = multiMergeOutputDir ? `${currentTranslations.currentPath || '当前路径'}: ${multiMergeOutputDir}` : defaultText;
+      }
+
+      const pdfToImageOutputDir = appSettings.pdfToImageOutputDir || '';
+      const pdfToImageOutputDirDisplay = document.getElementById('pdfToImageOutputDirDisplay');
+      if (pdfToImageOutputDirDisplay) {
+        pdfToImageOutputDirDisplay.textContent = pdfToImageOutputDir ? `${currentTranslations.currentPath || '当前路径'}: ${pdfToImageOutputDir}` : defaultText;
       }
 
       // Load form elements
@@ -3564,31 +3558,27 @@
       // The output name is handled by the generic form loader
     });
 
-    // --- Output Directory Selection Logic ---
-    const setupOutputDirButton = (buttonId, displayId) => {
-      const button = document.getElementById(buttonId);
-      if (button) {
-        button.addEventListener('click', async () => {
-          const newDir = await window.electronAPI.selectDirectory();
-          if (newDir) {
-            appSettings.outputDirectory = newDir;
-            await window.electronAPI.saveSettings(appSettings);
-            const displayText = `${currentTranslations.currentPath || '当前路径'}: ${newDir}`;
-            // Update all displays to keep them in sync
-            document.getElementById('outputDirDisplay').textContent = displayText;
-            document.getElementById('sheinOutputDirDisplay').textContent = displayText;
-            document.getElementById('multiMergeOutputDirDisplay').textContent = displayText;
-            document.getElementById('pdfToImageOutputDirDisplay').textContent = displayText;
-            showToast((currentTranslations.outputDirSet || '输出目录已设置为: {dir}').replace('{dir}', newDir), 'success');
-          } else {
-            showToast(currentTranslations.operationCancelled || '操作已取消。', 'info');
-          }
-        });
-      }
+    // --- Feature-Specific Output Directory Selection Logic ---
+    const setupFeatureOutputDirButton = (buttonId, displayId, settingsKey) => {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            button.addEventListener('click', async () => {
+                const newDir = await window.electronAPI.selectDirectory();
+                if (newDir) {
+                    appSettings[settingsKey] = newDir;
+                    await window.electronAPI.saveSettings(appSettings);
+                    const displayText = `${currentTranslations.currentPath || '当前路径'}: ${newDir}`;
+                    document.getElementById(displayId).textContent = displayText;
+                    showToast((currentTranslations.outputDirSet || '输出目录已设置为: {dir}').replace('{dir}', newDir), 'success');
+                } else {
+                    showToast(currentTranslations.operationCancelled || '操作已取消。', 'info');
+                }
+            });
+        }
     };
 
-    setupOutputDirButton('selectOutputDirBtn', 'outputDirDisplay');
-    setupOutputDirButton('sheinSelectOutputDirBtn', 'sheinOutputDirDisplay');
+    setupFeatureOutputDirButton('selectOutputDirBtn', 'outputDirDisplay', 'pdfResizeOutputDir');
+    setupFeatureOutputDirButton('sheinSelectOutputDirBtn', 'sheinOutputDirDisplay', 'sheinOutputDir');
 
    const redBookIcon = document.getElementById('redBookIcon');
    const redBookPopup = document.getElementById('redBookPopup');
@@ -3600,8 +3590,8 @@
    redBookIcon.addEventListener('mouseleave', () => {
      redBookPopup.style.display = 'none';
    });
-    setupOutputDirButton('multiMergeSelectOutputDirBtn', 'multiMergeOutputDirDisplay');
-    setupOutputDirButton('pdfToImageSelectOutputDirBtn', 'pdfToImageOutputDirDisplay');
+    setupFeatureOutputDirButton('multiMergeSelectOutputDirBtn', 'multiMergeOutputDirDisplay', 'multiMergeOutputDir');
+    setupFeatureOutputDirButton('pdfToImageSelectOutputDirBtn', 'pdfToImageOutputDirDisplay', 'pdfToImageOutputDir');
     
    // ResizeObserver for sheinEditorContainer is removed.
 

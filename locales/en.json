@@ -10,6 +10,7 @@
   "close": "Close",
   "navigation": "Navigation",
   "sheinLabelGenerator": "Shein Label Generator",
+  "multiPdfMerge": "Label Gen - w/ Eco",
   "pdfResizer": "PDF Resizer",
   "version": "Version: 0.0.3",
   "disclaimer": "For learning and communication purposes only, not for commercial use.",
@@ -32,6 +33,7 @@
   "startProcessing": "Start Processing",
   "clear": "Clear",
   "sheinLabelGeneratorDescription": "Merge EC Rep and barcode PDFs to generate labels compliant with Shein requirements.",
+  "multiPdfMergeDescription": "Merge barcode, eco-label, and EC Rep PDFs to generate the final label.",
   "selectEcRepFile": "Select EC Rep File",
   "noFileSelected": "No file selected",
   "ecRepPdfHint": "EC Rep PDF file",
@@ -117,5 +119,6 @@
   "notSetUseDefault": "Not set, using source file directory",
   "currentPath": "Current Path",
   "outputDirSet": "Output directory set to: {dir}",
+  "outputDirAutoSet": "Output directory has been automatically set to: {dir}",
   "operationCancelled": "Operation cancelled."
 }
