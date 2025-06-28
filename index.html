@@ -2757,6 +2757,7 @@
           }
         }
         updateMultiMergeEditorAreaSize();
+        setTimeout(applyMultiMergeSavedLayout, 0);
         appSettings.multiMergeOutputPageSize = this.value;
         await window.electronAPI.saveSettings(appSettings);
       });
@@ -3425,10 +3426,16 @@
       
       // Event listeners for Shein output dimensions to update editor size are removed.
        if (multiMergeOutputWidthInput) {
-           multiMergeOutputWidthInput.addEventListener('input', updateMultiMergeEditorAreaSize);
+           multiMergeOutputWidthInput.addEventListener('input', () => {
+             updateMultiMergeEditorAreaSize();
+             setTimeout(applyMultiMergeSavedLayout, 0);
+           });
        }
        if (multiMergeOutputHeightInput) {
-           multiMergeOutputHeightInput.addEventListener('input', updateMultiMergeEditorAreaSize);
+           multiMergeOutputHeightInput.addEventListener('input', () => {
+             updateMultiMergeEditorAreaSize();
+             setTimeout(applyMultiMergeSavedLayout, 0);
+           });
        }
 
       formElementsToPersist.forEach(elementConfig => {
