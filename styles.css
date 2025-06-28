@@ -849,11 +849,8 @@ This should be fine for emojis.
   background-color: var(--border-color-soft); /* Original scrollbar thumb color */
   border-radius: 10px;
   border: 2px solid transparent; /* Creates padding effect */
-  border: 0.1px solid #ced4da; /* Standard border color */
-  border-radius: 8px; /* More rounded inputs */
   box-sizing: border-box;
   font-size: var(--font-size-sm); /* Was 0.9em */
-  background-color: #ffffff;
   color: #495057;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.4s ease, color 0.4s ease;
   width: 100%; /* Make inputs and selects take full width of their parent */
