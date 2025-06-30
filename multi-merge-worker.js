@@ -17,35 +17,61 @@ async function performMultiMergeGeneration({ pdfPaths, outputName, outputWidthMM
     const scaleX = outputWidthPt / editorWidth;
     const scaleY = outputHeightPt / editorHeight;
 
+    // Load all PDF documents
+    const [ecRepPath, ecoLabelPath, barcodePath] = pdfPaths; // [0]欧代, [1]环保, [2]条码
+    const ecRepDoc = await PDFDocument.load(fs.readFileSync(ecRepPath));
+    const ecoLabelDoc = await PDFDocument.load(fs.readFileSync(ecoLabelPath));
+    const barcodeDoc = await PDFDocument.load(fs.readFileSync(barcodePath));
+
+    const barcodePageCount = barcodeDoc.getPageCount();
+    if (barcodePageCount === 0) {
+      throw new Error('Barcode PDF cannot be empty.');
+    }
+
     const finalPdfDoc = await PDFDocument.create();
-    const newPage = finalPdfDoc.addPage([outputWidthPt, outputHeightPt]);
 
-    for (let i = 0; i < images.length; i++) {
-      const imageData = images[i];
-      const pdfPath = imageData.path;
+    // Embed the static pages (EC Rep and Eco Label) once.
+    const [embeddedEcRepPage] = await finalPdfDoc.embedPdf(ecRepDoc, [0]);
+    const [embeddedEcoLabelPage] = await finalPdfDoc.embedPdf(ecoLabelDoc, [0]);
 
-      console.log(`Processing image ${i + 1}/${images.length}: ID=${imageData.id}, Path=${pdfPath}`);
+    // Find the layout data for each element from the 'images' array using their static IDs
+    const ecRepImageData = images.find(img => img.id === 'multi-merge-pdf-1');
+    const ecoLabelImageData = images.find(img => img.id === 'multi-merge-pdf-2');
+    const barcodeImageData = images.find(img => img.id === 'multi-merge-pdf-3');
 
-      if (!pdfPath) {
-        console.warn(`Skipping image data with no path: ${JSON.stringify(imageData)}`);
-        continue;
-      }
+    if (!ecRepImageData || !ecoLabelImageData || !barcodeImageData) {
+      throw new Error('Could not find layout data for all required PDF elements.');
+    }
 
-      const pdfBytes = fs.readFileSync(pdfPath);
-      const pdfDoc = await PDFDocument.load(pdfBytes);
+    // Loop through each page of the barcode PDF
+    for (let i = 0; i < barcodePageCount; i++) {
+      const newPage = finalPdfDoc.addPage([outputWidthPt, outputHeightPt]);
       
-      if (pdfDoc.getPageCount() === 0) {
-        console.warn(`PDF file is empty: ${pdfPath}`);
-        continue;
-      }
+      // Embed the current barcode page
+      const [embeddedBarcodePage] = await finalPdfDoc.embedPdf(barcodeDoc, [i]);
 
-      const [firstPage] = await finalPdfDoc.embedPdf(pdfDoc, [0]);
+      // Draw EC Rep (static)
+      newPage.drawPage(embeddedEcRepPage, {
+        x: ecRepImageData.x * scaleX,
+        y: outputHeightPt - (ecRepImageData.y * scaleY) - (ecRepImageData.height * scaleY),
+        width: ecRepImageData.width * scaleX,
+        height: ecRepImageData.height * scaleY,
+      });
 
-      newPage.drawPage(firstPage, {
-        x: imageData.x * scaleX,
-        y: outputHeightPt - (imageData.y * scaleY) - (imageData.height * scaleY), // Invert Y
-        width: imageData.width * scaleX,
-        height: imageData.height * scaleY,
+      // Draw Eco Label (static)
+      newPage.drawPage(embeddedEcoLabelPage, {
+        x: ecoLabelImageData.x * scaleX,
+        y: outputHeightPt - (ecoLabelImageData.y * scaleY) - (ecoLabelImageData.height * scaleY),
+        width: ecoLabelImageData.width * scaleX,
+        height: ecoLabelImageData.height * scaleY,
+      });
+
+      // Draw Barcode (current page)
+      newPage.drawPage(embeddedBarcodePage, {
+        x: barcodeImageData.x * scaleX,
+        y: outputHeightPt - (barcodeImageData.y * scaleY) - (barcodeImageData.height * scaleY),
+        width: barcodeImageData.width * scaleX,
+        height: barcodeImageData.height * scaleY,
       });
     }
 
