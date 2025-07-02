@@ -599,7 +599,7 @@
       const customWidthInput = document.getElementById('customWidth');
       const customHeightInput = document.getElementById('customHeight');
 
-      if (!pageSizeSelect) return '_未知尺寸'; // Fallback
+      if (!pageSizeSelect) return '_新未知尺寸'; // Fallback
 
       const selectedPageSizeValue = pageSizeSelect.value;
       let width = '';
@@ -609,17 +609,17 @@
         width = customWidthInput ? customWidthInput.value.trim() : '';
         height = customHeightInput ? customHeightInput.value.trim() : '';
         if (width && height && !isNaN(parseFloat(width)) && parseFloat(width) > 0 && !isNaN(parseFloat(height)) && parseFloat(height) > 0) {
-          return `_${parseFloat(width)}x${parseFloat(height)}`;
+          return `_新${parseFloat(width)}x${parseFloat(height)}`;
         } else {
-          return '_自定义'; // Or some other indicator of custom but invalid/incomplete
+          return '_新自定义'; // Or some other indicator of custom but invalid/incomplete
         }
       } else {
         const presetDimensions = pageSizeMapMM[selectedPageSizeValue]; // pageSizeMapMM should be defined
         if (presetDimensions) {
-          return `_${presetDimensions.width}x${presetDimensions.height}`;
+          return `_新${presetDimensions.width}x${presetDimensions.height}`;
         }
       }
-      return '_预设'; // Fallback for unknown preset
+      return '_新预设'; // Fallback for unknown preset
     }
 
     function formatBytes(bytes, decimals = 2) {
@@ -1278,7 +1278,7 @@
       // but keep this as a fallback if user clears it and then clicks process.
       if (!outputName) {
         const base = selectedFilePath ? getFilenameWithoutExtension(selectedFilePath) : 'resized_file';
-        const suffix = selectedFilePath ? getOutputSuffixForPdfResize() : `_${getCurrentHHMMSS()}`; // Fallback suffix if no file selected
+        const suffix = selectedFilePath ? getOutputSuffixForPdfResize() : `_新${getCurrentHHMMSS()}`; // Fallback suffix if no file selected
         outputName = `${base}${suffix}`; // No .pdf here
         // pdfResizeOutputNameInput.value = outputName; // Optionally update the input if it was empty
       }
@@ -1899,7 +1899,7 @@
           const sheinOutputNameInput = document.getElementById('sheinOutputName');
           if (sheinOutputNameInput) {
             const baseNameNoExt = getFilenameWithoutExtension(selectedSheinPdf2Path);
-            const newOutputName = `${baseNameNoExt}_`; 
+            const newOutputName = `${baseNameNoExt}_新`;
             // const newOutputName = `${baseNameNoExt}_Shein标签_${getCurrentHHMMSS()}`; 
             // No .pdf here
             sheinOutputNameInput.value = newOutputName;
@@ -2138,7 +2138,7 @@
         if (!outputName) {
           const base = selectedSheinPdf2Path ? getFilenameWithoutExtension(selectedSheinPdf2Path) : 'SheinLabel_file';
           // outputName = `${base}_Shein标签_${getCurrentHHMMSS()}`; // No .pdf here
-          outputName = `${base}_`; // No .pdf here
+          outputName = `${base}_新`; // No .pdf here
           // sheinOutputNameInput.value = outputName; // Optionally update the input if it was empty
         }
 
@@ -2724,7 +2724,7 @@
           const multiMergeOutputNameInput = document.getElementById('multiMergeOutputName');
           if (multiMergeOutputNameInput) {
             const baseNameNoExt = getFilenameWithoutExtension(newPath);
-            const newOutputName = `${baseNameNoExt}_`;
+            const newOutputName = `${baseNameNoExt}_新`;
             multiMergeOutputNameInput.value = newOutputName;
             // Trigger input event for live validation and settings saving
             const inputEvent = new Event('input', { bubbles: true });
@@ -2832,7 +2832,7 @@
             let outputName = multiMergeOutputNameInput.value.trim();
             if (!outputName) {
                 const baseName = getFilenameWithoutExtension(selectedMultiMergePdf1Path) || 'merged_output';
-                outputName = `${baseName}_`;
+                outputName = `${baseName}_新`;
                 multiMergeOutputNameInput.value = outputName;
             }
 
@@ -3061,7 +3061,7 @@
 
           if (pdfToImageOutputNameInput) {
             const baseNameNoExt = getFilenameWithoutExtension(newPath);
-            pdfToImageOutputNameInput.value = `${baseNameNoExt}_images`;
+            pdfToImageOutputNameInput.value = `${baseNameNoExt}_新images`;
             // Trigger input event to save setting
             const inputEvent = new Event('input', { bubbles: true });
             pdfToImageOutputNameInput.dispatchEvent(inputEvent);
