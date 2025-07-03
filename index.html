@@ -1608,10 +1608,12 @@
 
         // Reset page size
         const pageSizeSelect = document.getElementById('pageSize');
-        if (pageSizeSelect) pageSizeSelect.value = 'Shein'; // Default to Shein
-        appSettings.pageSize = 'Shein';
-        const customSizeEl = document.getElementById('customSize');
-        if (customSizeEl) customSizeEl.style.display = 'none';
+        if (pageSizeSelect) {
+          pageSizeSelect.value = 'Shein';
+          updateCustomSelectUI(pageSizeSelect);
+          const changeEvent = new Event('change', { bubbles: true });
+          pageSizeSelect.dispatchEvent(changeEvent);
+        }
         
         // Clear custom dimensions and their errors
         const customWidthInput = document.getElementById('customWidth');
@@ -2328,7 +2330,10 @@
         appSettings.sheinOutputName = '';
 
         // Reset output page size and custom dimensions
-        if (sheinOutputPageSizeSelect) sheinOutputPageSizeSelect.value = 'Shein'; // Default to Shein
+        if (sheinOutputPageSizeSelect) {
+          sheinOutputPageSizeSelect.value = 'Shein'; // Default to Shein
+          updateCustomSelectUI(sheinOutputPageSizeSelect);
+        }
         appSettings.sheinOutputPageSize = 'Shein';
         if (sheinOutputCustomDimensionsDiv) sheinOutputCustomDimensionsDiv.style.display = 'none';
         
@@ -2780,7 +2785,10 @@
         document.getElementById('multi-merge-editor-area').innerHTML = '';
         if (multiMergeOutputNameInput) multiMergeOutputNameInput.value = '';
         appSettings.multiMergeOutputName = '';
-        if (multiMergeOutputPageSizeSelect) multiMergeOutputPageSizeSelect.value = 'Shein';
+        if (multiMergeOutputPageSizeSelect) {
+          multiMergeOutputPageSizeSelect.value = 'Shein';
+          updateCustomSelectUI(multiMergeOutputPageSizeSelect);
+        }
         appSettings.multiMergeOutputPageSize = 'Shein';
         if (multiMergeOutputCustomDimensionsDiv) multiMergeOutputCustomDimensionsDiv.style.display = 'none';
         if (multiMergeOutputWidthInput) multiMergeOutputWidthInput.value = '70';
@@ -3204,6 +3212,33 @@
       });
     }
     // --- End PDF to Image Feature ---
+
+    function updateCustomSelectUI(originalSelectElement) {
+      if (!originalSelectElement) return;
+      const customSelectContainer = originalSelectElement.parentElement.querySelector('.custom-select-container');
+      if (!customSelectContainer) return;
+
+      const triggerSpan = customSelectContainer.querySelector('.custom-select-trigger span');
+      const optionsContainer = customSelectContainer.querySelector('.custom-select-options');
+      
+      const selectedOption = Array.from(originalSelectElement.options).find(opt => opt.value === originalSelectElement.value);
+      
+      if (triggerSpan && selectedOption) {
+        triggerSpan.textContent = selectedOption.textContent;
+      }
+      
+      if (optionsContainer) {
+        const currentCustomSelected = optionsContainer.querySelector('.custom-select-option.selected');
+        if (currentCustomSelected) {
+          currentCustomSelected.classList.remove('selected');
+        }
+        
+        const newCustomSelected = optionsContainer.querySelector(`.custom-select-option[data-value="${originalSelectElement.value}"]`);
+        if (newCustomSelected) {
+          newCustomSelected.classList.add('selected');
+        }
+      }
+    }
 
     // --- Custom Select Dropdown Logic ---
     function initializeCustomSelect(originalSelectElement) {
