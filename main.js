@@ -14,6 +14,8 @@ autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 autoUpdater.autoDownload = false; // We will handle download manually or prompt user
 
+const activeWorkers = new Set(); // Keep track of active workers
+
 // Early setup for unhandled exception toaster
 let mainWindow // mainWindow will be assigned later in createWindow
 let isDownloadingUpdate = false; // Flag to track if an update download is in progress
@@ -177,12 +179,14 @@ ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName, outp
     const worker = new Worker(path.join(__dirname, 'process-pdf-worker.js'), {
       workerData: { filePath, operations, outputName, outputDir }
     });
+    activeWorkers.add(worker); // Track the worker
 
     let resolved = false; // Flag to prevent multiple resolves
 
     worker.on('message', async (result) => { // Made async
       if (resolved) return;
       resolved = true;
+      activeWorkers.delete(worker); // Remove worker from active set
       console.log('[Main Process - process-pdf] Worker finished with result:', result);
       if (result.success && result.path) {
         const metadata = await getPdfMetadataInternal(result.path);
@@ -203,11 +207,13 @@ ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName, outp
     worker.on('error', (error) => {
       if (resolved) return;
       resolved = true;
+      activeWorkers.delete(worker); // Remove worker from active set
       console.error('[Main Process - process-pdf] Worker encountered an error:', error);
       resolve({ success: false, error: error.message || 'PDF处理工作线程发生错误。' });
     });
 
     worker.on('exit', (code) => {
+      activeWorkers.delete(worker); // Ensure worker is removed on exit
       if (resolved) return;
       // No need to set resolved = true here, as this is a final state if no message/error was received.
       if (code !== 0) {
@@ -237,12 +243,14 @@ ipcMain.handle('generate-shein-label', async (_, params) => {
     const worker = new Worker(path.join(__dirname, 'shein-label-worker.js'), {
       workerData: params // Pass the entire object to the worker
     });
+    activeWorkers.add(worker); // Track the worker
 
     let resolved = false; // Flag to prevent multiple resolves
 
     worker.on('message', async (result) => { // Made async
       if (resolved) return;
       resolved = true;
+      activeWorkers.delete(worker); // Remove worker from active set
       console.log('[Main Process - generate-shein-label] Worker finished with result:', result);
       if (result.success && result.path) {
         const metadata = await getPdfMetadataInternal(result.path);
@@ -262,11 +270,13 @@ ipcMain.handle('generate-shein-label', async (_, params) => {
     worker.on('error', (error) => {
       if (resolved) return;
       resolved = true;
+      activeWorkers.delete(worker); // Remove worker from active set
       console.error('[Main Process - generate-shein-label] Worker encountered an error:', error);
       resolve({ success: false, error: error.message || 'Shein 标签处理工作线程发生错误。' });
     });
 
     worker.on('exit', (code) => {
+      activeWorkers.delete(worker); // Ensure worker is removed on exit
       if (resolved) return;
       if (code !== 0) {
         console.error(`[Main Process - generate-shein-label] Worker stopped with exit code ${code} without sending a result.`);
@@ -293,12 +303,14 @@ ipcMain.handle('generate-multi-merge-label', async (_, params) => {
     const worker = new Worker(path.join(__dirname, 'multi-merge-worker.js'), {
       workerData: params
     });
+    activeWorkers.add(worker); // Track the worker
 
     let resolved = false;
 
     worker.on('message', async (result) => {
       if (resolved) return;
       resolved = true;
+      activeWorkers.delete(worker); // Remove worker from active set
       console.log('[Main Process - generate-multi-merge-label] Worker finished with result:', result);
       if (result.success && result.path) {
         const metadata = await getPdfMetadataInternal(result.path);
@@ -319,11 +331,13 @@ ipcMain.handle('generate-multi-merge-label', async (_, params) => {
     worker.on('error', (error) => {
       if (resolved) return;
       resolved = true;
+      activeWorkers.delete(worker); // Remove worker from active set
       console.error('[Main Process - generate-multi-merge-label] Worker encountered an error:', error);
       resolve({ success: false, error: error.message || '多PDF合并工作线程发生错误。' });
     });
 
     worker.on('exit', (code) => {
+      activeWorkers.delete(worker); // Ensure worker is removed on exit
       if (resolved) return;
       if (code !== 0) {
         console.error(`[Main Process - generate-multi-merge-label] Worker stopped with exit code ${code}`);
@@ -344,9 +358,17 @@ ipcMain.handle('convert-pdf-to-images', async (_, params) => {
     const worker = new Worker(path.join(__dirname, 'pdf-to-image-worker.js'), {
       workerData: { pdfPath }
     });
-    worker.on('message', resolve);
-    worker.on('error', (err) => resolve({ success: false, error: `PDF拆分工作线程错误: ${err.message}` }));
+    activeWorkers.add(worker); // Track the worker
+    worker.on('message', (result) => {
+      activeWorkers.delete(worker); // Remove worker from active set
+      resolve(result);
+    });
+    worker.on('error', (err) => {
+      activeWorkers.delete(worker); // Remove worker from active set
+      resolve({ success: false, error: `PDF拆分工作线程错误: ${err.message}` })
+    });
     worker.on('exit', (code) => {
+      activeWorkers.delete(worker); // Ensure worker is removed on exit
       if (code !== 0) resolve({ success: false, error: `PDF拆分工作线程意外终止，退出码: ${code}。` });
     });
   });
@@ -602,6 +624,15 @@ ipcMain.on('toggle-dev-tools', () => {
   }
 });
 // End IPC Handlers for custom window controls
+
+app.on('before-quit', () => {
+  log.info('Application is about to quit. Terminating all active workers.');
+  for (const worker of activeWorkers) {
+    log.info(`Terminating worker thread: ${worker.threadId}`);
+    worker.terminate();
+  }
+  activeWorkers.clear();
+});
 
 app.whenReady().then(() => {
   getSettingsFilePath(); // Initialize settings path
