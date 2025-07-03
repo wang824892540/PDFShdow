@@ -47,9 +47,9 @@ async function performSheinLabelGeneration({ pdf1Path, pdf2Path, outputName, out
     // Embed the EC Rep page once, as it's the same on all final pages.
     const embeddedEcRepPage = await finalPdfDoc.embedPage(ecRepPageOriginal);
     const { width: ecRepWidth, height: ecRepHeight } = ecRepPageOriginal.getSize();
-    const scaledEcRepHeight = ecRepHeight * (outputWidthPt / ecRepWidth);
+    let scaledEcRepHeight = ecRepHeight * (outputWidthPt / ecRepWidth);
 
-    const GAP_PT = 5; // A small gap between the two PDFs
+    let GAP_PT = 5; // A small gap between the two PDFs
 
     for (let i = 0; i < barcodePagesOriginal.length; i++) {
        const newPage = finalPdfDoc.addPage([outputWidthPt, outputHeightPt]);
@@ -60,26 +60,43 @@ async function performSheinLabelGeneration({ pdf1Path, pdf2Path, outputName, out
        const { width: barcodeWidth, height: barcodeHeight } = barcodePageOriginal.getSize();
        
        // Scale barcode to fit the page width
-       const scaledBarcodeHeight = barcodeHeight * (outputWidthPt / barcodeWidth);
+       let scaledBarcodeHeight = barcodeHeight * (outputWidthPt / barcodeWidth);
        
-       // Calculate total content height and starting Y for vertical centering
-       const totalContentHeight = scaledBarcodeHeight + GAP_PT + scaledEcRepHeight;
-       const startY = (outputHeightPt - totalContentHeight) / 2;
+       // Calculate total content height and check if it exceeds page height
+       let totalContentHeight = scaledBarcodeHeight + GAP_PT + scaledEcRepHeight;
+       let finalScale = 1.0;
+
+       if (totalContentHeight > outputHeightPt) {
+           finalScale = outputHeightPt / totalContentHeight;
+       }
+
+       // Apply the final scale to all elements
+       const finalBarcodeHeight = scaledBarcodeHeight * finalScale;
+       const finalEcRepHeight = scaledEcRepHeight * finalScale;
+       const finalGap = GAP_PT * finalScale;
+       const finalContentWidth = outputWidthPt * finalScale;
+
+       // Recalculate total height with the new scale for centering
+       const finalTotalHeight = finalBarcodeHeight + finalGap + finalEcRepHeight;
+
+       // Calculate starting positions for centering
+       const startX = (outputWidthPt - finalContentWidth) / 2;
+       const startY = (outputHeightPt - finalTotalHeight) / 2;
 
        // Draw EC Rep (Bottom element of the centered block)
        newPage.drawPage(embeddedEcRepPage, {
-           x: 0,
+           x: startX,
            y: startY,
-           width: outputWidthPt,
-           height: scaledEcRepHeight,
+           width: finalContentWidth,
+           height: finalEcRepHeight,
        });
 
        // Draw Barcode (Top element of the centered block)
        newPage.drawPage(embeddedBarcodePage, {
-           x: 0,
-           y: startY + scaledEcRepHeight + GAP_PT,
-           width: outputWidthPt,
-           height: scaledBarcodeHeight,
+           x: startX,
+           y: startY + finalEcRepHeight + finalGap,
+           width: finalContentWidth,
+           height: finalBarcodeHeight,
        });
     }
 
