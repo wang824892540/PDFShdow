@@ -1,5 +1,7 @@
 # PDFShdow
 
+[简体中文](README.zh-CN.md)
+
 This is a multi-functional desktop application built with Electron, designed to provide a powerful and user-friendly suite of tools for processing PDF files. The application leverages worker threads to handle time-consuming tasks, ensuring the user interface remains smooth and responsive at all times.
 
 ## ✨ Key Features
