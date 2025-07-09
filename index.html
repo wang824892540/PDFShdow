@@ -3961,7 +3961,12 @@
         const li = document.createElement('li');
         li.dataset.filePath = file.path; // The worker needs this path
         li.dataset.objectURL = objectURL; // Store for later revocation
-        li.style.backgroundImage = `url('${objectURL}')`;
+        // li.style.backgroundImage = `url('${objectURL}')`; // 移除背景图方式
+        // 新增：插入img标签
+        const img = document.createElement('img');
+        img.src = objectURL;
+        img.alt = file.name;
+        li.appendChild(img);
         
         const removeBtn = document.createElement('button');
         removeBtn.className = 'remove-image-btn';
@@ -4224,6 +4229,184 @@
         });
         resizeObserver.observe(multiMergeEditorContainer);
     }
+
+    // 图片放大预览弹窗
+    let previewOverlay = null;
+    let previewImg = null;
+    let previewIndex = 0;
+    let previewList = [];
+    let leftBtn = null;
+    let rightBtn = null;
+    let previewCloseBtn = null;
+
+    // 只绑定一次键盘事件
+    window.addEventListener('keydown', previewKeyHandler);
+
+    function showImagePreview(index) {
+      if (!previewList.length) return;
+      if (!previewOverlay) {
+        previewOverlay = document.createElement('div');
+        previewOverlay.style.position = 'fixed';
+        previewOverlay.style.top = 0;
+        previewOverlay.style.left = 0;
+        previewOverlay.style.width = '100vw';
+        previewOverlay.style.height = '100vh';
+        previewOverlay.style.background = 'rgba(0,0,0,0.85)';
+        previewOverlay.style.display = 'flex';
+        previewOverlay.style.alignItems = 'center';
+        previewOverlay.style.justifyContent = 'center';
+        previewOverlay.style.zIndex = 9999;
+        previewOverlay.style.userSelect = 'none';
+        previewOverlay.tabIndex = -1;
+        previewOverlay.addEventListener('click', (e) => {
+          // 禁止点击遮罩关闭
+          e.stopPropagation();
+        });
+
+        // 左右按钮
+        leftBtn = document.createElement('button');
+        leftBtn.innerHTML = '<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="18" fill="rgba(0,0,0,0.25)"/><path d="M21 12L15 18L21 24" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        leftBtn.style.position = 'absolute';
+        leftBtn.style.left = '32px';
+        leftBtn.style.top = '50%';
+        leftBtn.style.transform = 'translateY(-50%)';
+        leftBtn.style.background = 'none';
+        leftBtn.style.border = 'none';
+        leftBtn.style.padding = '0';
+        leftBtn.style.cursor = 'pointer';
+        leftBtn.style.zIndex = 10001;
+        leftBtn.style.transition = 'filter 0.2s';
+        leftBtn.onmouseenter = () => leftBtn.style.filter = 'brightness(1.5)';
+        leftBtn.onmouseleave = () => leftBtn.style.filter = '';
+        leftBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showImagePreview((previewIndex - 1 + previewList.length) % previewList.length);
+        });
+        previewOverlay.appendChild(leftBtn);
+
+        rightBtn = document.createElement('button');
+        rightBtn.innerHTML = '<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="18" r="18" fill="rgba(0,0,0,0.25)"/><path d="M15 12L21 18L15 24" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        rightBtn.style.position = 'absolute';
+        rightBtn.style.right = '32px';
+        rightBtn.style.top = '50%';
+        rightBtn.style.transform = 'translateY(-50%)';
+        rightBtn.style.background = 'none';
+        rightBtn.style.border = 'none';
+        rightBtn.style.padding = '0';
+        rightBtn.style.cursor = 'pointer';
+        rightBtn.style.zIndex = 10001;
+        rightBtn.style.transition = 'filter 0.2s';
+        rightBtn.onmouseenter = () => rightBtn.style.filter = 'brightness(1.5)';
+        rightBtn.onmouseleave = () => rightBtn.style.filter = '';
+        rightBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showImagePreview((previewIndex + 1) % previewList.length);
+        });
+        previewOverlay.appendChild(rightBtn);
+
+        // 关闭按钮
+        previewCloseBtn = document.createElement('button');
+        previewCloseBtn.textContent = '×';
+        previewCloseBtn.style.position = 'absolute';
+        previewCloseBtn.style.top = '40px';
+        previewCloseBtn.style.right = '40px';
+        previewCloseBtn.style.fontSize = '2.2rem';
+        previewCloseBtn.style.background = 'rgba(0,0,0,0.3)';
+        previewCloseBtn.style.color = '#fff';
+        previewCloseBtn.style.border = 'none';
+        previewCloseBtn.style.borderRadius = '50%';
+        previewCloseBtn.style.width = '48px';
+        previewCloseBtn.style.height = '48px';
+        previewCloseBtn.style.cursor = 'pointer';
+        previewCloseBtn.style.zIndex = 10001;
+        previewCloseBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          hideImagePreview();
+        });
+        previewOverlay.appendChild(previewCloseBtn);
+
+        // 图片
+        previewImg = document.createElement('img');
+        previewImg.style.maxWidth = '90vw';
+        previewImg.style.maxHeight = '80vh';
+        previewImg.style.borderRadius = '12px';
+        previewImg.style.boxShadow = '0 8px 32px rgba(0,0,0,0.25)';
+        previewImg.style.background = '#fff';
+        previewImg.style.objectFit = 'contain';
+        previewImg.style.zIndex = 10000;
+        previewOverlay.appendChild(previewImg);
+
+        document.body.appendChild(previewOverlay);
+      }
+      previewIndex = index;
+      previewImg.src = previewList[previewIndex].src;
+      previewOverlay.style.display = 'flex';
+      leftBtn.style.display = previewList.length > 1 ? 'block' : 'none';
+      rightBtn.style.display = previewList.length > 1 ? 'block' : 'none';
+      previewCloseBtn.style.display = 'block';
+      previewOverlay.focus();
+    }
+    function hideImagePreview() {
+      if (previewOverlay) previewOverlay.style.display = 'none';
+      // 此处移除 window.removeEventListener('keydown', previewKeyHandler);
+    }
+    function previewKeyHandler(e) {
+      if (!previewOverlay || previewOverlay.style.display === 'none') return;
+      if (e.key === 'Escape') {
+        hideImagePreview();
+      } else if (e.key === 'ArrowLeft') {
+        showImagePreview((previewIndex - 1 + previewList.length) % previewList.length);
+      } else if (e.key === 'ArrowRight') {
+        showImagePreview((previewIndex + 1) % previewList.length);
+      }
+    }
+    // 监听图片双击
+    imageList.addEventListener('dblclick', (e) => {
+      if (e.target.tagName === 'IMG') {
+        previewList = Array.from(imageList.querySelectorAll('img'));
+        const idx = previewList.indexOf(e.target);
+        if (idx !== -1) showImagePreview(idx);
+      }
+    });
+
+    // 添加"清空图片"按钮
+    const imageListHeader = document.createElement('div');
+    imageListHeader.style.display = 'flex';
+    imageListHeader.style.justifyContent = 'space-between';
+    imageListHeader.style.alignItems = 'center';
+    imageListHeader.style.margin = '8px 0 0 0';
+    imageListHeader.style.width = '100%';
+    const imageListTitle = document.createElement('span');
+    imageListTitle.textContent = '图片预览与排序';
+    imageListTitle.style.fontWeight = 'bold';
+    imageListTitle.style.fontSize = '1rem';
+    imageListHeader.appendChild(imageListTitle);
+    const clearImagesBtn = document.createElement('button');
+    clearImagesBtn.textContent = '清空图片';
+    clearImagesBtn.style.background = '#f44336';
+    clearImagesBtn.style.color = '#fff';
+    clearImagesBtn.style.border = 'none';
+    clearImagesBtn.style.borderRadius = '4px';
+    clearImagesBtn.style.padding = '4px 14px';
+    clearImagesBtn.style.fontSize = '0.95rem';
+    clearImagesBtn.style.cursor = 'pointer';
+    clearImagesBtn.style.marginLeft = '12px';
+    clearImagesBtn.style.transition = 'background 0.2s';
+    clearImagesBtn.onmouseenter = () => clearImagesBtn.style.background = '#d32f2f';
+    clearImagesBtn.onmouseleave = () => clearImagesBtn.style.background = '#f44336';
+    clearImagesBtn.addEventListener('click', () => {
+      // 清空图片预览
+      Array.from(imageList.children).forEach(li => {
+        if (li.dataset.objectURL) {
+          URL.revokeObjectURL(li.dataset.objectURL);
+        }
+      });
+      imageList.innerHTML = '';
+      showToast('图片已清空', 'info');
+    });
+    imageListHeader.appendChild(clearImagesBtn);
+    // 将header插入到图片列表前面
+    imageList.parentElement.insertBefore(imageListHeader, imageList);
   })
 </script>
 
