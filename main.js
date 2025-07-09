@@ -1,11 +1,12 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, clipboard, screen } = require('electron') // Added shell and clipboard, screen
+const { app, BrowserWindow, ipcMain, dialog, shell, clipboard, screen } = require('electron') // Added shell, clipboard, screen
 const path = require('path')
-const fs = require('fs').promises; // For asynchronous file operations
+const fs = require('fs').promises; // Use the promises API for async operations
 const { PDFDocument } = require('pdf-lib') // PDFDocument will be used by worker, but main might not need it directly for this handler anymore. Keep for now.
 const { Worker } = require('worker_threads') // Added Worker
 const crypto = require('crypto'); // For generating unique IDs
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
+
 
 // Configure electron-log
 log.transports.file.level = 'info';
@@ -118,7 +119,7 @@ function createWindow() {
     show: false, // Don't show the window until it's ready
     frame: false, // Create a frameless window
     webPreferences: {
-      preload: path.join(__dirname, 'renderer.js'),
+      preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false, // Ensure Node.js integration is off in renderer for security
       devTools: !app.isPackaged // Enable DevTools only in development
@@ -156,6 +157,18 @@ ipcMain.handle('open-file', async () => {
   }
   return filePaths[0];
 })
+
+// IPC handler to open multiple image files
+ipcMain.handle('open-image-files', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile', 'multiSelections'],
+    filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp'] }]
+  });
+  if (canceled || !filePaths || filePaths.length === 0) {
+    return null;
+  }
+  return filePaths;
+});
 
 ipcMain.handle('process-pdf', async (_, { filePath, operations, outputName, outputDir }) => {
   return new Promise((resolve, reject) => {
@@ -474,6 +487,110 @@ ipcMain.handle('convert-pdf-to-images', async (_, params) => {
   }
 });
 
+// IPC handler for getting an image as a Base64 data URL
+ipcMain.handle('get-image-as-base64', async (event, filePath) => {
+  try {
+    const fileData = await fs.readFile(filePath);
+    const base64Data = fileData.toString('base64');
+    // Infer MIME type from file extension for better browser compatibility
+    const mimeType = 'image/' + path.extname(filePath).substring(1);
+    return `data:${mimeType};base64,${base64Data}`;
+  } catch (error) {
+    console.error(`Failed to read file for Base64 conversion: ${filePath}`, error);
+    return null; // Return null on failure
+  }
+});
+
+// IPC handler for converting images to PDF
+ipcMain.handle('handle-image-to-pdf', async (event, { imagePaths, options }) => {
+  console.log('[Main Process - handle-image-to-pdf] Received request with options:', options);
+  return new Promise(async (resolve) => {
+    try {
+      // Step 1: Create and use the worker, passing image paths directly.
+      // The worker will handle reading the files, which is more efficient.
+      const worker = new Worker(path.join(__dirname, 'image-to-pdf-worker.js'), {
+        workerData: { imagePaths, options } // Pass imagePaths directly to the worker
+      });
+      activeWorkers.add(worker);
+      let resolved = false;
+
+      worker.on('message', async (result) => { // Make the handler async
+        if (resolved) return;
+        resolved = true;
+        activeWorkers.delete(worker);
+        console.log('[Main Process - handle-image-to-pdf] Worker finished.');
+
+        if (result.success && result.pdfBytes) {
+          try {
+            // Determine output path. Fallback to the directory of the first image if not provided.
+            const defaultDir = imagePaths.length > 0 ? path.dirname(imagePaths[0]) : app.getPath('downloads');
+            const outputDir = options.outputDir || defaultDir;
+            const finalOutputPath = path.join(outputDir, options.outputName);
+
+            // Ensure the directory exists
+            await fs.mkdir(outputDir, { recursive: true });
+
+            // Write the file to disk
+            await fs.writeFile(finalOutputPath, Buffer.from(result.pdfBytes));
+            console.log(`[Main Process - handle-image-to-pdf] PDF saved to: ${finalOutputPath}`);
+
+            // Get metadata for the newly created file
+            const metadata = await getPdfMetadataInternal(finalOutputPath);
+            
+            const successResult = {
+              success: true,
+              path: finalOutputPath,
+              outputFileSize: null,
+              outputPageCount: null,
+            };
+
+            if (metadata.success) {
+              successResult.outputFileSize = metadata.size;
+              successResult.outputPageCount = metadata.pageCount;
+            } else {
+              console.warn(`[Main Process - handle-image-to-pdf] Could not get metadata for output file ${finalOutputPath}: ${metadata.error}`);
+              successResult.metadataError = metadata.error; // Pass warning to renderer
+            }
+            
+            resolve(successResult);
+
+          } catch (writeError) {
+            console.error('[Main Process - handle-image-to-pdf] Error writing PDF file:', writeError);
+            resolve({ success: false, error: `保存PDF文件失败: ${writeError.message}` });
+          }
+        } else {
+          // Worker returned an error
+          resolve({ success: false, error: result.error || 'Worker returned a failure but no specific error.' });
+        }
+      });
+
+      worker.on('error', (error) => {
+        if (resolved) return;
+        resolved = true;
+        activeWorkers.delete(worker);
+        console.error('[Main Process - handle-image-to-pdf] Worker encountered an error:', error);
+        resolve({ success: false, error: error.message || '图片转PDF工作线程发生错误。' });
+      });
+
+      worker.on('exit', (code) => {
+        activeWorkers.delete(worker);
+        if (resolved) return;
+        if (code !== 0) {
+          console.error(`[Main Process - handle-image-to-pdf] Worker stopped with exit code ${code}`);
+          resolve({ success: false, error: `图片转PDF工作线程意外终止，退出码: ${code}。` });
+        }
+      });
+
+      // Step 2: The worker starts automatically with workerData.
+      console.log(`[Main Process - handle-image-to-pdf] Starting worker with ${imagePaths.length} images.`);
+
+    } catch (error) {
+      console.error('[Main Process - handle-image-to-pdf] Error setting up worker:', error);
+      resolve({ success: false, error: `设置工作线程失败: ${error.message}` });
+    }
+  });
+});
+
 // IPC handler to select an output directory
 ipcMain.handle('select-output-directory', async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
@@ -545,11 +662,26 @@ async function readSettings() {
     return JSON.parse(data);
   } catch (error) {
     if (error.code === 'ENOENT') {
-      // File doesn't exist, return default settings (empty object)
-      // No toast here, as it's normal for the first run.
+      // File doesn't exist, which is normal on first run. Return default settings.
       return {};
     }
-    // Other error (e.g., corrupted JSON, permissions)
+
+    // Check if it's a JSON parsing error (corrupted file)
+    if (error instanceof SyntaxError) {
+      console.error(`Corrupted settings file found at ${filePath}. Backing it up.`, error);
+      try {
+        const backupPath = `${filePath}.${Date.now()}.corrupted`;
+        await fs.rename(filePath, backupPath);
+        // Use a more prominent error message for this case.
+        sendToastToRenderer('配置文件已损坏并已重置。旧配置已备份。', 'error', 8000);
+      } catch (renameError) {
+        console.error(`Could not rename corrupted settings file ${filePath}:`, renameError);
+        sendToastToRenderer('配置文件已损坏且无法备份。请手动删除它。', 'error', 10000);
+      }
+      return {}; // Return default settings after handling corruption
+    }
+
+    // For other errors (e.g., permissions)
     console.error(`Error reading settings file ${filePath}:`, error);
     sendToastToRenderer(`读取设置失败: ${error.message || '未知错误'}`, 'warning');
     return {}; // Return default on other errors as well to prevent app crash
@@ -635,6 +767,7 @@ app.on('before-quit', () => {
 });
 
 app.whenReady().then(() => {
+
   getSettingsFilePath(); // Initialize settings path
   createWindow();
 

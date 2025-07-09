@@ -9,6 +9,7 @@
    pdfjsLib.GlobalWorkerOptions.workerSrc = `vendor/pdfjs/pdf.worker.min.js`;
   </script>
   <script src="vendor/interactjs/interact.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
      .editor-area {
        position: relative;
@@ -63,6 +64,81 @@
        transform: scale(1.5) translateY(-30%);
        transform-origin: top left;
      }
+     .drop-zone {
+       border: 2px dashed #999;
+       border-radius: 5px;
+       padding: 25px;
+       text-align: center;
+       color: var(--text-color-secondary);
+       cursor: pointer;
+       margin-top: 10px;
+       transition: background-color 0.2s ease;
+     }
+     .drop-zone.drag-over {
+       background-color: var(--accent-color-translucent);
+       border-color: var(--accent-color);
+     }
+     .image-list {
+       list-style: none;
+       padding: 0;
+       margin: 10px 0;
+       display: flex;
+       flex-wrap: wrap;
+       gap: 10px;
+       min-height: 80px; /* So it's visible when empty */
+       border: 1px solid var(--border-color-soft);
+       border-radius: 4px;
+       padding: 10px;
+       background-color: var(--background-color-secondary);
+     }
+     .image-list li {
+       position: relative;
+       width: 100px;
+       height: 100px;
+       border: 1px solid var(--border-color);
+       border-radius: 4px;
+       overflow: hidden;
+       cursor: grab;
+       background-size: cover;
+       background-position: center;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       color: var(--text-color-secondary);
+       font-size: 12px;
+       text-align: center;
+     }
+     .image-list li .remove-image-btn {
+       position: absolute;
+       top: 2px;
+       right: 2px;
+       background: rgba(0,0,0,0.6);
+       color: white;
+       border: none;
+       border-radius: 50%;
+       width: 20px;
+       height: 20px;
+       font-size: 16px;
+       font-weight: bold;
+       line-height: 20px;
+       text-align: center;
+       cursor: pointer;
+       opacity: 0;
+       transition: opacity 0.2s;
+       padding: 0;
+     }
+     .image-list li:hover .remove-image-btn {
+       opacity: 1;
+     }
+     .image-list .sortable-ghost {
+       opacity: 0.4;
+       border-style: dashed;
+     }
+     .section-grid {
+       display: grid;
+       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+       gap: 15px;
+     }
   </style>
 </head>
 <body>
@@ -111,6 +187,7 @@
           <li><a href="#" class="nav-link" data-view="multiPdfMergeView" data-i18n="multiPdfMerge">标签生成(含环保标)</a></li>
           <li><a href="#" class="nav-link" data-view="pdfResizeView" data-i18n="pdfResizer">PDF 尺寸调整</a></li>
           <li><a href="#" class="nav-link" data-view="pdfToImageView" data-i18n="pdfToImage">PDF 转图片</a></li>
+          <li><a href="#" class="nav-link" data-view="imageToPdfView" data-i18n="imageToPdf">图片转PDF</a></li>
         </ul>
       </nav>
       <div class="sidebar-footer">
@@ -450,6 +527,132 @@
         </div>
       </div>
 
+      <div class="view-container" id="imageToPdfView" style="display: none;">
+        <div class="container">
+          <div class="title-with-description">
+            <h2 data-i18n="imageToPdf">图片转PDF</h2>
+            <span class="feature-description" data-i18n="imageToPdfDescription">将多张图片批量转换为一个PDF文件，支持拖拽排序和多种自定义选项。</span>
+          </div>
+          
+          <div class="section">
+            <div class="field-wrapper">
+              <button id="imageToPdfSelectImagesBtn" class="btn-primary" data-i18n="selectImages">选择图片</button>
+              <input type="file" id="imageFileInput" multiple accept=".jpg,.jpeg,.png,.bmp,.webp" style="display:none">
+              <span class="field-hint" data-i18n="imageToPdfHint">支持 JPG, PNG, BMP, WEBP 格式</span>
+              <small class="error-message" id="imageToPdfSelectImagesError"></small>
+            </div>
+            <div id="imageDropZone" class="drop-zone" data-i18n-text="dragOrClick">或者拖拽图片到这里</div>
+          </div>
+
+          <div class="section">
+            <label data-i18n="imagePreviewAndOrder">图片预览与排序</label>
+            <ul id="imageList" class="image-list">
+              <!-- Selected images will be appended here -->
+            </ul>
+            <span class="field-hint" data-i18n="dragImagesToReorder">拖拽图片进行排序</span>
+          </div>
+
+          <div class="section">
+            <div class="field-wrapper">
+              <button id="imageToPdfSelectOutputDirBtn" class="btn-secondary" data-i18n="selectOutputDirectory">选择输出目录</button>
+              <span id="imageToPdfOutputDirDisplay" class="file-select-status-span" data-i18n="notSetUseDefault"></span>
+              <span class="field-hint" data-i18n="outputDirectoryHint">选择一个文件夹来保存生成的PDF文件</span>
+            </div>
+          </div>
+
+          <div class="section">
+            <label for="imageToPdfOutputName"><span data-i18n="fileName">文件名称</span> <span class="field-hint" data-i18n="outputPdfFileNameHint">输出的PDF文件名,不含扩展名</span></label>
+            <input type="text" id="imageToPdfOutputName" data-i18n-placeholder="example_from_images" placeholder="例如: document_from_images">
+          </div>
+
+          <div class="section-grid">
+            <div class="section">
+              <label for="imageToPdfQuality"><span data-i18n="imageCompressionQuality">图片压缩质量</span></label>
+              <div class="custom-select-wrapper">
+                <select id="imageToPdfQuality" style="display:none;">
+                  <option value="0.92" data-i18n="high" selected>高</option>
+                  <option value="0.75" data-i18n="medium">中</option>
+                  <option value="0.5" data-i18n="low">低</option>
+                </select>
+                <div class="custom-select-container" id="customImageToPdfQualitySelect">
+                   <div class="custom-select-trigger"><span>高</span><div class="arrow"></div></div>
+                   <div class="custom-select-options"></div>
+                 </div>
+              </div>
+              <span class="field-hint" data-i18n="imageCompressionQualityHint">质量越高，文件越大</span>
+            </div>
+
+            <div class="section">
+              <label for="imageToPdfPageSize"><span data-i18n="pageSize">页面尺寸</span></label>
+              <div class="custom-select-wrapper">
+                <select id="imageToPdfPageSize" style="display:none;">
+                  <option value="A4" selected>A4 (210x297mm)</option>
+                  <option value="Shein">Shein (70x60mm)</option>
+                  <option value="custom" data-i18n="custom">自定义</option>
+                </select>
+                <div class="custom-select-container" id="customImageToPdfPageSizeSelect">
+                   <div class="custom-select-trigger"><span>A4 (210x297mm)</span><div class="arrow"></div></div>
+                   <div class="custom-select-options"></div>
+                 </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <label for="imageToPdfOrientation"><span data-i18n="pageOrientation">页面方向</span></label>
+              <div class="custom-select-wrapper">
+                <select id="imageToPdfOrientation" style="display:none;">
+                  <option value="portrait" data-i18n="portrait" selected>纵向</option>
+                  <option value="landscape" data-i18n="landscape">横向</option>
+                </select>
+                <div class="custom-select-container" id="customImageToPdfOrientationSelect">
+                   <div class="custom-select-trigger"><span>纵向</span><div class="arrow"></div></div>
+                   <div class="custom-select-options"></div>
+                 </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <label for="imageToPdfScaleMode"><span data-i18n="imageScaleMode">图片缩放模式</span></label>
+              <div class="custom-select-wrapper">
+                <select id="imageToPdfScaleMode" style="display:none;">
+                  <option value="aspectFit" data-i18n="aspectFit" selected>适应页面 (保持比例)</option>
+                  <option value="stretch" data-i18n="stretch">拉伸填充</option>
+                </select>
+                <div class="custom-select-container" id="customImageToPdfScaleModeSelect">
+                   <div class="custom-select-trigger"><span>适应页面 (保持比例)</span><div class="arrow"></div></div>
+                   <div class="custom-select-options"></div>
+                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="imageToPdfCustomSize" class="dimension-inputs-container" style="display: none;">
+            <div class="field-wrapper">
+              <div class="input-group">
+                <input type="number" id="imageToPdfCustomWidth" data-i18n-placeholder="width" placeholder="宽度">
+                <span class="unit">mm</span>
+              </div>
+              <span class="field-hint" data-i18n="customWidthHint">自定义宽度,毫米</span>
+              <small class="error-message" id="imageToPdfCustomWidthError"></small>
+            </div>
+            <div class="field-wrapper">
+              <div class="input-group">
+                <input type="number" id="imageToPdfCustomHeight" data-i18n-placeholder="height" placeholder="高度">
+                <span class="unit">mm</span>
+              </div>
+              <span class="field-hint" data-i18n="customHeightHint">自定义高度,毫米</span>
+              <small class="error-message" id="imageToPdfCustomHeightError"></small>
+            </div>
+          </div>
+      
+          <div class="action-buttons-row" style="display: flex; margin-bottom: 10px;">
+            <button id="imageToPdfProcessBtn" class="btn-primary" data-i18n="startGenerating">开始生成</button>
+            <button id="imageToPdfClearFormBtn" class="btn-secondary" style="margin-left: 10px;" data-i18n="clear">清空</button>
+          </div>
+          <div id="imageToPdfResult"></div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -519,6 +722,13 @@
         if (view.id === viewId) {
           view.style.display = 'block';
           viewActivated = true;
+          // Always clear the image list when this view is activated to prevent stale items
+          if (view.id === 'imageToPdfView') {
+            const imageList = document.getElementById('imageList');
+            if (imageList) {
+              imageList.innerHTML = ''; // Unconditionally clear the list
+            }
+          }
         } else {
           view.style.display = 'none';
         }
@@ -3350,6 +3560,14 @@
         multiMergeEditorLayout: [],
         pdfToImageSelectedPath: '',
         pdfToImageOutputName: '',
+        imageToPdfOutputDir: '',
+        imageToPdfOutputName: '',
+        imageToPdfQuality: '0.92',
+        imageToPdfPageSize: 'A4',
+        imageToPdfOrientation: 'portrait',
+        imageToPdfScaleMode: 'aspectFit',
+        imageToPdfCustomWidth: '',
+        imageToPdfCustomHeight: '',
       };
 
       appSettings = Object.assign({}, defaultSettings, loadedSettings);
@@ -3442,6 +3660,12 @@
         pdfToImageOutputDirDisplay.textContent = pdfToImageOutputDir ? `${currentTranslations.currentPath || '当前路径'}: ${pdfToImageOutputDir}` : defaultText;
       }
 
+      const imageToPdfOutputDir = appSettings.imageToPdfOutputDir || '';
+      const imageToPdfOutputDirDisplay = document.getElementById('imageToPdfOutputDirDisplay');
+      if (imageToPdfOutputDirDisplay) {
+        imageToPdfOutputDirDisplay.textContent = imageToPdfOutputDir ? `${currentTranslations.currentPath || '当前路径'}: ${imageToPdfOutputDir}` : defaultText;
+      }
+
       // Load form elements
       const formElementsToPersist = [
         { id: 'pdfResizeOutputName', type: 'text' },
@@ -3456,7 +3680,14 @@
         { id: 'multiMergeOutputPageSize', type: 'select' },
         { id: 'multiMergeOutputWidth', type: 'number' },
         { id: 'multiMergeOutputHeight', type: 'number' },
-        { id: 'pdfToImageOutputName', type: 'text' }
+        { id: 'pdfToImageOutputName', type: 'text' },
+        { id: 'imageToPdfOutputName', type: 'text' },
+        { id: 'imageToPdfQuality', type: 'select' },
+        { id: 'imageToPdfPageSize', type: 'select' },
+        { id: 'imageToPdfOrientation', type: 'select' },
+        { id: 'imageToPdfScaleMode', type: 'select' },
+        { id: 'imageToPdfCustomWidth', type: 'number' },
+        { id: 'imageToPdfCustomHeight', type: 'number' },
       ];
       
       // Event listeners for Shein output dimensions to update editor size are removed.
@@ -3503,10 +3734,18 @@
       const pageSizeSelectEl = document.getElementById('pageSize');
       const sheinOutputPageSizeSelectEl = document.getElementById('sheinOutputPageSize');
       const multiMergeOutputPageSizeSelectEl = document.getElementById('multiMergeOutputPageSize');
+      const imageToPdfQualitySelectEl = document.getElementById('imageToPdfQuality');
+      const imageToPdfPageSizeSelectEl = document.getElementById('imageToPdfPageSize');
+      const imageToPdfOrientationSelectEl = document.getElementById('imageToPdfOrientation');
+      const imageToPdfScaleModeSelectEl = document.getElementById('imageToPdfScaleMode');
       
       if (pageSizeSelectEl) initializeCustomSelect(pageSizeSelectEl);
       if (sheinOutputPageSizeSelectEl) initializeCustomSelect(sheinOutputPageSizeSelectEl);
       if (multiMergeOutputPageSizeSelectEl) initializeCustomSelect(multiMergeOutputPageSizeSelectEl);
+      if (imageToPdfQualitySelectEl) initializeCustomSelect(imageToPdfQualitySelectEl);
+      if (imageToPdfPageSizeSelectEl) initializeCustomSelect(imageToPdfPageSizeSelectEl);
+      if (imageToPdfOrientationSelectEl) initializeCustomSelect(imageToPdfOrientationSelectEl);
+      if (imageToPdfScaleModeSelectEl) initializeCustomSelect(imageToPdfScaleModeSelectEl);
 
       // Ensure custom select trigger text is updated if settings load changes the original select's value
       // This is important if the default selected option in HTML differs from the loaded setting.
@@ -3547,6 +3786,28 @@
               if(newCustomSelected) newCustomSelected.classList.add('selected');
           }
       }
+      
+      // Helper to update custom selects on load
+      const updateCustomSelectOnLoad = (selectEl, savedValue) => {
+        if (selectEl && savedValue) {
+          const customTriggerSpan = selectEl.parentElement.querySelector('.custom-select-trigger span');
+          const selectedOption = Array.from(selectEl.options).find(opt => opt.value === savedValue);
+          if (customTriggerSpan && selectedOption) {
+            customTriggerSpan.textContent = selectedOption.textContent;
+            const customOptionsContainer = selectEl.parentElement.querySelector('.custom-select-options');
+            const currentCustomSelected = customOptionsContainer.querySelector('.custom-select-option.selected');
+            if (currentCustomSelected) currentCustomSelected.classList.remove('selected');
+            const newCustomSelected = customOptionsContainer.querySelector(`.custom-select-option[data-value="${savedValue}"]`);
+            if (newCustomSelected) newCustomSelected.classList.add('selected');
+          }
+        }
+      };
+
+      updateCustomSelectOnLoad(imageToPdfQualitySelectEl, appSettings.imageToPdfQuality);
+      updateCustomSelectOnLoad(imageToPdfPageSizeSelectEl, appSettings.imageToPdfPageSize);
+      updateCustomSelectOnLoad(imageToPdfOrientationSelectEl, appSettings.imageToPdfOrientation);
+      updateCustomSelectOnLoad(imageToPdfScaleModeSelectEl, appSettings.imageToPdfScaleMode);
+
 
       // --- Shein Editor State Restoration ---
       // This entire block is removed as there is no editor to restore state into.
@@ -3606,6 +3867,7 @@
     }
 
     loadAndApplySettings().then(() => {
+      // isInitialLoad flag is no longer needed.
       // updateSheinEditorAreaSize is removed.
       updateMultiMergeEditorAreaSize();
       
@@ -3656,7 +3918,300 @@
    });
     setupFeatureOutputDirButton('multiMergeSelectOutputDirBtn', 'multiMergeOutputDirDisplay', 'multiMergeOutputDir');
     setupFeatureOutputDirButton('pdfToImageSelectOutputDirBtn', 'pdfToImageOutputDirDisplay', 'pdfToImageOutputDir');
+    setupFeatureOutputDirButton('imageToPdfSelectOutputDirBtn', 'imageToPdfOutputDirDisplay', 'imageToPdfOutputDir');
     
+    // --- Image to PDF Feature ---
+    const imageToPdfSelectImagesBtn = document.getElementById('imageToPdfSelectImagesBtn');
+    const imageDropZone = document.getElementById('imageDropZone');
+    const imageList = document.getElementById('imageList');
+    const imageToPdfProcessBtn = document.getElementById('imageToPdfProcessBtn');
+    const imageToPdfClearFormBtn = document.getElementById('imageToPdfClearFormBtn');
+    const imageToPdfResultDiv = document.getElementById('imageToPdfResult');
+    const imageToPdfOutputNameInput = document.getElementById('imageToPdfOutputName');
+    const imageToPdfPageSizeSelect = document.getElementById('imageToPdfPageSize');
+    const imageToPdfCustomSizeDiv = document.getElementById('imageToPdfCustomSize');
+
+    // Initialize Sortable.js
+    const sortable = new Sortable(imageList, {
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+    });
+
+    const imageFileInput = document.getElementById('imageFileInput');
+
+    // Function to handle file selection (from button or drop)
+    async function handleImageFiles(files) {
+      if (!files || files.length === 0) return;
+
+      const allowedImageTypes = ['image/jpeg', 'image/png', 'image/bmp', 'image/webp', 'image/jpg'];
+      const validFiles = Array.from(files).filter(file => {
+        if (allowedImageTypes.includes(file.type)) {
+          return true;
+        }
+        showToast(`${(currentTranslations.unsupportedFileType || '不支持的文件类型: {fileName}').replace('{fileName}', file.name)}`, 'warning');
+        return false;
+      });
+
+      if (validFiles.length === 0) return;
+
+      for (const file of validFiles) {
+        // Use URL.createObjectURL for fast, memory-efficient previews
+        const objectURL = URL.createObjectURL(file);
+
+        const li = document.createElement('li');
+        li.dataset.filePath = file.path; // The worker needs this path
+        li.dataset.objectURL = objectURL; // Store for later revocation
+        li.style.backgroundImage = `url('${objectURL}')`;
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-image-btn';
+        removeBtn.innerHTML = '&times;';
+        li.appendChild(removeBtn);
+        
+        imageList.appendChild(li);
+      }
+
+      // Auto-fill output name if it's empty
+      if (!imageToPdfOutputNameInput.value.trim() && imageList.children.length > 0) {
+        const firstImagePath = imageList.children[0].dataset.filePath;
+        const baseName = getFilenameWithoutExtension(firstImagePath);
+        imageToPdfOutputNameInput.value = `${baseName}_新`;
+        const inputEvent = new Event('input', { bubbles: true });
+        imageToPdfOutputNameInput.dispatchEvent(inputEvent);
+      }
+      
+      // Auto-set output directory if not already set
+      if (!appSettings.imageToPdfOutputDir && imageList.children.length > 0) {
+        const firstImagePath = imageList.children[0].dataset.filePath;
+        const dirName = getDirnameFrontend(firstImagePath);
+        if (dirName) {
+            appSettings.imageToPdfOutputDir = dirName;
+            await window.electronAPI.saveSettings(appSettings);
+            document.getElementById('imageToPdfOutputDirDisplay').textContent = `${currentTranslations.currentPath || '当前路径'}: ${dirName}`;
+        }
+      }
+    }
+
+    // Event listener for the select images button - triggers hidden file input
+    imageToPdfSelectImagesBtn.addEventListener('click', () => {
+      imageFileInput.click();
+    });
+
+    // Listener for the hidden file input
+    imageFileInput.addEventListener('change', async (event) => {
+      await handleImageFiles(event.target.files);
+      // Reset the input value to allow selecting the same file(s) again
+      event.target.value = '';
+    });
+
+    // Event listeners for drag and drop
+    imageDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      imageDropZone.classList.add('drag-over');
+    });
+
+    imageDropZone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      imageDropZone.classList.remove('drag-over');
+    });
+
+    imageDropZone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      imageDropZone.classList.remove('drag-over');
+      // Pass the FileList from the drop event directly
+      await handleImageFiles(e.dataTransfer.files);
+    });
+    
+    // Event listener for removing an image
+    imageList.addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-image-btn')) {
+        const li = e.target.parentElement;
+        // Revoke the object URL to prevent memory leaks
+        if (li.dataset.objectURL) {
+          URL.revokeObjectURL(li.dataset.objectURL);
+        }
+        li.remove();
+      }
+    });
+
+    // Toggle custom size inputs based on page size selection
+    imageToPdfPageSizeSelect.addEventListener('change', function() {
+      imageToPdfCustomSizeDiv.style.display = this.value === 'custom' ? 'flex' : 'none';
+    });
+
+    // Process button event listener
+    imageToPdfProcessBtn.addEventListener('click', async () => {
+      const originalButtonText = imageToPdfProcessBtn.textContent;
+      let startTime = 0;
+      let timerInterval;
+
+      // 1. Validation
+      if (imageList.children.length === 0) {
+        showToast('请至少选择一张图片。', 'error');
+        return;
+      }
+      let outputName = imageToPdfOutputNameInput.value.trim();
+      if (!outputName) {
+        showToast('请输入输出文件名。', 'error');
+        imageToPdfOutputNameInput.classList.add('input-error');
+        return;
+      }
+      const filenameValidation = isValidFilename(outputName);
+      if (!filenameValidation.valid) {
+        showToast(filenameValidation.message, 'error');
+        imageToPdfOutputNameInput.classList.add('input-error');
+        return;
+      }
+
+      // 2. Collect data
+      const imagePaths = Array.from(imageList.children).map(li => li.dataset.filePath);
+      const options = {
+        quality: parseFloat(document.getElementById('imageToPdfQuality').value),
+        pageSize: document.getElementById('imageToPdfPageSize').value,
+        orientation: document.getElementById('imageToPdfOrientation').value,
+        scaleMode: document.getElementById('imageToPdfScaleMode').value,
+        customWidth: document.getElementById('imageToPdfCustomWidth').value,
+        customHeight: document.getElementById('imageToPdfCustomHeight').value,
+        outputDir: appSettings.imageToPdfOutputDir || '',
+        outputName: outputName.toLowerCase().endsWith('.pdf') ? outputName : `${outputName}.pdf`,
+      };
+
+      // 3. Show processing state and call IPC
+      try {
+        imageToPdfProcessBtn.disabled = true;
+        imageToPdfClearFormBtn.disabled = true;
+        startTime = Date.now();
+        let secondsElapsed = 0;
+        imageToPdfProcessBtn.textContent = `正在生成... (0秒)`;
+        imageToPdfProcessBtn.classList.add('processing');
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          imageToPdfProcessBtn.textContent = `正在生成... (${secondsElapsed}秒)`;
+        }, 1000);
+
+        const result = await window.electronAPI.handleImageToPdf({ imagePaths, options });
+        
+        const endTime = Date.now();
+        const totalTimeSeconds = ((endTime - startTime) / 1000).toFixed(2);
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'result-entry';
+
+        if (result.success && result.path) {
+          showToast('PDF生成成功！', 'success');
+          entryDiv.classList.add('success-entry');
+          let successHtml = `<p><strong>处理成功</strong></p><p>保存路径：${result.path}</p>`;
+          if (result.outputFileSize) {
+            let sizeAndPages = `文件大小：${formatBytes(result.outputFileSize)}`;
+            if (result.outputPageCount) {
+              sizeAndPages += `，页数：${result.outputPageCount}`;
+            }
+            successHtml += `<p>${sizeAndPages}</p>`;
+          }
+          if(result.metadataError){
+              successHtml += `<p style="color: orange;">输出文件元数据警告: ${result.metadataError}</p>`;
+          }
+          const startTimeFormatted = new Date(startTime).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+          successHtml += `<p>处理开始时间：${startTimeFormatted}</p>`;
+          successHtml += `<p>总耗时：${totalTimeSeconds}秒</p>`;
+          entryDiv.innerHTML = successHtml;
+
+          const actionsDiv = document.createElement('div');
+          actionsDiv.className = 'action-buttons-container';
+          const generatedPath = result.path;
+
+          const openBtn = document.createElement('button');
+          openBtn.textContent = '打开文件';
+          openBtn.className = 'action-button action-button-primary';
+          openBtn.addEventListener('click', () => window.electronAPI.openPath(generatedPath).catch(err => showToast(`无法打开文件: ${err.message}`, 'error')));
+          actionsDiv.appendChild(openBtn);
+
+          const showInFolderBtn = document.createElement('button');
+          showInFolderBtn.textContent = '打开文件夹';
+          showInFolderBtn.className = 'action-button';
+          showInFolderBtn.addEventListener('click', () => window.electronAPI.showItemInFolder(generatedPath).catch(err => showToast(`无法在文件夹中显示: ${err.message}`, 'error')));
+          actionsDiv.appendChild(showInFolderBtn);
+
+          const copyBtn = document.createElement('button');
+          copyBtn.textContent = '复制文件';
+          copyBtn.className = 'action-button';
+          copyBtn.title = '尝试复制文件到剪贴板 (若失败则复制路径)';
+          copyBtn.addEventListener('click', async () => {
+              try {
+                const copyResult = await window.electronAPI.copyFileToClipboard(generatedPath);
+                if (copyResult.success) {
+                  showToast(copyResult.action === 'path_copied_unexpected_fallback' ? '未能复制文件本身，已改为复制文件路径至剪贴板。' : '文件已复制到剪贴板！', copyResult.action === 'path_copied_unexpected_fallback' ? 'warning' : 'success');
+                } else {
+                  showToast(`复制失败: ${copyResult.error}`, 'error');
+                }
+              } catch (err) {
+                showToast(`复制操作出错: ${err.message}`, 'error');
+              }
+          });
+          actionsDiv.appendChild(copyBtn);
+          entryDiv.appendChild(actionsDiv);
+
+        } else {
+          showToast(`PDF生成失败: ${result.error || '未知错误'}`, 'error');
+          entryDiv.classList.add('error-entry');
+          entryDiv.innerHTML = `<p class="error-message-text"><strong>处理失败：</strong>${result.error || '未知错误'} </p><p>总耗时：${totalTimeSeconds}秒</p>`;
+        }
+        imageToPdfResultDiv.prepend(entryDiv);
+        imageToPdfResultDiv.style.display = 'block';
+
+      } catch (error) {
+        console.error('Error during image to PDF conversion:', error);
+        showToast(`客户端错误: ${error.message}`, 'error');
+      } finally {
+        clearInterval(timerInterval);
+        imageToPdfProcessBtn.disabled = false;
+        imageToPdfProcessBtn.textContent = originalButtonText;
+        imageToPdfProcessBtn.classList.remove('processing');
+        imageToPdfClearFormBtn.disabled = false;
+      }
+    });
+
+    // Clear form button event listener
+    imageToPdfClearFormBtn.addEventListener('click', async () => {
+      // Revoke all existing object URLs to prevent memory leaks
+      Array.from(imageList.children).forEach(li => {
+        if (li.dataset.objectURL) {
+          URL.revokeObjectURL(li.dataset.objectURL);
+        }
+      });
+      imageList.innerHTML = '';
+      imageToPdfOutputNameInput.value = '';
+      document.getElementById('imageToPdfQuality').value = '0.92';
+      document.getElementById('imageToPdfPageSize').value = 'A4';
+      document.getElementById('imageToPdfOrientation').value = 'portrait';
+      document.getElementById('imageToPdfScaleMode').value = 'aspectFit';
+      document.getElementById('imageToPdfCustomWidth').value = '';
+      document.getElementById('imageToPdfCustomHeight').value = '';
+      
+      // Trigger change on all custom selects to update their UI
+      ['imageToPdfQuality', 'imageToPdfPageSize', 'imageToPdfOrientation', 'imageToPdfScaleMode'].forEach(id => {
+        const selectEl = document.getElementById(id);
+        if (selectEl) {
+          updateCustomSelectUI(selectEl);
+          const event = new Event('change', { bubbles: true });
+          selectEl.dispatchEvent(event);
+        }
+      });
+
+      imageToPdfResultDiv.innerHTML = '';
+      imageToPdfResultDiv.style.display = 'none';
+      
+      appSettings.imageToPdfOutputDir = '';
+      const defaultDirText = currentTranslations.notSetUseDefault || '未设置，使用源文件目录';
+      document.getElementById('imageToPdfOutputDirDisplay').textContent = defaultDirText;
+
+      await window.electronAPI.saveSettings(appSettings);
+      showToast('图片转PDF表单已清空', 'info');
+    });
+    // --- End Image to PDF Feature ---
+
    // ResizeObserver for sheinEditorContainer is removed.
 
     const multiMergeEditorContainer = document.querySelector('#multiPdfMergeView .shein-label-editor-container');

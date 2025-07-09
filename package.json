@@ -14,7 +14,9 @@
     "electron-log": "^5.4.1",
     "electron-updater": "^6.6.2",
     "jszip": "^3.10.1",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "sharp": "^0.34.2",
+    "sortablejs": "^1.15.6"
   },
   "devDependencies": {
     "electron": "^30.0.0",
