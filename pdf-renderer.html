@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>PDF Renderer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="vendor/pdfjs/pdf.min.js"></script>
 </head>
 <body>
     <canvas id="pdf-canvas"></canvas>
@@ -12,7 +12,7 @@
         ipcRenderer.on('render-pdf-page', async (event, { filePath, pageNum, renderId }) => {
             try {
                 const pdfjsLib = window['pdfjs-dist/build/pdf'];
-                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js`;
+                pdfjsLib.GlobalWorkerOptions.workerSrc = `vendor/pdfjs/pdf.worker.min.js`;
 
                 const pdf = await pdfjsLib.getDocument(filePath).promise;
                 const page = await pdf.getPage(pageNum);
