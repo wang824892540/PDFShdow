@@ -216,23 +216,5 @@
             </div>
         </footer>
     </div>
-
-    <script>
-        // 简单的界面预览交互
-        document.querySelector('.showcase-placeholder').addEventListener('click', function() {
-            const image = this.querySelector('.showcase-image');
-            const hint = this.querySelector('.showcase-hint');
-            
-            if (image.style.opacity === '1') {
-                image.style.opacity = '0';
-                image.style.maxHeight = '0';
-                hint.style.opacity = '1';
-            } else {
-                image.style.opacity = '1';
-                image.style.maxHeight = '600px';
-                hint.style.opacity = '0';
-            }
-        });
-    </script>
 </body>
 </html>
