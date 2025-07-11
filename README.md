@@ -83,7 +83,7 @@ To clone and run this application locally for development:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/pdfshdow.git
+git clone https://github.com/wang824892540/PDFShdow.git
 
 # Navigate to the project directory
 cd pdfshdow
@@ -130,7 +130,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 For support, feature requests, or bug reports, please contact:
 - Email: 824892540@qq.com
 - Website: https://pdfshdow.cn
-- GitHub Issues: [Create an issue](https://github.com/your-username/pdfshdow/issues)
+- GitHub Issues: [Create an issue](https://github.com/wang824892540/PDFShdow/issues)
 
 ---
 

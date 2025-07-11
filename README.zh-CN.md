@@ -83,7 +83,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/pdfshdow.git
+git clone https://github.com/wang824892540/PDFShdow.git
 
 # 进入项目目录
 cd pdfshdow
@@ -130,7 +130,7 @@ yarn package
 如需支持、功能请求或错误报告，请联系：
 - 邮箱：824892540@qq.com
 - 网站：https://pdfshdow.cn
-- GitHub Issues：[创建问题](https://github.com/your-username/pdfshdow/issues)
+- GitHub Issues：[创建问题](https://github.com/wang824892540/PDFShdow/issues)
 
 ---
 
