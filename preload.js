@@ -7,7 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // File/Directory Dialogs
   openFile: () => ipcRenderer.invoke('open-file'),
-  selectDirectory: () => ipcRenderer.invoke('select-directory'),
+  selectDirectory: () => ipcRenderer.invoke('select-output-directory'),
   openImageFiles: () => ipcRenderer.invoke('open-image-files'),
 
   // PDF Processing
