@@ -134,5 +134,5 @@ For support, feature requests, or bug reports, please contact:
 
 ---
 
-**Version**: 0.0.6  
+**Version**: 0.0.7  
 **Last Updated**: January 2025
